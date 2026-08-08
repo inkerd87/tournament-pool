@@ -30,7 +30,8 @@ export function RegisterForm({ tournamentId, canRegister }: Props) {
       onSubmit={(e) => {
         e.preventDefault();
         setMessage(null);
-        const fd = new FormData(e.currentTarget);
+        const form = e.currentTarget;
+        const fd = new FormData(form);
         startTransition(async () => {
           const result = await submitRegistration({
             tournamentId,
@@ -43,7 +44,7 @@ export function RegisterForm({ tournamentId, canRegister }: Props) {
               type: "ok",
               text: `Вы в списке! (демо) Списано ${formatRub(ENTRY_FEE_RUB)} с тестового баланса. ID: ${result.registrationId.slice(0, 8)}…`,
             });
-            e.currentTarget.reset();
+            form.reset();
           } else {
             setMessage({ type: "err", text: result.error });
           }
