@@ -15,6 +15,21 @@ export function formatDateTime(iso: string): string {
   }).format(new Date(iso));
 }
 
+export function formatDateShort(iso: string): string {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
+export function placementLabel(placement: number | null): string {
+  if (placement === 1) return "1-е место";
+  if (placement === 2) return "2-е место";
+  if (placement === 3) return "3-е место";
+  return "Вылет";
+}
+
 export function statusLabel(
   status: "recruiting" | "full" | "live" | "finished",
 ): string {

@@ -16,37 +16,35 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="relative overflow-hidden border-b border-white/10">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(34,211,238,0.25),transparent)]" />
-        <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 bg-violet-600/20 blur-[100px]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-          <p className="text-sm font-medium uppercase tracking-widest text-cyan-400">
+      <section className="relative overflow-hidden border-b border-[color:var(--border)]">
+        <div className="page-grid pointer-events-none absolute inset-0" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-10%,rgba(190,242,100,0.12),transparent)]" />
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-lime-500/40 to-transparent" />
+
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+          <div className="inline-flex items-center gap-2 rounded-full border border-lime-500/20 bg-lime-400/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-lime-400/90">
+            <span className="h-1.5 w-1.5 rounded-full bg-lime-400" />
             CS2 · Dota 2 · PUBG · Valorant
-          </p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
+          </div>
+          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
             Турниры с общим банком —{" "}
-            <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
-              {formatRub(ENTRY_FEE_RUB)}
-            </span>{" "}
-            за вход
+            <span className="gradient-headline">{formatRub(ENTRY_FEE_RUB)}</span> за
+            вход
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-zinc-400">
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400">
             {DEFAULT_MAX_PLAYERS} игроков × {formatRub(ENTRY_FEE_RUB)} = банк{" "}
-            {formatRub(examplePool)}. Призы: {formatRub(PRIZE_BY_PLACE[1])} /{" "}
-            {formatRub(PRIZE_BY_PLACE[2])} / {formatRub(PRIZE_BY_PLACE[3])} за
-            топ-3. Остальные — без выплат, но с шансом на медаль.
+            <span className="font-semibold text-amber-200/90">
+              {formatRub(examplePool)}
+            </span>
+            . Призы: {formatRub(PRIZE_BY_PLACE[1])} / {formatRub(PRIZE_BY_PLACE[2])}{" "}
+            / {formatRub(PRIZE_BY_PLACE[3])} за топ-3. Остальные — без выплат, но с
+            шансом на медаль.
           </p>
-          <div className="mt-10 flex flex-wrap gap-4">
-            <Link
-              href="/tournaments"
-              className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-semibold text-black hover:bg-cyan-400"
-            >
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Link href="/tournaments" className="btn-primary px-7 py-3">
               Смотреть турниры
             </Link>
-            <Link
-              href="/how-it-works"
-              className="rounded-xl border border-white/15 px-6 py-3 text-sm font-medium text-white hover:bg-white/5"
-            >
+            <Link href="/how-it-works" className="btn-secondary px-7 py-3">
               Правила и выплаты
             </Link>
           </div>
@@ -56,39 +54,50 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold text-white">Ближайшие события</h2>
+            <h2 className="text-2xl font-extrabold tracking-tight text-white">
+              Ближайшие события
+            </h2>
             <p className="mt-1 text-zinc-500">Выберите игру и зарегистрируйтесь</p>
           </div>
-          <Link href="/tournaments" className="text-sm text-cyan-400 hover:text-cyan-300">
+          <Link href="/tournaments" className="link-accent text-sm font-semibold">
             Все турниры →
           </Link>
         </div>
-        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {featured.map((t) => (
             <TournamentCard key={t.id} tournament={t} />
           ))}
         </div>
       </section>
 
-      <section className="border-t border-white/10 bg-[#0a0d12]">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:grid-cols-3 sm:px-6">
+      <section className="border-t border-[color:var(--border)] bg-[color:var(--surface)]">
+        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-16 sm:grid-cols-3 sm:px-6">
           {[
             {
-              title: "1. Взнос",
+              step: "01",
+              title: "Взнос",
               text: `Каждый игрок платит ${formatRub(ENTRY_FEE_RUB)} на общий счёт турнира.`,
             },
             {
-              title: "2. Игра",
+              step: "02",
+              title: "Игра",
               text: "Сетка и лобби публикуются после набора. Формат зависит от дисциплины.",
             },
             {
-              title: "3. Призы",
+              step: "03",
+              title: "Призы",
               text: `Только 1–3 места: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])}.`,
             },
-          ].map((step) => (
-            <div key={step.title} className="rounded-2xl border border-white/10 p-6">
-              <h3 className="font-semibold text-white">{step.title}</h3>
-              <p className="mt-2 text-sm text-zinc-500">{step.text}</p>
+          ].map((item) => (
+            <div
+              key={item.step}
+              className="surface-card relative overflow-hidden p-6 hover:border-lime-500/20"
+            >
+              <span className="font-mono text-xs font-bold text-lime-500/50">
+                {item.step}
+              </span>
+              <h3 className="mt-2 font-bold text-white">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-500">{item.text}</p>
             </div>
           ))}
         </div>

@@ -26,3 +26,27 @@ export type Registration = {
   email: string;
   paidAt: string;
 };
+
+export type User = {
+  id: string;
+  email: string;
+  nickname: string;
+  balanceRub: number;
+  createdAt: string;
+};
+
+export type MatchHistoryEntry = {
+  id: string;
+  userId: string;
+  tournamentId: string;
+  tournamentTitle: string;
+  game: GameId;
+  /** 1–3 for podium; null if eliminated earlier */
+  placement: number | null;
+  kills: number;
+  deaths: number;
+  assists: number;
+  prizeRub: number;
+  entryFeeRub: number;
+  playedAt: string;
+};

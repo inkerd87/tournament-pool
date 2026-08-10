@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { DEFAULT_MAX_PLAYERS } from "./constants";
+import { DEFAULT_MAX_PLAYERS, ENTRY_FEE_RUB } from "./constants";
+import { chargeEntryFee, findOrCreateUser } from "./user-store";
 import type { Registration, Tournament } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -107,15 +108,34 @@ export type RegisterInput = {
   nickname: string;
   gameAccount: string;
   email: string;
+  /** Если пользователь уже в сессии — для привязки платежа */
+  sessionUserId?: string;
 };
 
 export type RegisterResult =
-  | { ok: true; registrationId: string }
+  | {
+      ok: true;
+      registrationId: string;
+      balanceRub: number;
+      user: { id: string; email: string; nickname: string };
+    }
   | { ok: false; error: string };
 
-export async function registerForTournament(
+export type ValidatedRegistration = {
+  ok: true;
+  normalized: {
+    tournamentId: string;
+    nickname: string;
+    gameAccount: string;
+    email: string;
+    userId?: string;
+  };
+  tournamentTitle: string;
+};
+
+export async function validateRegistrationInput(
   input: RegisterInput,
-): Promise<RegisterResult> {
+): Promise<ValidatedRegistration | { ok: false; error: string }> {
   const tournament = await getTournament(input.tournamentId);
   if (!tournament) {
     return { ok: false, error: "Турнир не найден." };
@@ -158,17 +178,80 @@ export async function registerForTournament(
     return { ok: false, error: "Все места заняты." };
   }
 
+  return {
+    ok: true,
+    normalized: {
+      tournamentId: input.tournamentId,
+      nickname,
+      gameAccount,
+      email,
+      userId: input.sessionUserId,
+    },
+    tournamentTitle: tournament.title,
+  };
+}
+
+/** Регистрация после успешной оплаты ЮKassa (без списания с кошелька). */
+export async function finalizeTournamentRegistration(
+  input: RegisterInput,
+): Promise<
+  | { ok: true; registrationId: string; user: { id: string; email: string; nickname: string } }
+  | { ok: false; error: string }
+> {
+  const validation = await validateRegistrationInput(input);
+  if (!validation.ok) return validation;
+
+  const { nickname, gameAccount, email, tournamentId } = validation.normalized;
+  const user = await findOrCreateUser(email, nickname);
+
   const registration: Registration = {
     id: crypto.randomUUID(),
-    tournamentId: input.tournamentId,
+    tournamentId,
     nickname,
     gameAccount,
     email,
     paidAt: new Date().toISOString(),
   };
 
+  const regs = await readRegistrations();
   regs.push(registration);
   await writeRegistrations(regs);
 
-  return { ok: true, registrationId: registration.id };
+  return {
+    ok: true,
+    registrationId: registration.id,
+    user: {
+      id: user.id,
+      email: user.email,
+      nickname: user.nickname,
+    },
+  };
+}
+
+export async function registerForTournament(
+  input: RegisterInput,
+): Promise<RegisterResult> {
+  const validation = await validateRegistrationInput(input);
+  if (!validation.ok) return validation;
+
+  const user = await findOrCreateUser(
+    validation.normalized.email,
+    validation.normalized.nickname,
+  );
+  const charge = await chargeEntryFee(user.id, ENTRY_FEE_RUB);
+  if (!charge.ok) {
+    return { ok: false, error: charge.error };
+  }
+
+  const finalized = await finalizeTournamentRegistration(input);
+  if (!finalized.ok) {
+    return finalized;
+  }
+
+  return {
+    ok: true,
+    registrationId: finalized.registrationId,
+    balanceRub: charge.balanceRub,
+    user: finalized.user,
+  };
 }

@@ -13,3 +13,6 @@ export const TOTAL_PRIZES_RUB =
   PRIZE_BY_PLACE[1] + PRIZE_BY_PLACE[2] + PRIZE_BY_PLACE[3];
 
 export const SITE_NAME = "PoolArena";
+
+/** Баланс кошелька после пополнения через ЮKassa */
+export const STARTING_BALANCE_RUB = 0;
