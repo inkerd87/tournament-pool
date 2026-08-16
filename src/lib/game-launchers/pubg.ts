@@ -1,4 +1,4 @@
-import type { Registration, TournamentLobby } from "./types";
+import type { Registration, TournamentLobby } from "@/lib/types";
 
 function randomPassword(length: number): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
