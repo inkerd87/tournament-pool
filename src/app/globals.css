@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --surface: #121214;
-  --surface-raised: #18181b;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.12);
-  --accent: #bef264;
-  --accent-dim: #84cc16;
-  --accent-foreground: #1a2e05;
+  --background: #07090d;
+  --foreground: #e4e4e7;
+  --surface: #0a0d12;
+  --surface-raised: #12161f;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --accent: #22d3ee;
+  --accent-dim: #06b6d4;
+  --accent-secondary: #8b5cf6;
+  --accent-foreground: #000000;
   --gold: #fcd34d;
   --muted: #71717a;
 }
@@ -32,47 +33,55 @@ body {
 }
 
 ::selection {
-  background: rgba(190, 242, 100, 0.35);
+  background: rgba(34, 211, 238, 0.35);
   color: #fff;
 }
 
 .page-grid {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%);
 }
 
 .gradient-headline {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 100%);
+  background: linear-gradient(135deg, #67e8f9 0%, #c4b5fd 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
+.rgb-glow {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 211, 238, 0.25),
+    rgba(139, 92, 246, 0.2)
+  );
+}
+
 .surface-card {
-  @apply rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)] transition;
+  @apply rounded-xl border border-[color:var(--border)] bg-[color:var(--surface-raised)] transition;
 }
 
 .surface-card:hover {
-  border-color: var(--border-strong);
+  border-color: rgba(34, 211, 238, 0.25);
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center rounded-lg bg-[color:var(--accent)] px-5 py-2.5 text-sm font-bold text-[color:var(--accent-foreground)] transition hover:bg-lime-300 disabled:opacity-50;
+  @apply inline-flex items-center justify-center rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-bold text-black transition hover:bg-cyan-400 disabled:opacity-50;
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-lg border border-[color:var(--border-strong)] bg-transparent px-5 py-2.5 text-sm font-semibold text-zinc-100 transition hover:bg-white/[0.04];
+  @apply inline-flex items-center justify-center rounded-lg border border-white/15 bg-transparent px-5 py-2.5 text-sm font-semibold text-zinc-100 transition hover:bg-white/5;
 }
 
 .input-field {
-  @apply mt-1.5 w-full rounded-lg border border-[color:var(--border-strong)] bg-black/50 px-4 py-2.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-lime-500/40 focus:ring-2 focus:ring-lime-500/15;
+  @apply mt-1.5 w-full rounded-lg border border-[color:var(--border-strong)] bg-black/50 px-4 py-2.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-cyan-500/40 focus:ring-2 focus:ring-cyan-500/15;
 }
 
 .link-accent {
-  @apply text-lime-400 transition hover:text-lime-300;
+  @apply text-cyan-400 transition hover:text-cyan-300;
 }
 
 .account-panel {
@@ -82,15 +91,29 @@ body {
 @keyframes account-glow-pulse {
   0%,
   100% {
-    opacity: 0.25;
+    opacity: 0.3;
     transform: scale(1);
   }
   50% {
-    opacity: 0.45;
-    transform: scale(1.04);
+    opacity: 0.55;
+    transform: scale(1.05);
   }
 }
 
 .account-glow {
   animation: account-glow-pulse 7s ease-in-out infinite;
+}
+
+@keyframes rgb-border-shift {
+  0%,
+  100% {
+    border-color: rgba(34, 211, 238, 0.35);
+  }
+  50% {
+    border-color: rgba(139, 92, 246, 0.35);
+  }
+}
+
+.rgb-border {
+  animation: rgb-border-shift 4s ease-in-out infinite;
 }

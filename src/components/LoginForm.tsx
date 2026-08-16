@@ -25,10 +25,11 @@ export function LoginForm() {
         });
       }}
     >
-      <div className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-lime-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-violet-600/15 blur-3xl" />
+      <div className="pointer-events-none absolute -left-16 bottom-0 h-32 w-32 rounded-full bg-cyan-500/10 blur-3xl" />
 
       <div className="relative">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-500/80">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400/80">
           Личный кабинет
         </p>
         <h1 className="mt-2 text-2xl font-extrabold text-white">Вход в PoolArena</h1>

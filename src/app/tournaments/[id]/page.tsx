@@ -7,7 +7,7 @@ import { PrizeBreakdown } from "@/components/PrizeBreakdown";
 import { RegisterForm } from "@/components/RegisterForm";
 import { formatDateTime, statusLabel } from "@/lib/format";
 import { GAMES } from "@/lib/games";
-import { isYooKassaConfigured } from "@/lib/yookassa";
+import { isTBankConfigured } from "@/lib/tbank";
 import {
   getRegistrationsForTournament,
   getTournament,
@@ -35,7 +35,7 @@ export default async function TournamentDetailPage({ params, searchParams }: Pro
   const canRegister = tournament.status === "recruiting";
   const session = await getSession();
   const walletUser = session ? await getUserById(session.userId) : null;
-  const paymentsEnabled = isYooKassaConfigured();
+  const paymentsEnabled = isTBankConfigured();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -66,7 +66,7 @@ export default async function TournamentDetailPage({ params, searchParams }: Pro
       </div>
 
       {paid === "1" && (
-        <p className="mt-6 rounded-xl border border-lime-500/25 bg-lime-500/10 px-4 py-3 text-sm text-lime-200">
+        <p className="mt-6 rounded-xl border border-cyan-500/25 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200">
           Оплата прошла успешно — вы зарегистрированы на турнир.
         </p>
       )}

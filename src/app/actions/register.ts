@@ -3,12 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createSession, getSession } from "@/lib/session";
 import {
-  attachYooKassaPaymentId,
-  createPendingPayment,
+  attachExternalPaymentId,
   createTournamentEntryPayment,
   createWalletTopUpPayment,
 } from "@/lib/payment-store";
-import { isYooKassaConfigured, createRedirectPayment } from "@/lib/yookassa";
+import { initSbpPayment, isTBankConfigured } from "@/lib/tbank";
 import { ENTRY_FEE_RUB } from "@/lib/constants";
 import { chargeEntryFee, findOrCreateUser, getUserById } from "@/lib/user-store";
 import {
@@ -34,11 +33,11 @@ export async function submitRegistration(input: RegisterInput) {
     }
   }
 
-  if (!isYooKassaConfigured()) {
+  if (!isTBankConfigured()) {
     return {
       ok: false as const,
       error:
-        "Платежи не настроены. Добавьте YOOKASSA_SHOP_ID и YOOKASSA_SECRET_KEY в .env.local и перезапустите сервер.",
+        "Платежи не настроены. Добавьте TBANK_TERMINAL_KEY и TBANK_PASSWORD в .env.local и перезапустите сервер.",
     };
   }
 
@@ -46,13 +45,15 @@ export async function submitRegistration(input: RegisterInput) {
   if (!prepared.ok) return prepared;
 
   try {
-    const { paymentId, confirmationUrl } = await createRedirectPayment({
+    const { paymentId } = await initSbpPayment({
       amountRub: ENTRY_FEE_RUB,
+      orderId: prepared.pendingId,
       description: `Взнос за турнир: ${prepared.tournamentTitle}`,
-      metadata: { pendingId: prepared.pendingId, kind: "tournament_entry" },
+      pendingId: prepared.pendingId,
+      kind: "tournament_entry",
       returnPath: `/payments/return?pending=${prepared.pendingId}`,
     });
-    await attachYooKassaPaymentId(prepared.pendingId, paymentId);
+    await attachExternalPaymentId(prepared.pendingId, paymentId);
 
     if (!session) {
       const user = await findOrCreateUser(
@@ -68,7 +69,7 @@ export async function submitRegistration(input: RegisterInput) {
 
     return {
       ok: true as const,
-      paymentUrl: confirmationUrl,
+      paymentUrl: `/payments/sbp?pending=${prepared.pendingId}`,
       pendingId: prepared.pendingId,
     };
   } catch (e) {
@@ -77,7 +78,7 @@ export async function submitRegistration(input: RegisterInput) {
   }
 }
 
-/** Оплата взноса с баланса (после пополнения через ЮKassa). */
+/** Оплата взноса с баланса (после пополнения через СБП). */
 export async function submitRegistrationFromBalance(input: RegisterInput) {
   const session = await getSession();
   if (!session) {
@@ -123,11 +124,10 @@ export async function startWalletTopUp(amountRub: number) {
     return { ok: false as const, error: "Войдите в кабинет для пополнения." };
   }
 
-  if (!isYooKassaConfigured()) {
+  if (!isTBankConfigured()) {
     return {
       ok: false as const,
-      error:
-        "Платежи не настроены. Добавьте YOOKASSA_SHOP_ID и YOOKASSA_SECRET_KEY в .env.local.",
+      error: "Платежи не настроены. Добавьте TBANK_TERMINAL_KEY и TBANK_PASSWORD в .env.local.",
     };
   }
 
@@ -135,17 +135,19 @@ export async function startWalletTopUp(amountRub: number) {
   if (!prepared.ok) return prepared;
 
   try {
-    const { paymentId, confirmationUrl } = await createRedirectPayment({
+    const { paymentId } = await initSbpPayment({
       amountRub,
+      orderId: prepared.pendingId,
       description: "Пополнение кошелька PoolArena",
-      metadata: { pendingId: prepared.pendingId, kind: "wallet_topup" },
+      pendingId: prepared.pendingId,
+      kind: "wallet_topup",
       returnPath: `/payments/return?pending=${prepared.pendingId}`,
     });
-    await attachYooKassaPaymentId(prepared.pendingId, paymentId);
+    await attachExternalPaymentId(prepared.pendingId, paymentId);
 
     return {
       ok: true as const,
-      paymentUrl: confirmationUrl,
+      paymentUrl: `/payments/sbp?pending=${prepared.pendingId}`,
       pendingId: prepared.pendingId,
     };
   } catch (e) {

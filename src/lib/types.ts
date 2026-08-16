@@ -27,6 +27,25 @@ export type Registration = {
   paidAt: string;
 };
 
+export type TournamentLobby = {
+  id: string;
+  matchNumber: number;
+  playerRegistrationIds: string[];
+  map: string;
+  mode: string;
+  region: string;
+  roomId: string;
+  password: string;
+  instructions: string[];
+};
+
+export type TournamentRuntime = {
+  tournamentId: string;
+  status: "live" | "finished";
+  startedAt: string;
+  lobbies: TournamentLobby[];
+};
+
 export type User = {
   id: string;
   email: string;

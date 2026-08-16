@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { confirmPendingPayment } from "@/app/actions/payments";
 import { getPendingById } from "@/lib/payment-store";
+import { isPaymentWaiting } from "@/lib/tbank";
 
 export const metadata = { title: "Оплата" };
 
@@ -37,7 +38,7 @@ export default async function PaymentReturnPage({ searchParams }: Props) {
     redirect("/account?topup=1");
   }
 
-  const waiting = result.status === "pending" || result.status === "waiting_for_capture";
+  const waiting = isPaymentWaiting(result.status);
 
   return (
     <div className="mx-auto max-w-lg px-4 py-20 text-center">

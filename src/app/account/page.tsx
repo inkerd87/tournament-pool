@@ -5,7 +5,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { WalletTopUpForm } from "@/components/WalletTopUpForm";
 import { formatDateShort, formatRub } from "@/lib/format";
 import { getSession } from "@/lib/session";
-import { isYooKassaConfigured } from "@/lib/yookassa";
+import { isTBankConfigured } from "@/lib/tbank";
 import {
   computeAccountStats,
   getMatchHistory,
@@ -41,17 +41,17 @@ export default async function AccountPage({ searchParams }: Props) {
   const stats = computeAccountStats(matches);
   const rank = rankLabel(stats);
   const rankColor = rankTierColor(rank);
-  const paymentsEnabled = isYooKassaConfigured();
+  const paymentsEnabled = isTBankConfigured();
 
   return (
     <div className="relative overflow-hidden">
       <div className="page-grid pointer-events-none absolute inset-x-0 top-0 h-[480px] opacity-50" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[320px] bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(190,242,100,0.1),transparent)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[320px] bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(34,211,238,0.12),transparent)]" />
 
       <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-lime-500/70">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-400/80">
               Player hub
             </p>
             <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
@@ -70,7 +70,7 @@ export default async function AccountPage({ searchParams }: Props) {
         </div>
 
         {topup === "1" && (
-          <p className="mt-6 rounded-xl border border-lime-500/25 bg-lime-500/10 px-4 py-3 text-sm text-lime-200">
+          <p className="mt-6 rounded-xl border border-cyan-500/25 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200">
             Баланс пополнен. Средства уже доступны для регистрации на турниры.
           </p>
         )}
@@ -125,25 +125,26 @@ export default async function AccountPage({ searchParams }: Props) {
           </div>
 
           <div className="lg:col-span-8">
-            <div className="relative overflow-hidden rounded-xl border border-lime-500/15 bg-gradient-to-br from-[color:var(--surface-raised)] via-[#141416] to-[#1a1a0f] p-8">
-              <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-lime-400/15 blur-3xl account-glow" />
+            <div className="relative overflow-hidden rounded-xl border border-cyan-500/15 bg-gradient-to-br from-[color:var(--surface-raised)] via-[#0c1018] to-[#12101f] p-8">
+              <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-violet-600/15 blur-3xl account-glow" />
+              <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl" />
               <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-lime-400/80">
+                  <p className="text-sm font-semibold text-cyan-400/80">
                     Доступный баланс
                   </p>
                   <p className="mt-2 font-mono text-5xl font-bold tracking-tight text-white sm:text-6xl">
                     {formatRub(user.balanceRub)}
                   </p>
                   <p className="mt-3 max-w-sm text-sm leading-relaxed text-zinc-500">
-                    Списывается при регистрации на турнир. Пополните картой через ЮKassa.
+                    Списывается при регистрации на турнир. Пополните через СБП (Т-Банк).
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:text-right">
                   <p className="text-xs font-medium uppercase tracking-wider text-zinc-600">
                     Всего выиграно
                   </p>
-                  <p className="font-mono text-2xl font-bold text-lime-400">
+                  <p className="font-mono text-2xl font-bold text-cyan-400">
                     +{formatRub(stats.totalPrizeRub)}
                   </p>
                   <p className="text-xs text-zinc-600">

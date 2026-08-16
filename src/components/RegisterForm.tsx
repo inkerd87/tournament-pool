@@ -75,12 +75,12 @@ export function RegisterForm({
     >
       <h2 className="text-lg font-bold text-white">Регистрация</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Взнос {formatRub(ENTRY_FEE_RUB)} — оплата картой через ЮKassa.
+        Взнос {formatRub(ENTRY_FEE_RUB)} — оплата через СБП (Т-Банк).
         {balanceRub !== undefined && (
           <>
             {" "}
             На балансе{" "}
-            <span className="font-mono font-semibold text-lime-400">
+            <span className="font-mono font-semibold text-cyan-400">
               {formatRub(balanceRub)}
             </span>
             .
@@ -127,7 +127,7 @@ export function RegisterForm({
         <p
           className={`mt-4 rounded-lg px-3 py-2 text-sm ${
             message.type === "ok"
-              ? "bg-lime-500/15 text-lime-200"
+              ? "bg-cyan-500/15 text-cyan-200"
               : "bg-red-500/15 text-red-200"
           }`}
         >
@@ -137,7 +137,7 @@ export function RegisterForm({
 
       {!paymentsEnabled && (
         <p className="mt-4 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-          Платежи не настроены. Добавьте ключи ЮKassa в{" "}
+          Платежи не настроены. Добавьте ключи Т-Банка в{" "}
           <code className="text-amber-200">.env.local</code> и перезапустите сервер.
         </p>
       )}
@@ -148,7 +148,7 @@ export function RegisterForm({
           disabled={pending || !paymentsEnabled}
           className="btn-primary w-full py-3"
         >
-          {pending ? "Переход к оплате…" : `Оплатить ${formatRub(ENTRY_FEE_RUB)} картой`}
+          {pending ? "Создаём платёж…" : `Оплатить ${formatRub(ENTRY_FEE_RUB)} через СБП`}
         </button>
 
         {canPayFromBalance && (

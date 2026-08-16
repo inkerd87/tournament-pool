@@ -16,7 +16,7 @@ export default function HowItWorksPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-500/70">
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400/80">
         Правила
       </p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white">
@@ -36,7 +36,7 @@ export default function HowItWorksPage() {
         <li>
           Когда набирается лимит (например, {DEFAULT_MAX_PLAYERS} человек), банк
           составляет{" "}
-          <strong className="font-mono text-lime-400">{formatRub(fullPool)}</strong> (
+          <strong className="font-mono text-cyan-400">{formatRub(fullPool)}</strong> (
           {DEFAULT_MAX_PLAYERS} × {formatRub(ENTRY_FEE_RUB)}).
         </li>
         <li>
@@ -55,16 +55,16 @@ export default function HowItWorksPage() {
         <h2 className="font-bold text-amber-50">Важно для запуска в РФ</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-amber-100/75">
           <li>
-            Приём денег от физлиц требует подключения платёжного агрегатора (ЮKassa,
-            Robokassa и т.п.) и договора с вашим юрлицом или ИП.
+            Приём денег от физлиц требует подключения эквайринга (СБП через
+            Т-Банк, ЮKassa и т.п.) и договора с вашим юрлицом или ИП.
           </li>
           <li>
             Турниры с взносом и денежными призами могут попадать под регулирование
             азартных игр / лотерей — нужна консультация юриста.
           </li>
           <li>
-            В этой версии сайта оплата <em>демонстрационная</em>: регистрация
-            сохраняется локально в файл для прототипа.
+            Оплата взносов и пополнение кошелька работают через СБП (Т-Банк) при
+            настройке ключей в <code className="text-amber-200">.env.local</code>.
           </li>
         </ul>
       </div>

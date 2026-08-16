@@ -2,39 +2,41 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Платежи (ЮKassa)
+## Платежи (СБП через Т-Банк)
 
-1. Скопируйте шаблон переменных окружения:
+1. Подключите интернет-эквайринг в [Т-Бизнес](https://www.tbank.ru/business/help/business-payments/internet-acquiring/how-involve/integrate/) и включите **СБП** в настройках магазина.
+
+2. Скопируйте шаблон переменных:
 
 ```bash
 cp .env.example .env.local
 ```
 
-2. В [личном кабинете ЮKassa](https://yookassa.ru/my/merchant/integration/api-keys) создайте магазин (для разработки включите **тестовый режим**) и скопируйте `shopId` и секретный ключ в `.env.local`:
+3. Заполните `.env.local`:
 
 ```
-YOOKASSA_SHOP_ID=ваш_shop_id
-YOOKASSA_SECRET_KEY=ваш_секретный_ключ
+TBANK_TERMINAL_KEY=ваш_terminal_key
+TBANK_PASSWORD=ваш_пароль_терминала
 APP_URL=http://localhost:3000
 AUTH_SECRET=случайная_строка
 ```
 
-3. Перезапустите `npm run dev`.
+4. Перезапустите `npm run dev`.
 
-4. **Webhook** (для продакшена): в настройках магазина укажите URL  
-   `https://ваш-домен.ru/api/payments/yookassa/webhook`  
-   и события `payment.succeeded`, `payment.waiting_for_capture`.  
-   Локально webhook не обязателен — после оплаты пользователь возвращается на `/payments/return`, где статус подтверждается автоматически.
+5. **Webhook** (продакшен): в настройках терминала или в запросе `Init` используется  
+   `https://ваш-домен.ru/api/payments/tbank/webhook`  
+   Ответ сервера на уведомление: `HTTP 200` с телом `OK`.
 
-### Сценарии оплаты
+Документация API: [developer.tbank.ru — СБП](https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/sbp/)
 
-- **Регистрация на турнир** — редирект на страницу ЮKassa, после успеха — регистрация в турнире.
-- **Пополнение кошелька** — в личном кабинете (`/account`), затем оплата взноса с баланса.
+### Сценарии
+
+- **Регистрация на турнир** — QR СБП на `/payments/sbp`, после оплаты — регистрация.
+- **Пополнение кошелька** — в `/account`, затем можно оплатить взнос с баланса.

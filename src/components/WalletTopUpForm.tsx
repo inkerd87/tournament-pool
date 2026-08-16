@@ -20,11 +20,11 @@ export function WalletTopUpForm({ paymentsEnabled }: Props) {
       <p className="text-sm text-zinc-500">
         Пополнение недоступно — настройте{" "}
         <code className="rounded bg-black/40 px-1.5 py-0.5 text-xs text-zinc-400">
-          YOOKASSA_SHOP_ID
+          TBANK_TERMINAL_KEY
         </code>{" "}
         и{" "}
         <code className="rounded bg-black/40 px-1.5 py-0.5 text-xs text-zinc-400">
-          YOOKASSA_SECRET_KEY
+          TBANK_PASSWORD
         </code>{" "}
         в <code className="text-zinc-400">.env.local</code>.
       </p>
@@ -55,7 +55,7 @@ export function WalletTopUpForm({ paymentsEnabled }: Props) {
             onClick={() => setAmount(preset)}
             className={`rounded-md border px-3 py-1.5 text-sm font-medium transition ${
               amount === preset
-                ? "border-lime-500/50 bg-lime-500/15 text-lime-300"
+                ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-300"
                 : "border-[color:var(--border)] bg-black/30 text-zinc-400 hover:text-zinc-200"
             }`}
           >
@@ -82,7 +82,7 @@ export function WalletTopUpForm({ paymentsEnabled }: Props) {
       )}
 
       <button type="submit" disabled={pending} className="btn-primary w-full sm:w-auto">
-        {pending ? "Переход к оплате…" : `Пополнить ${formatRub(amount)}`}
+        {pending ? "Создаём платёж…" : `Пополнить ${formatRub(amount)} через СБП`}
       </button>
     </form>
   );

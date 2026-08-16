@@ -46,7 +46,7 @@ export function PrizeBreakdown({ registered, maxPlayers }: Props) {
         </div>
         <div className="flex justify-between">
           <dt className="text-zinc-500">Банк при {maxPlayers} игроках</dt>
-          <dd className="font-mono font-semibold text-lime-400">
+          <dd className="font-mono font-semibold text-cyan-400">
             {formatRub(summary.potential)}
           </dd>
         </div>

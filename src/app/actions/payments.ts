@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getPendingById, syncPaymentFromYooKassa } from "@/lib/payment-store";
+import { getPendingById, syncPaymentFromProvider } from "@/lib/payment-store";
 
 export async function confirmPendingPayment(pendingId: string) {
   const pending = await getPendingById(pendingId);
-  if (!pending?.yookassaPaymentId) {
+  if (!pending?.externalPaymentId) {
     return {
       ok: false as const,
       status: "pending" as const,
@@ -13,7 +13,7 @@ export async function confirmPendingPayment(pendingId: string) {
     };
   }
 
-  const result = await syncPaymentFromYooKassa(pending.yookassaPaymentId);
+  const result = await syncPaymentFromProvider(pending.externalPaymentId);
 
   if (result.ok) {
     revalidatePath("/tournaments");

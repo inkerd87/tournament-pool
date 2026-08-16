@@ -24,7 +24,7 @@ export function MatchHistoryList({ matches }: { matches: MatchHistoryEntry[] }) 
         return (
           <li
             key={m.id}
-            className="group surface-card relative overflow-hidden p-4 sm:p-5 hover:border-lime-500/15"
+            className="group surface-card relative overflow-hidden p-4 sm:p-5 hover:border-cyan-500/15"
           >
             <div
               className="pointer-events-none absolute inset-y-0 left-0 w-0.5"
@@ -38,7 +38,7 @@ export function MatchHistoryList({ matches }: { matches: MatchHistoryEntry[] }) 
                   <span
                     className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
                       podium
-                        ? "bg-lime-400/15 text-lime-300"
+                        ? "bg-cyan-400/15 text-cyan-300"
                         : "bg-zinc-800 text-zinc-500"
                     }`}
                   >
@@ -70,7 +70,7 @@ export function MatchHistoryList({ matches }: { matches: MatchHistoryEntry[] }) 
                   </p>
                   <p
                     className={`mt-0.5 font-mono text-lg font-bold ${
-                      m.prizeRub > 0 ? "text-lime-400" : "text-zinc-600"
+                      m.prizeRub > 0 ? "text-cyan-400" : "text-zinc-600"
                     }`}
                   >
                     {m.prizeRub > 0 ? `+${formatRub(m.prizeRub)}` : "—"}
