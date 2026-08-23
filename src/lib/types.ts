@@ -46,6 +46,15 @@ export type TournamentRuntime = {
   lobbies: TournamentLobby[];
 };
 
+export type TournamentMatchAccess = {
+  tournamentId: string;
+  roomId: string;
+  password: string;
+  /** Необязательная ссылка (Discord, стрим, инструкция) */
+  joinUrl?: string;
+  updatedAt: string;
+};
+
 export type User = {
   id: string;
   email: string;

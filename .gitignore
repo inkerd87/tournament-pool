@@ -46,3 +46,4 @@ data/registrations.json
 data/users.json
 data/match-history.json
 data/pending-payments.json
+data/tournament-match.json

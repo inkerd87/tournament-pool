@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   submitRegistration,
   submitRegistrationFromBalance,
@@ -27,6 +28,7 @@ export function RegisterForm({
   paymentsEnabled,
   isLoggedIn,
 }: Props) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(
@@ -168,6 +170,7 @@ export function RegisterForm({
                     text: `Вы зарегистрированы! Списано ${formatRub(ENTRY_FEE_RUB)}, остаток ${formatRub(result.balanceRub)}.`,
                   });
                   form.reset();
+                  router.refresh();
                 } else {
                   setMessage({ type: "err", text: result.error });
                 }

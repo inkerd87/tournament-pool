@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { promises as fs } from "fs";
 import path from "path";
 import { DEFAULT_MAX_PLAYERS, ENTRY_FEE_RUB } from "./constants";
@@ -28,6 +29,17 @@ const SEED: Omit<Tournament, "registeredCount">[] = [
     status: "recruiting",
     format: "5v5, double elimination",
     description: "Командный турнир — соберите пятёрку или найдите teammates в лобби.",
+  },
+  {
+    id: "pubg-quick-001",
+    title: "PUBG Quick Lobby Test",
+    game: "pubg",
+    maxPlayers: 2,
+    startsAt: "2026-08-16T20:00:00+03:00",
+    status: "recruiting",
+    format: "Solo, 1 матч — для проверки лобби",
+    description:
+      "Тестовый турнир на 2 игрока. После оплаты взноса данные матча появятся в кабинете.",
   },
   {
     id: "pubg-solo-001",
@@ -101,6 +113,23 @@ export async function getRegistrationsForTournament(
 ): Promise<Registration[]> {
   const regs = await readRegistrations();
   return regs.filter((r) => r.tournamentId === tournamentId);
+}
+
+export async function getRegistrationsForUser(email: string): Promise<Registration[]> {
+  const normalized = email.trim().toLowerCase();
+  const regs = await readRegistrations();
+  return regs.filter((r) => r.email === normalized);
+}
+
+export async function isUserRegisteredForTournament(
+  email: string,
+  tournamentId: string,
+): Promise<boolean> {
+  const normalized = email.trim().toLowerCase();
+  const regs = await readRegistrations();
+  return regs.some(
+    (r) => r.email === normalized && r.tournamentId === tournamentId,
+  );
 }
 
 export type RegisterInput = {
@@ -202,6 +231,9 @@ export async function finalizeTournamentRegistration(
   if (!validation.ok) return validation;
 
   const { nickname, gameAccount, email, tournamentId } = validation.normalized;
+  const tournament = await getTournament(tournamentId);
+  if (!tournament) return { ok: false, error: "Турнир не найден." };
+
   const user = await findOrCreateUser(email, nickname);
 
   const registration: Registration = {
@@ -216,6 +248,10 @@ export async function finalizeTournamentRegistration(
   const regs = await readRegistrations();
   regs.push(registration);
   await writeRegistrations(regs);
+
+  revalidatePath("/tournaments");
+  revalidatePath(`/tournaments/${tournamentId}`);
+  revalidatePath("/account");
 
   return {
     ok: true,

@@ -1,12 +1,21 @@
 import type { Registration, TournamentLobby } from "@/lib/types";
 
-function randomPassword(length: number): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+/** PUBG Custom Match: Room ID и пароль — только цифры. */
+function randomDigits(length: number): string {
   let out = "";
   for (let i = 0; i < length; i++) {
-    out += chars[Math.floor(Math.random() * chars.length)];
+    out += String(Math.floor(Math.random() * 10));
+  }
+  if (out[0] === "0") {
+    out = String(1 + Math.floor(Math.random() * 9)) + out.slice(1);
   }
   return out;
+}
+
+function pubgRoomId(tournamentId: string): string {
+  const fromTournament = tournamentId.replace(/\D/g, "").padStart(4, "0").slice(-4);
+  const fromTime = String(Date.now()).slice(-4);
+  return `${fromTournament}${fromTime}`;
 }
 
 /** Демо-лаунчер: генерирует данные custom match для PUBG. */
@@ -14,8 +23,8 @@ export function createPubgCustomMatch(params: {
   tournamentId: string;
   registrations: Registration[];
 }): TournamentLobby {
-  const suffix = params.tournamentId.replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase();
-  const roomId = `PA${suffix}${String(Date.now()).slice(-4)}`;
+  const roomId = pubgRoomId(params.tournamentId);
+  const password = randomDigits(6);
 
   return {
     id: crypto.randomUUID(),
@@ -25,12 +34,12 @@ export function createPubgCustomMatch(params: {
     mode: "Solo TPP",
     region: "Europe",
     roomId,
-    password: randomPassword(6),
+    password,
     instructions: [
       "Откройте PUBG → Play → Custom Match → Join",
-      "Введите Room ID и пароль с этой страницы",
+      "В поле Room ID введите только цифры (без букв и пробелов)",
+      "Пароль — тоже только цифры",
       "Заходите с аккаунта, указанного при регистрации",
-      "Матч стартует автоматически, когда все слоты заполнены",
     ],
   };
 }

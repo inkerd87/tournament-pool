@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { MatchHistoryList } from "@/components/MatchHistoryList";
 import { LogoutButton } from "@/components/LogoutButton";
 import { WalletTopUpForm } from "@/components/WalletTopUpForm";
+import { RegisteredTournamentsList } from "@/components/RegisteredTournamentsList";
+import { getMatchAccess } from "@/lib/match-config-store";
+import { getRegistrationsForUser, getTournament } from "@/lib/tournament-store";
 import { formatDateShort, formatRub } from "@/lib/format";
 import { getSession } from "@/lib/session";
 import { isTBankConfigured } from "@/lib/tbank";
@@ -42,6 +45,19 @@ export default async function AccountPage({ searchParams }: Props) {
   const rank = rankLabel(stats);
   const rankColor = rankTierColor(rank);
   const paymentsEnabled = isTBankConfigured();
+
+  const registrations = await getRegistrationsForUser(user.email);
+  const registeredTournaments = await Promise.all(
+    registrations.map(async (reg) => {
+      const tournament = await getTournament(reg.tournamentId);
+      if (!tournament) return null;
+      const match = await getMatchAccess(reg.tournamentId);
+      return { tournament, match };
+    }),
+  );
+  const activeTournaments = registeredTournaments.filter(
+    (item): item is NonNullable<typeof item> => item !== null,
+  );
 
   return (
     <div className="relative overflow-hidden">
@@ -156,6 +172,18 @@ export default async function AccountPage({ searchParams }: Props) {
             </div>
           </div>
         </div>
+
+        <section className="mt-12">
+          <div>
+            <h2 className="text-xl font-extrabold text-white">Мои турниры</h2>
+            <p className="mt-1 text-sm text-zinc-500">
+              Оплаченные участия и данные для входа в матч
+            </p>
+          </div>
+          <div className="mt-6">
+            <RegisteredTournamentsList items={activeTournaments} />
+          </div>
+        </section>
 
         <section className="mt-12">
           <div>

@@ -11,7 +11,10 @@ import { isTBankConfigured } from "@/lib/tbank";
 import {
   getRegistrationsForTournament,
   getTournament,
+  isUserRegisteredForTournament,
 } from "@/lib/tournament-store";
+import { getMatchAccess } from "@/lib/match-config-store";
+import { MatchAccessPanel } from "@/components/MatchAccessPanel";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -32,10 +35,13 @@ export default async function TournamentDetailPage({ params, searchParams }: Pro
 
   const registrations = await getRegistrationsForTournament(id);
   const game = GAMES[tournament.game];
-  const canRegister = tournament.status === "recruiting";
   const session = await getSession();
   const walletUser = session ? await getUserById(session.userId) : null;
   const paymentsEnabled = isTBankConfigured();
+  const isRegistered =
+    !!session && (await isUserRegisteredForTournament(session.email, id));
+  const matchAccess = isRegistered ? await getMatchAccess(id) : null;
+  const canRegister = tournament.status === "recruiting" && !isRegistered;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -68,6 +74,17 @@ export default async function TournamentDetailPage({ params, searchParams }: Pro
       {paid === "1" && (
         <p className="mt-6 rounded-xl border border-cyan-500/25 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200">
           Оплата прошла успешно — вы зарегистрированы на турнир.
+        </p>
+      )}
+
+      {isRegistered && matchAccess && (
+        <MatchAccessPanel match={matchAccess} tournamentTitle={tournament.title} />
+      )}
+
+      {isRegistered && !matchAccess && (
+        <p className="mt-6 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          Вы оплатили участие. Данные матча (Room ID и пароль) появятся здесь, как
+          только администратор их опубликует.
         </p>
       )}
 

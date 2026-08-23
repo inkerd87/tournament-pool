@@ -1,0 +1,28 @@
+[
+  {
+    "tournamentId": "pubg-quick-001",
+    "status": "live",
+    "startedAt": "2026-08-16T18:57:18.457Z",
+    "lobbies": [
+      {
+        "id": "1d29762c-df81-48e5-80e8-139a5c71b0ff",
+        "matchNumber": 1,
+        "playerRegistrationIds": [
+          "403b8846-f2c0-43e5-9e3c-f9cf9edbc2f4",
+          "34e1650f-adfe-43a9-8fe7-e0daa335c0c9"
+        ],
+        "map": "Erangel",
+        "mode": "Solo TPP",
+        "region": "Europe",
+        "roomId": "PAK0018457",
+        "password": "QM793H",
+        "instructions": [
+          "Откройте PUBG → Play → Custom Match → Join",
+          "Введите Room ID и пароль с этой страницы",
+          "Заходите с аккаунта, указанного при регистрации",
+          "Матч стартует автоматически, когда все слоты заполнены"
+        ]
+      }
+    ]
+  }
+]
