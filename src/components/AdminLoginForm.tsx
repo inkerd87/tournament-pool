@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { adminLoginAction } from "@/app/actions/admin";
 
 export function AdminLoginForm() {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +20,9 @@ export function AdminLoginForm() {
           const result = await adminLoginAction(fd);
           if (result?.ok === false) {
             setError(result.error);
+            return;
           }
+          router.refresh();
         });
       }}
     >

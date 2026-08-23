@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createSession, clearSession } from "@/lib/session";
 import { findOrCreateUser } from "@/lib/user-store";
 
@@ -15,16 +14,23 @@ export async function loginAction(formData: FormData) {
     return { ok: false as const, error: "Ник должен быть не короче 2 символов." };
   }
 
-  const user = await findOrCreateUser(email, nickname);
-  await createSession({
-    userId: user.id,
-    email: user.email,
-    nickname: user.nickname,
-  });
-  redirect("/account");
+  try {
+    const user = await findOrCreateUser(email, nickname);
+    await createSession({
+      userId: user.id,
+      email: user.email,
+      nickname: user.nickname,
+    });
+    return { ok: true as const };
+  } catch {
+    return {
+      ok: false as const,
+      error: "Не удалось войти. Проверьте, что сервер может сохранять данные.",
+    };
+  }
 }
 
 export async function logoutAction() {
   await clearSession();
-  redirect("/");
+  return { ok: true as const };
 }

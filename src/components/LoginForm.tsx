@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { loginAction } from "@/app/actions/auth";
 import { STARTING_BALANCE_RUB } from "@/lib/constants";
 import { formatRub } from "@/lib/format";
 
 export function LoginForm() {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -19,9 +21,12 @@ export function LoginForm() {
         const fd = new FormData(e.currentTarget);
         startTransition(async () => {
           const result = await loginAction(fd);
-          if (result?.ok === false) {
-            setError(result.error);
+          if (result.ok) {
+            router.push("/account");
+            router.refresh();
+            return;
           }
+          setError(result.error);
         });
       }}
     >

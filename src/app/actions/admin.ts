@@ -16,7 +16,7 @@ export async function adminLoginAction(formData: FormData) {
     return { ok: false as const, error: "Неверный пароль администратора." };
   }
   await createAdminSession();
-  redirect("/admin");
+  return { ok: true as const };
 }
 
 export async function adminLogoutAction() {
