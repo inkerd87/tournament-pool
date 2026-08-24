@@ -20,11 +20,15 @@ export function WalletTopUpForm({ paymentsEnabled }: Props) {
       <p className="text-sm text-zinc-500">
         Пополнение недоступно — настройте{" "}
         <code className="rounded bg-black/40 px-1.5 py-0.5 text-xs text-zinc-400">
-          TBANK_TERMINAL_KEY
+          ROBOKASSA_MERCHANT_LOGIN
+        </code>
+        ,{" "}
+        <code className="rounded bg-black/40 px-1.5 py-0.5 text-xs text-zinc-400">
+          ROBOKASSA_PASSWORD1
         </code>{" "}
         и{" "}
         <code className="rounded bg-black/40 px-1.5 py-0.5 text-xs text-zinc-400">
-          TBANK_PASSWORD
+          ROBOKASSA_PASSWORD2
         </code>{" "}
         в <code className="text-zinc-400">.env.local</code>.
       </p>
@@ -82,7 +86,7 @@ export function WalletTopUpForm({ paymentsEnabled }: Props) {
       )}
 
       <button type="submit" disabled={pending} className="btn-primary w-full sm:w-auto">
-        {pending ? "Создаём платёж…" : `Пополнить ${formatRub(amount)} через СБП`}
+        {pending ? "Создаём платёж…" : `Пополнить ${formatRub(amount)}`}
       </button>
     </form>
   );

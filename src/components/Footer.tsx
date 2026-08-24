@@ -21,7 +21,7 @@ export function Footer() {
           </div>
         </div>
         <p className="max-w-xs text-xs leading-relaxed text-zinc-600">
-          Оплата через СБП (Т-Банк). Для продакшена нужен договор с юрлицом или ИП.
+          Оплата через Robokassa. Для продакшена нужен договор с юрлицом или ИП.
         </p>
       </div>
     </footer>

@@ -7,7 +7,7 @@ import { PrizeBreakdown } from "@/components/PrizeBreakdown";
 import { RegisterForm } from "@/components/RegisterForm";
 import { formatDateTime, statusLabel } from "@/lib/format";
 import { GAMES } from "@/lib/games";
-import { isTBankConfigured } from "@/lib/tbank";
+import { isRobokassaConfigured } from "@/lib/robokassa";
 import {
   getRegistrationsForTournament,
   getTournament,
@@ -37,7 +37,7 @@ export default async function TournamentDetailPage({ params, searchParams }: Pro
   const game = GAMES[tournament.game];
   const session = await getSession();
   const walletUser = session ? await getUserById(session.userId) : null;
-  const paymentsEnabled = isTBankConfigured();
+  const paymentsEnabled = isRobokassaConfigured();
   const isRegistered =
     !!session && (await isUserRegisteredForTournament(session.email, id));
   const matchAccess = isRegistered ? await getMatchAccess(id) : null;

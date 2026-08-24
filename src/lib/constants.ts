@@ -14,5 +14,5 @@ export const TOTAL_PRIZES_RUB =
 
 export const SITE_NAME = "PoolArena";
 
-/** Баланс кошелька после пополнения через СБП */
+/** Баланс кошелька после пополнения через Robokassa */
 export const STARTING_BALANCE_RUB = 0;

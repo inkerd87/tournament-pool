@@ -3,11 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createSession, getSession } from "@/lib/session";
 import {
-  attachExternalPaymentId,
   createTournamentEntryPayment,
   createWalletTopUpPayment,
 } from "@/lib/payment-store";
-import { initSbpPayment, isTBankConfigured } from "@/lib/tbank";
+import { buildPaymentUrl, isRobokassaConfigured } from "@/lib/robokassa";
 import { ENTRY_FEE_RUB } from "@/lib/constants";
 import { chargeEntryFee, findOrCreateUser, getUserById } from "@/lib/user-store";
 import {
@@ -33,11 +32,11 @@ export async function submitRegistration(input: RegisterInput) {
     }
   }
 
-  if (!isTBankConfigured()) {
+  if (!isRobokassaConfigured()) {
     return {
       ok: false as const,
       error:
-        "Платежи не настроены. Добавьте TBANK_TERMINAL_KEY и TBANK_PASSWORD в .env.local и перезапустите сервер.",
+        "Платежи не настроены. Добавьте ROBOKASSA_MERCHANT_LOGIN, ROBOKASSA_PASSWORD1 и ROBOKASSA_PASSWORD2 в .env.local и перезапустите сервер.",
     };
   }
 
@@ -45,15 +44,12 @@ export async function submitRegistration(input: RegisterInput) {
   if (!prepared.ok) return prepared;
 
   try {
-    const { paymentId } = await initSbpPayment({
+    const paymentUrl = buildPaymentUrl({
       amountRub: ENTRY_FEE_RUB,
-      orderId: prepared.pendingId,
+      invId: prepared.invoiceId,
       description: `Взнос за турнир: ${prepared.tournamentTitle}`,
       pendingId: prepared.pendingId,
-      kind: "tournament_entry",
-      returnPath: `/payments/return?pending=${prepared.pendingId}`,
     });
-    await attachExternalPaymentId(prepared.pendingId, paymentId);
 
     if (!session) {
       const user = await findOrCreateUser(
@@ -69,7 +65,7 @@ export async function submitRegistration(input: RegisterInput) {
 
     return {
       ok: true as const,
-      paymentUrl: `/payments/sbp?pending=${prepared.pendingId}`,
+      paymentUrl,
       pendingId: prepared.pendingId,
     };
   } catch (e) {
@@ -78,7 +74,7 @@ export async function submitRegistration(input: RegisterInput) {
   }
 }
 
-/** Оплата взноса с баланса (после пополнения через СБП). */
+/** Оплата взноса с баланса (после пополнения через Robokassa). */
 export async function submitRegistrationFromBalance(input: RegisterInput) {
   const session = await getSession();
   if (!session) {
@@ -124,10 +120,11 @@ export async function startWalletTopUp(amountRub: number) {
     return { ok: false as const, error: "Войдите в кабинет для пополнения." };
   }
 
-  if (!isTBankConfigured()) {
+  if (!isRobokassaConfigured()) {
     return {
       ok: false as const,
-      error: "Платежи не настроены. Добавьте TBANK_TERMINAL_KEY и TBANK_PASSWORD в .env.local.",
+      error:
+        "Платежи не настроены. Добавьте ROBOKASSA_MERCHANT_LOGIN, ROBOKASSA_PASSWORD1 и ROBOKASSA_PASSWORD2 в .env.local.",
     };
   }
 
@@ -135,19 +132,16 @@ export async function startWalletTopUp(amountRub: number) {
   if (!prepared.ok) return prepared;
 
   try {
-    const { paymentId } = await initSbpPayment({
+    const paymentUrl = buildPaymentUrl({
       amountRub,
-      orderId: prepared.pendingId,
+      invId: prepared.invoiceId,
       description: "Пополнение кошелька PoolArena",
       pendingId: prepared.pendingId,
-      kind: "wallet_topup",
-      returnPath: `/payments/return?pending=${prepared.pendingId}`,
     });
-    await attachExternalPaymentId(prepared.pendingId, paymentId);
 
     return {
       ok: true as const,
-      paymentUrl: `/payments/sbp?pending=${prepared.pendingId}`,
+      paymentUrl,
       pendingId: prepared.pendingId,
     };
   } catch (e) {

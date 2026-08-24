@@ -220,7 +220,7 @@ export async function validateRegistrationInput(
   };
 }
 
-/** Регистрация после успешной оплаты СБП (без списания с кошелька). */
+/** Регистрация после успешной оплаты (без списания с кошелька). */
 export async function finalizeTournamentRegistration(
   input: RegisterInput,
 ): Promise<

@@ -77,7 +77,7 @@ export function RegisterForm({
     >
       <h2 className="text-lg font-bold text-white">Регистрация</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Взнос {formatRub(ENTRY_FEE_RUB)} — оплата через СБП (Т-Банк).
+        Взнос {formatRub(ENTRY_FEE_RUB)} — оплата через Robokassa (карта, СБП и др.).
         {balanceRub !== undefined && (
           <>
             {" "}
@@ -139,7 +139,7 @@ export function RegisterForm({
 
       {!paymentsEnabled && (
         <p className="mt-4 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-          Платежи не настроены. Добавьте ключи Т-Банка в{" "}
+          Платежи не настроены. Добавьте ключи Robokassa в{" "}
           <code className="text-amber-200">.env.local</code> и перезапустите сервер.
         </p>
       )}
@@ -150,7 +150,7 @@ export function RegisterForm({
           disabled={pending || !paymentsEnabled}
           className="btn-primary w-full py-3"
         >
-          {pending ? "Создаём платёж…" : `Оплатить ${formatRub(ENTRY_FEE_RUB)} через СБП`}
+          {pending ? "Создаём платёж…" : `Оплатить ${formatRub(ENTRY_FEE_RUB)}`}
         </button>
 
         {canPayFromBalance && (

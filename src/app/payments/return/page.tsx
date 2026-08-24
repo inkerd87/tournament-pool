@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { confirmPendingPayment } from "@/app/actions/payments";
 import { getPendingById } from "@/lib/payment-store";
-import { isPaymentWaiting } from "@/lib/tbank";
+import { isPaymentWaiting } from "@/lib/robokassa";
 
 export const metadata = { title: "Оплата" };
 
@@ -47,7 +47,7 @@ export default async function PaymentReturnPage({ searchParams }: Props) {
       </h1>
       <p className="mt-3 text-zinc-500">
         {waiting
-          ? "Банк подтверждает платёж. Обновите страницу через несколько секунд или вернитесь в кабинет."
+          ? "Платёж подтверждается. Обновите страницу через несколько секунд или вернитесь в кабинет."
           : (result.error ?? "Платёж отменён или отклонён.")}
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">

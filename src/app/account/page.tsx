@@ -8,7 +8,7 @@ import { getMatchAccess } from "@/lib/match-config-store";
 import { getRegistrationsForUser, getTournament } from "@/lib/tournament-store";
 import { formatDateShort, formatRub } from "@/lib/format";
 import { getSession } from "@/lib/session";
-import { isTBankConfigured } from "@/lib/tbank";
+import { isRobokassaConfigured } from "@/lib/robokassa";
 import {
   computeAccountStats,
   getMatchHistory,
@@ -44,7 +44,7 @@ export default async function AccountPage({ searchParams }: Props) {
   const stats = computeAccountStats(matches);
   const rank = rankLabel(stats);
   const rankColor = rankTierColor(rank);
-  const paymentsEnabled = isTBankConfigured();
+  const paymentsEnabled = isRobokassaConfigured();
 
   const registrations = await getRegistrationsForUser(user.email);
   const registeredTournaments = await Promise.all(
@@ -153,7 +153,7 @@ export default async function AccountPage({ searchParams }: Props) {
                     {formatRub(user.balanceRub)}
                   </p>
                   <p className="mt-3 max-w-sm text-sm leading-relaxed text-zinc-500">
-                    Списывается при регистрации на турнир. Пополните через СБП (Т-Банк).
+                    Списывается при регистрации на турнир. Пополните через Robokassa.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:text-right">

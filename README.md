@@ -9,9 +9,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Платежи (СБП через Т-Банк)
+## Платежи (Robokassa)
 
-1. Подключите интернет-эквайринг в [Т-Бизнес](https://www.tbank.ru/business/help/business-payments/internet-acquiring/how-involve/integrate/) и включите **СБП** в настройках магазина.
+1. Подключите магазин в [Robokassa](https://robokassa.ru/) и получите **MerchantLogin**, **Password #1** и **Password #2**.
 
 2. Скопируйте шаблон переменных:
 
@@ -22,21 +22,25 @@ cp .env.example .env.local
 3. Заполните `.env.local`:
 
 ```
-TBANK_TERMINAL_KEY=ваш_terminal_key
-TBANK_PASSWORD=ваш_пароль_терминала
+ROBOKASSA_MERCHANT_LOGIN=ваш_логин
+ROBOKASSA_PASSWORD1=пароль_1
+ROBOKASSA_PASSWORD2=пароль_2
+ROBOKASSA_IS_TEST=1
 APP_URL=http://localhost:3000
 AUTH_SECRET=случайная_строка
 ```
 
 4. Перезапустите `npm run dev`.
 
-5. **Webhook** (продакшен): в настройках терминала или в запросе `Init` используется  
-   `https://ваш-домен.ru/api/payments/tbank/webhook`  
-   Ответ сервера на уведомление: `HTTP 200` с телом `OK`.
+5. **Result URL** (webhook, продакшен): в настройках магазина укажите  
+   `https://ваш-домен.ru/api/payments/robokassa/result`  
+   Метод: **POST**. Ответ сервера: `OK{InvId}`.
 
-Документация API: [developer.tbank.ru — СБП](https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/sbp/)
+6. **Success / Fail URL** можно оставить пустыми в кабинете — приложение передаёт их при создании платежа (`/payments/return?pending=…`).
+
+Документация: [docs.robokassa.ru](https://docs.robokassa.ru/)
 
 ### Сценарии
 
-- **Регистрация на турнир** — QR СБП на `/payments/sbp`, после оплаты — регистрация.
+- **Регистрация на турнир** — редирект на форму Robokassa, после оплаты — регистрация.
 - **Пополнение кошелька** — в `/account`, затем можно оплатить взнос с баланса.

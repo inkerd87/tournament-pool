@@ -7,15 +7,17 @@ import {
   type RegisterInput,
   validateRegistrationInput,
 } from "./tournament-store";
-import { getPaymentState, isTBankConfigured } from "./tbank";
+import { getPaymentState, isRobokassaConfigured } from "./robokassa";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const PAYMENTS_FILE = path.join(DATA_DIR, "pending-payments.json");
+const INVOICE_SEQ_FILE = path.join(DATA_DIR, "payment-invoice-seq.json");
 
 export type PaymentKind = "tournament_entry" | "wallet_topup";
 
 export type PendingPayment = {
   id: string;
+  invoiceId: number;
   kind: PaymentKind;
   amountRub: number;
   status: "pending" | "succeeded" | "canceled";
@@ -29,13 +31,33 @@ export type PendingPayment = {
   userId?: string;
 };
 
-type PendingPaymentRaw = PendingPayment & { yookassaPaymentId?: string | null };
+type PendingPaymentRaw = PendingPayment & {
+  yookassaPaymentId?: string | null;
+  invoiceId?: number;
+};
 
 function normalizePayment(raw: PendingPaymentRaw): PendingPayment {
-  if (!raw.externalPaymentId && raw.yookassaPaymentId) {
-    return { ...raw, externalPaymentId: raw.yookassaPaymentId };
+  const externalPaymentId =
+    raw.externalPaymentId ?? raw.yookassaPaymentId ?? null;
+  const invoiceId =
+    raw.invoiceId ??
+    (externalPaymentId && /^\d+$/.test(externalPaymentId)
+      ? Number(externalPaymentId)
+      : 0);
+  return { ...raw, externalPaymentId, invoiceId };
+}
+
+async function nextInvoiceId(): Promise<number> {
+  await ensureDataDir();
+  let next = 1;
+  try {
+    const raw = await fs.readFile(INVOICE_SEQ_FILE, "utf8");
+    next = (JSON.parse(raw) as { next: number }).next;
+  } catch {
+    /* first invoice */
   }
-  return raw;
+  await fs.writeFile(INVOICE_SEQ_FILE, JSON.stringify({ next: next + 1 }), "utf8");
+  return next;
 }
 
 async function ensureDataDir() {
@@ -58,13 +80,18 @@ async function writePayments(items: PendingPayment[]) {
 }
 
 export async function createPendingPayment(
-  data: Omit<PendingPayment, "id" | "status" | "externalPaymentId" | "createdAt" | "fulfilledAt">,
+  data: Omit<
+    PendingPayment,
+    "id" | "invoiceId" | "status" | "externalPaymentId" | "createdAt" | "fulfilledAt"
+  >,
 ): Promise<PendingPayment> {
+  const invoiceId = await nextInvoiceId();
   const item: PendingPayment = {
     ...data,
     id: crypto.randomUUID(),
+    invoiceId,
     status: "pending",
-    externalPaymentId: null,
+    externalPaymentId: String(invoiceId),
     createdAt: new Date().toISOString(),
     fulfilledAt: null,
   };
@@ -136,41 +163,72 @@ async function fulfillPending(pending: PendingPayment): Promise<void> {
   }
 }
 
+export async function fulfillRobokassaPayment(input: {
+  pendingId: string;
+  invoiceId: string;
+  amountRub: number;
+}): Promise<{ ok: boolean; tournamentId?: string; error?: string }> {
+  const pending = await getPendingById(input.pendingId);
+  if (!pending) {
+    return { ok: false, error: "Локальный платёж не найден." };
+  }
+
+  if (pending.status === "succeeded") {
+    return { ok: true, tournamentId: pending.tournamentId };
+  }
+
+  if (String(pending.invoiceId) !== input.invoiceId) {
+    return { ok: false, error: "Номер счёта не совпадает." };
+  }
+
+  if (Math.abs(pending.amountRub - input.amountRub) > 0.01) {
+    return { ok: false, error: "Сумма платежа не совпадает." };
+  }
+
+  try {
+    await fulfillPending(pending);
+    return { ok: true, tournamentId: pending.tournamentId };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Ошибка обработки платежа";
+    return { ok: false, error: message };
+  }
+}
+
 export async function syncPaymentFromProvider(externalPaymentId: string): Promise<{
   ok: boolean;
   status: string;
   pendingId?: string;
   error?: string;
 }> {
-  if (!isTBankConfigured()) {
+  if (!isRobokassaConfigured()) {
     return { ok: false, status: "error", error: "Платежи не настроены." };
   }
 
-  let pending = await getPendingByExternalId(externalPaymentId);
+  const pending = await getPendingByExternalId(externalPaymentId);
+  if (!pending) {
+    return { ok: false, status: "error", error: "Локальный платёж не найден." };
+  }
+
+  if (pending.status === "succeeded") {
+    return { ok: true, status: "succeeded", pendingId: pending.id };
+  }
+
+  if (pending.status === "canceled") {
+    return { ok: false, status: "canceled", pendingId: pending.id };
+  }
+
   const remote = await getPaymentState(externalPaymentId);
 
-  if (!pending) {
-    pending = await getPendingById(remote.orderId);
-    if (pending && !pending.externalPaymentId) {
-      await attachExternalPaymentId(pending.id, externalPaymentId);
-    }
-  }
-
-  if (!pending) {
-    return { ok: false, status: remote.status, error: "Локальный платёж не найден." };
-  }
-
-  const expectedKopecks = Math.round(pending.amountRub * 100);
-  if (remote.amountKopecks !== expectedKopecks) {
+  if (Math.abs(pending.amountRub - remote.amountRub) > 0.01) {
     return { ok: false, status: remote.status, error: "Сумма платежа не совпадает." };
   }
 
-  if (remote.status === "CONFIRMED") {
+  if (remote.status === "succeeded") {
     await fulfillPending(pending);
     return { ok: true, status: "succeeded", pendingId: pending.id };
   }
 
-  if (remote.status === "REJECTED" || remote.status === "CANCELED") {
+  if (remote.status === "canceled") {
     await markPayment(pending.id, "canceled");
     return { ok: false, status: "canceled", pendingId: pending.id };
   }
@@ -192,7 +250,7 @@ export async function createTournamentEntryPayment(input: RegisterInput) {
     userId: validation.normalized.userId,
   });
 
-  return { ok: true as const, pendingId: pending.id, tournamentTitle: validation.tournamentTitle };
+  return { ok: true as const, pendingId: pending.id, invoiceId: pending.invoiceId, tournamentTitle: validation.tournamentTitle };
 }
 
 export async function createWalletTopUpPayment(userId: string, email: string, amountRub: number) {
@@ -207,5 +265,5 @@ export async function createWalletTopUpPayment(userId: string, email: string, am
     email,
   });
 
-  return { ok: true as const, pendingId: pending.id };
+  return { ok: true as const, pendingId: pending.id, invoiceId: pending.invoiceId };
 }
