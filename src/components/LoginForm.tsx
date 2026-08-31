@@ -77,7 +77,11 @@ export function LoginForm() {
         </button>
 
         <p className="mt-6 text-center text-xs text-zinc-600">
-          Нет пароля — демо-режим.{" "}
+          Нет пароля — демо-режим. Входя, вы принимаете{" "}
+          <Link href="/privacy" className="text-zinc-400 hover:text-white">
+            политику конфиденциальности
+          </Link>
+          .{" "}
           <Link href="/how-it-works" className="text-zinc-400 hover:text-white">
             Как устроены выплаты
           </Link>

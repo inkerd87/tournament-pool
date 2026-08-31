@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   submitRegistration,
@@ -78,6 +79,11 @@ export function RegisterForm({
       <h2 className="text-lg font-bold text-white">Регистрация</h2>
       <p className="mt-1 text-sm text-zinc-500">
         Взнос {formatRub(ENTRY_FEE_RUB)} — оплата через Robokassa (карта, СБП и др.).
+        Отправляя форму, вы соглашаетесь с{" "}
+        <Link href="/privacy" className="text-zinc-400 underline hover:text-white">
+          политикой конфиденциальности
+        </Link>
+        .
         {balanceRub !== undefined && (
           <>
             {" "}

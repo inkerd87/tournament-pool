@@ -11,12 +11,15 @@ export function Footer() {
             Турниры по CS2, Dota 2, PUBG и другим играм. Взнос 100 ₽ с игрока —
             призы топ-3.
           </p>
-          <div className="mt-4 flex gap-4 text-sm">
+          <div className="mt-4 flex flex-wrap gap-4 text-sm">
             <Link href="/tournaments" className="link-accent">
               Турниры
             </Link>
             <Link href="/how-it-works" className="text-zinc-500 hover:text-zinc-300">
-              Правила
+              Как это работает
+            </Link>
+            <Link href="/privacy" className="text-zinc-500 hover:text-zinc-300">
+              Конфиденциальность
             </Link>
           </div>
         </div>
