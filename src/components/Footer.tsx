@@ -1,9 +1,10 @@
-import Link from "next/link";
-import { SITE_NAME } from "@/lib/constants";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { SITE_NAME } from '@/lib/constants';
 
-export function Footer() {
+export const Footer: React.FC = () => {
   return (
-    <footer className="mt-auto border-t border-[color:var(--border)] bg-[color:var(--surface)]">
+    <footer className="mt-auto border-t border-white/10 bg-[#0a0d12]">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 sm:flex-row sm:items-start sm:justify-between sm:px-6">
         <div>
           <p className="font-extrabold tracking-tight text-white">{SITE_NAME}</p>
@@ -12,14 +13,17 @@ export function Footer() {
             призы топ-3.
           </p>
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
-            <Link href="/tournaments" className="link-accent">
+            <Link to="/tournaments" className="link-accent">
               Турниры
             </Link>
-            <Link href="/how-it-works" className="text-zinc-500 hover:text-zinc-300">
+            <Link to="/how-it-works" className="text-zinc-500 hover:text-zinc-300">
               Как это работает
             </Link>
-            <Link href="/privacy" className="text-zinc-500 hover:text-zinc-300">
+            <Link to="/privacy" className="text-zinc-500 hover:text-zinc-300">
               Конфиденциальность
+            </Link>
+            <Link to="/admin" className="text-zinc-700 hover:text-zinc-400">
+              Админ
             </Link>
           </div>
         </div>
@@ -30,4 +34,4 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+};

@@ -1,53 +1,52 @@
-"use client";
+import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { adminLoginAction } from "@/app/actions/admin";
-
-export function AdminLoginForm() {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
+export const AdminLoginForm: React.FC = () => {
+  const { adminLogin } = useAuth();
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const success = adminLogin(password);
+    if (!success) {
+      setError('Неверный пароль администратора');
+    }
+  };
+
   return (
-    <form
-      className="surface-card max-w-md p-6"
-      onSubmit={(e) => {
-        e.preventDefault();
-        setError(null);
-        const fd = new FormData(e.currentTarget);
-        startTransition(async () => {
-          const result = await adminLoginAction(fd);
-          if (result?.ok === false) {
-            setError(result.error);
-            return;
-          }
-          router.refresh();
-        });
-      }}
-    >
-      <h1 className="text-xl font-bold text-white">Админка матчей</h1>
+    <div className="mx-auto max-w-md surface-card p-8 shadow-2xl">
+      <h1 className="text-2xl font-extrabold text-white">Вход в панель управления</h1>
       <p className="mt-2 text-sm text-zinc-500">
-        Введите пароль администратора, чтобы задать Room ID и пароль для игроков.
+        Управление турнирами и выдача доступов к матчам.
       </p>
-      <label className="mt-6 block text-sm">
-        <span className="font-medium text-zinc-400">Пароль</span>
-        <input
-          name="password"
-          type="password"
-          required
-          className="input-field mt-1"
-          autoComplete="current-password"
-        />
-      </label>
-      {error && (
-        <p className="mt-4 rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-200">
-          {error}
-        </p>
-      )}
-      <button type="submit" disabled={pending} className="btn-primary mt-6 w-full py-3">
-        {pending ? "Входим…" : "Войти"}
-      </button>
-    </form>
+
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Пароль администратора
+          </label>
+          <input
+            type="password"
+            required
+            className="input-field"
+            placeholder="Введите пароль..."
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        {error && (
+          <div className="rounded-lg bg-red-500/15 border border-red-500/30 p-3 text-xs text-red-300">
+            {error}
+          </div>
+        )}
+
+        <button type="submit" className="btn-primary w-full py-3">
+          Войти как администратор
+        </button>
+      </form>
+    </div>
   );
-}
+};

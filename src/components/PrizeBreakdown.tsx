@@ -1,14 +1,15 @@
-import { formatRub } from "@/lib/format";
-import { ENTRY_FEE_RUB, PRIZE_BY_PLACE, TOTAL_PRIZES_RUB } from "@/lib/constants";
+import React from 'react';
+import { formatRub } from '@/lib/format';
+import { ENTRY_FEE_RUB, PRIZE_BY_PLACE, TOTAL_PRIZES_RUB } from '@/lib/constants';
 
 type Props = {
   registered: number;
   maxPlayers: number;
 };
 
-const medals = ["🥇", "🥈", "🥉"] as const;
+const medals = ['🥇', '🥈', '🥉'] as const;
 
-export function PrizeBreakdown({ registered, maxPlayers }: Props) {
+export const PrizeBreakdown: React.FC<Props> = ({ registered, maxPlayers }) => {
   return (
     <div className="surface-card p-6">
       <h2 className="text-lg font-bold text-white">Призовой фонд</h2>
@@ -20,7 +21,7 @@ export function PrizeBreakdown({ registered, maxPlayers }: Props) {
         {([1, 2, 3] as const).map((place) => (
           <li
             key={place}
-            className="flex items-center justify-between rounded-lg border border-[color:var(--border)] bg-black/20 px-4 py-3"
+            className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-4 py-3"
           >
             <span className="flex items-center gap-2 text-zinc-300">
               <span aria-hidden>{medals[place - 1]}</span>
@@ -33,7 +34,7 @@ export function PrizeBreakdown({ registered, maxPlayers }: Props) {
         ))}
       </ul>
 
-      <dl className="mt-6 grid gap-3 border-t border-[color:var(--border)] pt-4 text-sm">
+      <dl className="mt-6 grid gap-3 border-t border-white/10 pt-4 text-sm">
         <div className="flex justify-between">
           <dt className="text-zinc-500">Взнос с игрока</dt>
           <dd className="font-mono font-medium text-white">
@@ -55,4 +56,4 @@ export function PrizeBreakdown({ registered, maxPlayers }: Props) {
       </dl>
     </div>
   );
-}
+};

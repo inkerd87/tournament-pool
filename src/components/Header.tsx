@@ -1,22 +1,21 @@
-import Link from "next/link";
-import { SITE_NAME } from "@/lib/constants";
-import { formatRub } from "@/lib/format";
-import { getSession } from "@/lib/session";
-import { getUserById } from "@/lib/user-store";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { SITE_NAME } from '@/lib/constants';
+import { formatRub } from '@/lib/format';
+import { useAuth } from '@/context/AuthContext';
 
 const links = [
-  { href: "/tournaments", label: "Турниры" },
-  { href: "/how-it-works", label: "Как это работает" },
+  { href: '/tournaments', label: 'Турниры' },
+  { href: '/how-it-works', label: 'Как это работает' },
 ];
 
-export async function Header() {
-  const session = await getSession();
-  const user = session ? await getUserById(session.userId) : null;
+export const Header: React.FC = () => {
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0d12]/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="group flex items-center gap-2">
+        <Link to="/" className="group flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-black text-black">
             NB
           </span>
@@ -28,7 +27,7 @@ export async function Header() {
           {links.map((l) => (
             <Link
               key={l.href}
-              href={l.href}
+              to={l.href}
               className="rounded-lg px-3 py-2 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white"
             >
               {l.label}
@@ -36,7 +35,7 @@ export async function Header() {
           ))}
           {user ? (
             <Link
-              href="/account"
+              to="/account"
               className="ml-1 flex items-center gap-2 rounded-lg border border-white/10 bg-[#12161f] py-1.5 pl-3 pr-2 text-sm transition hover:border-cyan-500/30"
             >
               <span className="hidden max-w-[100px] truncate text-zinc-300 sm:inline">
@@ -48,14 +47,14 @@ export async function Header() {
             </Link>
           ) : (
             <Link
-              href="/login"
+              to="/login"
               className="ml-1 rounded-lg px-3 py-2 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white"
             >
               Войти
             </Link>
           )}
           <Link
-            href="/tournaments"
+            to="/tournaments"
             className="btn-primary ml-2 hidden sm:inline-flex"
           >
             Участвовать
@@ -64,4 +63,4 @@ export async function Header() {
       </div>
     </header>
   );
-}
+};

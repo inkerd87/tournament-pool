@@ -1,93 +1,63 @@
-"use client";
+import React, { useState } from 'react';
+import { formatRub } from '@/lib/format';
+import { createRobokassaCheckoutUrl } from '@/lib/robokassa-client';
 
-import { useState, useTransition } from "react";
-import { startWalletTopUp } from "@/app/actions/register";
-import { formatRub } from "@/lib/format";
+const AMOUNTS = [100, 300, 500, 1000];
 
-type Props = {
-  paymentsEnabled: boolean;
-};
+export const WalletTopUpForm: React.FC = () => {
+  const [customAmount, setCustomAmount] = useState<string>('300');
 
-const PRESETS = [100, 300, 500, 1000] as const;
-
-export function WalletTopUpForm({ paymentsEnabled }: Props) {
-  const [pending, startTransition] = useTransition();
-  const [amount, setAmount] = useState(500);
-  const [error, setError] = useState<string | null>(null);
-
-  if (!paymentsEnabled) {
-    return (
-      <p className="text-sm text-zinc-500">
-        Пополнение недоступно — настройте{" "}
-        <code className="rounded bg-black/40 px-1.5 py-0.5 text-xs text-zinc-400">
-          ROBOKASSA_MERCHANT_LOGIN
-        </code>
-        ,{" "}
-        <code className="rounded bg-black/40 px-1.5 py-0.5 text-xs text-zinc-400">
-          ROBOKASSA_PASSWORD1
-        </code>{" "}
-        и{" "}
-        <code className="rounded bg-black/40 px-1.5 py-0.5 text-xs text-zinc-400">
-          ROBOKASSA_PASSWORD2
-        </code>{" "}
-        в <code className="text-zinc-400">.env.local</code>.
-      </p>
-    );
-  }
+  const handleTopUp = (amount: number) => {
+    if (amount < 10) return;
+    const checkoutUrl = createRobokassaCheckoutUrl({
+      amountRub: amount,
+      description: 'Пополнение кошелька NightByte',
+    });
+    window.location.href = checkoutUrl;
+  };
 
   return (
-    <form
-      className="mt-6 space-y-4"
-      onSubmit={(e) => {
-        e.preventDefault();
-        setError(null);
-        startTransition(async () => {
-          const result = await startWalletTopUp(amount);
-          if (result.ok) {
-            window.location.href = result.paymentUrl;
-            return;
-          }
-          setError(result.error);
-        });
-      }}
-    >
-      <div className="flex flex-wrap gap-2">
-        {PRESETS.map((preset) => (
+    <div className="surface-card p-6">
+      <h3 className="text-base font-bold text-white">Пополнение баланса</h3>
+      <p className="mt-1 text-xs text-zinc-500">
+        Через СБП или банковскую карту (Robokassa). Без комиссии.
+      </p>
+
+      <div className="mt-4 grid grid-cols-4 gap-2">
+        {AMOUNTS.map((amt) => (
           <button
-            key={preset}
+            key={amt}
             type="button"
-            onClick={() => setAmount(preset)}
-            className={`rounded-md border px-3 py-1.5 text-sm font-medium transition ${
-              amount === preset
-                ? "border-cyan-500/50 bg-cyan-500/15 text-cyan-300"
-                : "border-[color:var(--border)] bg-black/30 text-zinc-400 hover:text-zinc-200"
+            onClick={() => setCustomAmount(String(amt))}
+            className={`rounded-lg border py-2 text-xs font-semibold transition ${
+              customAmount === String(amt)
+                ? 'border-cyan-500 bg-cyan-500/15 text-cyan-300'
+                : 'border-white/10 bg-black/20 text-zinc-300 hover:border-white/20'
             }`}
           >
-            {formatRub(preset)}
+            {formatRub(amt)}
           </button>
         ))}
       </div>
 
-      <label className="block text-sm">
-        <span className="font-medium text-zinc-400">Сумма, ₽</span>
+      <div className="mt-4 flex gap-3">
         <input
           type="number"
-          min={100}
-          max={100_000}
-          step={100}
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          className="input-field mt-1"
+          min="50"
+          max="50000"
+          value={customAmount}
+          onChange={(e) => setCustomAmount(e.target.value)}
+          className="input-field mt-0 font-mono text-sm"
+          placeholder="Сумма в рублях"
         />
-      </label>
-
-      {error && (
-        <p className="rounded-lg bg-red-500/15 px-3 py-2 text-sm text-red-200">{error}</p>
-      )}
-
-      <button type="submit" disabled={pending} className="btn-primary w-full sm:w-auto">
-        {pending ? "Создаём платёж…" : `Пополнить ${formatRub(amount)}`}
-      </button>
-    </form>
+        <button
+          type="button"
+          onClick={() => handleTopUp(Number(customAmount))}
+          className="btn-primary whitespace-nowrap text-xs px-4"
+        >
+          Пополнить
+        </button>
+      </div>
+    </div>
   );
-}
+};

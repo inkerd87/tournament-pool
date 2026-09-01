@@ -1,89 +1,57 @@
-import { GameBadge } from "@/components/GameBadge";
-import {
-  formatDateTime,
-  formatRub,
-  placementLabel,
-} from "@/lib/format";
-import { GAMES } from "@/lib/games";
-import type { MatchHistoryEntry } from "@/lib/types";
+import React from 'react';
+import { MatchHistoryEntry } from '@/lib/types';
+import { formatDateShort, formatRub, placementLabel } from '@/lib/format';
+import { GameBadge } from '@/components/GameBadge';
 
-export function MatchHistoryList({ matches }: { matches: MatchHistoryEntry[] }) {
+export const MatchHistoryList: React.FC<{ matches: MatchHistoryEntry[] }> = ({ matches }) => {
   if (matches.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-[color:var(--border-strong)] p-10 text-center text-sm text-zinc-500">
-        Пока нет завершённых матчей — сыграйте первый турнир.
+      <div className="surface-card p-8 text-center text-sm text-zinc-500">
+        У вас пока нет завершённых матчей.
       </div>
     );
   }
 
   return (
-    <ul className="space-y-2">
-      {matches.map((m) => {
-        const game = GAMES[m.game];
-        const podium = m.placement !== null && m.placement <= 3;
-        return (
-          <li
-            key={m.id}
-            className="group surface-card relative overflow-hidden p-4 sm:p-5 hover:border-cyan-500/15"
-          >
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0 w-0.5"
-              style={{ background: game.accent }}
-            />
-
-            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1 pl-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <GameBadge game={m.game} />
-                  <span
-                    className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
-                      podium
-                        ? "bg-cyan-400/15 text-cyan-300"
-                        : "bg-zinc-800 text-zinc-500"
-                    }`}
-                  >
-                    {placementLabel(m.placement)}
-                  </span>
-                </div>
-                <h3 className="mt-2 truncate text-base font-bold text-white">
-                  {m.tournamentTitle}
-                </h3>
-                <p className="mt-1 text-xs text-zinc-500">{formatDateTime(m.playedAt)}</p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-6 sm:justify-end">
-                <div className="text-center">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
-                    K / D / A
-                  </p>
-                  <p className="mt-0.5 font-mono text-sm text-zinc-200">
-                    {m.kills}
-                    <span className="text-zinc-600"> / </span>
-                    {m.deaths}
-                    <span className="text-zinc-600"> / </span>
-                    {m.assists}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
-                    Приз
-                  </p>
-                  <p
-                    className={`mt-0.5 font-mono text-lg font-bold ${
-                      m.prizeRub > 0 ? "text-cyan-400" : "text-zinc-600"
-                    }`}
-                  >
-                    {m.prizeRub > 0 ? `+${formatRub(m.prizeRub)}` : "—"}
-                  </p>
-                  <p className="text-xs text-zinc-600">
-                    взнос {formatRub(m.entryFeeRub)}
-                  </p>
-                </div>
-              </div>
+    <div className="space-y-3">
+      {matches.map((m) => (
+        <div key={m.id} className="surface-card flex flex-wrap items-center justify-between gap-4 p-4 text-sm">
+          <div className="flex items-center gap-3">
+            <GameBadge game={m.game} />
+            <div>
+              <p className="font-semibold text-white">{m.tournamentTitle}</p>
+              <p className="text-xs text-zinc-500">{formatDateShort(m.playedAt)}</p>
             </div>
-          </li>
-        );
-      })}
-    </ul>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <span
+                className={`font-bold ${
+                  m.placement === 1
+                    ? 'text-amber-300'
+                    : m.placement === 2
+                    ? 'text-zinc-300'
+                    : m.placement === 3
+                    ? 'text-amber-600'
+                    : 'text-zinc-500'
+                }`}
+              >
+                {placementLabel(m.placement)}
+              </span>
+              <p className="text-xs text-zinc-500">
+                {m.kills} / {m.deaths} / {m.assists}
+              </p>
+            </div>
+
+            <div className="text-right font-mono">
+              <span className={m.prizeRub > 0 ? 'font-bold text-emerald-400' : 'text-zinc-500'}>
+                {m.prizeRub > 0 ? `+${formatRub(m.prizeRub)}` : '0 ₽'}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
-}
+};

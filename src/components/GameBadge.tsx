@@ -1,18 +1,23 @@
-import { GAMES } from "@/lib/games";
-import type { GameId } from "@/lib/types";
+import React from 'react';
+import { GameId } from '@/lib/types';
+import { GAMES } from '@/lib/games';
 
-export function GameBadge({ game }: { game: GameId }) {
-  const meta = GAMES[game];
+export const GameBadge: React.FC<{ game: GameId }> = ({ game }) => {
+  const info = GAMES[game];
   return (
     <span
-      className="inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wide"
+      className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wider"
       style={{
-        borderColor: `${meta.accent}44`,
-        color: meta.accent,
-        backgroundColor: `${meta.accent}10`,
+        backgroundColor: `${info.accent}18`,
+        color: info.accent,
+        border: `1px solid ${info.accent}40`,
       }}
     >
-      {meta.short}
+      <span
+        className="h-1.5 w-1.5 rounded-full"
+        style={{ backgroundColor: info.accent }}
+      />
+      {info.short}
     </span>
   );
-}
+};

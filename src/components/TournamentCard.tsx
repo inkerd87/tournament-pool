@@ -1,20 +1,20 @@
-import Link from "next/link";
-import { GameBadge } from "@/components/GameBadge";
-import { formatDateTime, formatRub, statusLabel } from "@/lib/format";
-import { GAMES } from "@/lib/games";
-import { ENTRY_FEE_RUB, TOTAL_PRIZES_RUB } from "@/lib/constants";
-import { poolSummary } from "@/lib/prize-pool";
-import type { Tournament } from "@/lib/types";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { GameBadge } from '@/components/GameBadge';
+import { formatDateTime, formatRub, statusLabel } from '@/lib/format';
+import { GAMES } from '@/lib/games';
+import { ENTRY_FEE_RUB, TOTAL_PRIZES_RUB } from '@/lib/constants';
+import { Tournament } from '@/lib/types';
 
-export function TournamentCard({ tournament }: { tournament: Tournament }) {
+export const TournamentCard: React.FC<{ tournament: Tournament }> = ({ tournament }) => {
   const game = GAMES[tournament.game];
-  const summary = poolSummary(tournament.registeredCount, tournament.maxPlayers);
+  const fillPercent = Math.min(100, Math.round((tournament.registeredCount / tournament.maxPlayers) * 100));
 
   return (
     <Link
-      href={`/tournaments/${tournament.id}`}
+      to={`/tournaments/${tournament.id}`}
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#12161f] p-5 transition hover:border-white/20 hover:shadow-[0_0_40px_-12px_var(--glow)]"
-      style={{ ["--glow" as string]: game.glow }}
+      style={{ ['--glow' as string]: game.glow }}
     >
       <div
         className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full blur-3xl opacity-40"
@@ -38,13 +38,13 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
           <span>
             {tournament.registeredCount} / {tournament.maxPlayers} игроков
           </span>
-          <span>{summary.fillPercent}%</span>
+          <span>{fillPercent}%</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full rounded-full transition-all"
             style={{
-              width: `${summary.fillPercent}%`,
+              width: `${fillPercent}%`,
               background: `linear-gradient(90deg, ${game.accent}, #22d3ee)`,
             }}
           />
@@ -59,4 +59,4 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
       </div>
     </Link>
   );
-}
+};

@@ -1,130 +1,75 @@
-"use client";
-
-import { useState, useTransition } from "react";
-import { saveMatchAccessAction } from "@/app/actions/admin";
-import type { Tournament } from "@/lib/types";
-import type { TournamentMatchAccess } from "@/lib/types";
-import { formatDateTime } from "@/lib/format";
+import React, { useState } from 'react';
+import { Tournament, TournamentMatchAccess } from '@/lib/types';
+import { useTournaments } from '@/context/TournamentContext';
 
 type Props = {
-  tournaments: Tournament[];
-  configs: TournamentMatchAccess[];
+  tournament: Tournament;
+  initialMatch?: TournamentMatchAccess | null;
 };
 
-export function AdminMatchForm({ tournaments, configs }: Props) {
-  const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(
-    null,
-  );
-  const [selectedId, setSelectedId] = useState(tournaments[0]?.id ?? "");
+export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) => {
+  const { updateMatch } = useTournaments();
+  const [roomId, setRoomId] = useState(initialMatch?.roomId || `NB_${tournament.game.toUpperCase()}_01`);
+  const [password, setPassword] = useState(initialMatch?.password || 'NB' + Math.floor(1000 + Math.random() * 9000));
+  const [joinUrl, setJoinUrl] = useState(initialMatch?.joinUrl || '');
+  const [saved, setSaved] = useState(false);
 
-  const current = configs.find((c) => c.tournamentId === selectedId);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateMatch(tournament.id, roomId, password, joinUrl);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   return (
-    <form
-      className="surface-card max-w-xl p-6"
-      onSubmit={(e) => {
-        e.preventDefault();
-        setMessage(null);
-        const fd = new FormData(e.currentTarget);
-        startTransition(async () => {
-          const result = await saveMatchAccessAction(fd);
-          if (result.ok) {
-            setMessage({
-              type: "ok",
-              text: "Данные матча сохранены. Все оплатившие игроки увидят их сразу.",
-            });
-          } else {
-            setMessage({ type: "err", text: result.error });
-          }
-        });
-      }}
-    >
-      <h2 className="text-lg font-bold text-white">Данные текущего матча</h2>
-      <p className="mt-1 text-sm text-zinc-500">
-        Выберите турнир и введите актуальные Room ID и пароль из PUBG. При новом
-        матче просто обновите значения здесь.
-      </p>
-
-      <div className="mt-6 space-y-4">
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-400">Турнир</span>
-          <select
-            name="tournamentId"
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
-            className="input-field mt-1"
-          >
-            {tournaments.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title} ({t.registeredCount}/{t.maxPlayers})
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-400">Room ID</span>
-          <input
-            name="roomId"
-            required
-            pattern="\d+"
-            defaultValue={current?.roomId}
-            key={`room-${selectedId}-${current?.updatedAt ?? "new"}`}
-            className="input-field mt-1 font-mono"
-            placeholder="12345678"
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-400">Пароль</span>
-          <input
-            name="password"
-            required
-            pattern="\d+"
-            defaultValue={current?.password}
-            key={`pass-${selectedId}-${current?.updatedAt ?? "new"}`}
-            className="input-field mt-1 font-mono"
-            placeholder="482917"
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-400">
-            Ссылка на матч (необязательно)
-          </span>
-          <input
-            name="joinUrl"
-            type="url"
-            defaultValue={current?.joinUrl ?? ""}
-            key={`url-${selectedId}-${current?.updatedAt ?? "new"}`}
-            className="input-field mt-1"
-            placeholder="https://discord.gg/…"
-          />
-        </label>
+    <form onSubmit={handleSubmit} className="surface-card p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-white">{tournament.title}</h3>
+        <span className="text-xs text-zinc-500">{tournament.registeredCount} участников</span>
       </div>
 
-      {current && (
-        <p className="mt-4 text-xs text-zinc-600">
-          Последнее обновление: {formatDateTime(current.updatedAt)}
-        </p>
-      )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="block text-xs text-zinc-400">Room ID / Имя лобби</label>
+          <input
+            type="text"
+            required
+            className="input-field"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-zinc-400">Пароль лобби</label>
+          <input
+            type="text"
+            required
+            className="input-field"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+      </div>
 
-      {message && (
-        <p
-          className={`mt-4 rounded-lg px-3 py-2 text-sm ${
-            message.type === "ok"
-              ? "bg-emerald-500/15 text-emerald-200"
-              : "bg-red-500/15 text-red-200"
-          }`}
-        >
-          {message.text}
-        </p>
-      )}
+      <div>
+        <label className="block text-xs text-zinc-400">Ссылка на стрим / Discord (опционально)</label>
+        <input
+          type="url"
+          className="input-field"
+          placeholder="https://discord.gg/..."
+          value={joinUrl}
+          onChange={(e) => setJoinUrl(e.target.value)}
+        />
+      </div>
 
-      <button type="submit" disabled={pending} className="btn-primary mt-6 w-full py-3">
-        {pending ? "Сохраняем…" : "Сохранить для всех игроков"}
-      </button>
+      <div className="flex items-center justify-between pt-2">
+        <button type="submit" className="btn-primary text-xs px-4 py-2">
+          {saved ? '✓ Сохранено!' : 'Опубликовать данные матча'}
+        </button>
+        {initialMatch && (
+          <span className="text-xs text-emerald-400">✓ Данные выданы участникам</span>
+        )}
+      </div>
     </form>
   );
-}
+};

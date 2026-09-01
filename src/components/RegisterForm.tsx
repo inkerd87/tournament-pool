@@ -1,43 +1,28 @@
-"use client";
-
-import { useRef, useState, useTransition } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  submitRegistration,
-  submitRegistrationFromBalance,
-} from "@/app/actions/register";
-import { ENTRY_FEE_RUB } from "@/lib/constants";
-import { formatRub } from "@/lib/format";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ENTRY_FEE_RUB } from '@/lib/constants';
+import { formatRub } from '@/lib/format';
+import { useAuth } from '@/context/AuthContext';
+import { useTournaments } from '@/context/TournamentContext';
+import { createRobokassaCheckoutUrl } from '@/lib/robokassa-client';
 
 type Props = {
   tournamentId: string;
   canRegister: boolean;
-  defaultEmail?: string;
-  defaultNickname?: string;
-  balanceRub?: number;
-  paymentsEnabled: boolean;
-  isLoggedIn: boolean;
 };
 
-export function RegisterForm({
-  tournamentId,
-  canRegister,
-  defaultEmail,
-  defaultNickname,
-  balanceRub,
-  paymentsEnabled,
-  isLoggedIn,
-}: Props) {
-  const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
-  const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(
-    null,
-  );
+export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => {
+  const navigate = useNavigate();
+  const { user, login, updateBalance } = useAuth();
+  const { registerForTournament } = useTournaments();
 
-  const canPayFromBalance =
-    isLoggedIn && balanceRub !== undefined && balanceRub >= ENTRY_FEE_RUB;
+  const [nickname, setNickname] = useState(user?.nickname || '');
+  const [gameAccount, setGameAccount] = useState('');
+  const [email, setEmail] = useState(user?.email || '');
+  const [payMethod, setPayMethod] = useState<'card' | 'balance'>('card');
+  const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const canPayFromBalance = user && user.balanceRub >= ENTRY_FEE_RUB;
 
   if (!canRegister) {
     return (
@@ -47,146 +32,146 @@ export function RegisterForm({
     );
   }
 
-  function readForm(form: HTMLFormElement) {
-    const fd = new FormData(form);
-    return {
-      tournamentId,
-      nickname: String(fd.get("nickname") ?? ""),
-      gameAccount: String(fd.get("gameAccount") ?? ""),
-      email: String(fd.get("email") ?? ""),
-    };
-  }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage(null);
+
+    if (!nickname.trim() || !gameAccount.trim() || !email.trim()) {
+      setMessage({ type: 'err', text: 'Пожалуйста, заполните все поля.' });
+      return;
+    }
+
+    if (!user) {
+      login(email.trim(), nickname.trim());
+    }
+
+    if (payMethod === 'balance') {
+      if (!user || user.balanceRub < ENTRY_FEE_RUB) {
+        setMessage({ type: 'err', text: 'Недостаточно средств на балансе.' });
+        return;
+      }
+      updateBalance(-ENTRY_FEE_RUB);
+      registerForTournament(tournamentId, nickname.trim(), gameAccount.trim(), email.trim());
+      setMessage({ type: 'ok', text: 'Успешно! Вы зарегистрированы на турнир.' });
+      setTimeout(() => {
+        navigate('/account');
+      }, 1200);
+    } else {
+      registerForTournament(tournamentId, nickname.trim(), gameAccount.trim(), email.trim());
+      const checkoutUrl = createRobokassaCheckoutUrl({
+        amountRub: ENTRY_FEE_RUB,
+        description: `Взнос за турнир #${tournamentId}`,
+      });
+      window.location.href = checkoutUrl;
+    }
+  };
 
   return (
-    <form
-      ref={formRef}
-      className="surface-card p-6"
-      onSubmit={(e) => {
-        e.preventDefault();
-        setMessage(null);
-        const form = e.currentTarget;
-        startTransition(async () => {
-          const input = readForm(form);
-          const result = await submitRegistration(input);
-          if (result.ok) {
-            window.location.href = result.paymentUrl;
-            return;
-          }
-          setMessage({ type: "err", text: result.error });
-        });
-      }}
-    >
-      <h2 className="text-lg font-bold text-white">Регистрация</h2>
+    <div className="surface-card p-6">
+      <h2 className="text-lg font-bold text-white">Регистрация на турнир</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Взнос {formatRub(ENTRY_FEE_RUB)} — оплата через Robokassa (карта, СБП и др.).
-        Отправляя форму, вы соглашаетесь с{" "}
-        <Link href="/privacy" className="text-zinc-400 underline hover:text-white">
-          политикой конфиденциальности
-        </Link>
-        .
-        {balanceRub !== undefined && (
-          <>
-            {" "}
-            На балансе{" "}
-            <span className="font-mono font-semibold text-cyan-400">
-              {formatRub(balanceRub)}
-            </span>
-            .
-          </>
-        )}
+        Взнос: <strong className="text-white">{formatRub(ENTRY_FEE_RUB)}</strong>
       </p>
 
-      <div className="mt-5 space-y-4">
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-400">Ник в игре</span>
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Никнейм в игре
+          </label>
           <input
-            name="nickname"
+            type="text"
             required
-            minLength={2}
-            defaultValue={defaultNickname}
-            className="input-field mt-1"
+            className="input-field"
+            placeholder="Например: CyberNinja"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
           />
-        </label>
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-400">Steam / Riot / PUBG ID</span>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Игровой ID (Steam ID / Riot ID / PUBG ID)
+          </label>
           <input
-            name="gameAccount"
+            type="text"
             required
-            minLength={3}
-            className="input-field mt-1"
-            placeholder="76561198…"
+            className="input-field"
+            placeholder="Например: 76561198000000000 или Ninja#EUW"
+            value={gameAccount}
+            onChange={(e) => setGameAccount(e.target.value)}
           />
-        </label>
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-400">Email</span>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Ваш Email
+          </label>
           <input
-            name="email"
             type="email"
             required
-            defaultValue={defaultEmail}
-            readOnly={isLoggedIn}
-            className="input-field mt-1"
-            placeholder="you@mail.ru"
+            className="input-field"
+            placeholder="you@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-        </label>
-      </div>
+        </div>
 
-      {message && (
-        <p
-          className={`mt-4 rounded-lg px-3 py-2 text-sm ${
-            message.type === "ok"
-              ? "bg-cyan-500/15 text-cyan-200"
-              : "bg-red-500/15 text-red-200"
-          }`}
-        >
-          {message.text}
-        </p>
-      )}
+        <div className="mt-4">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+            Способ оплаты
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setPayMethod('card')}
+              className={`rounded-lg border p-3 text-left text-sm font-medium transition ${
+                payMethod === 'card'
+                  ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
+                  : 'border-white/10 bg-black/20 text-zinc-400 hover:border-white/20'
+              }`}
+            >
+              💳 Карта / СБП (Robokassa)
+            </button>
+            <button
+              type="button"
+              onClick={() => setPayMethod('balance')}
+              disabled={!canPayFromBalance}
+              className={`rounded-lg border p-3 text-left text-sm font-medium transition ${
+                payMethod === 'balance'
+                  ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
+                  : canPayFromBalance
+                  ? 'border-white/10 bg-black/20 text-zinc-400 hover:border-white/20'
+                  : 'border-white/5 bg-black/10 text-zinc-600 opacity-50 cursor-not-allowed'
+              }`}
+            >
+              💰 С баланса ({user ? formatRub(user.balanceRub) : '0 ₽'})
+            </button>
+          </div>
+        </div>
 
-      {!paymentsEnabled && (
-        <p className="mt-4 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-          Платежи не настроены. Добавьте ключи Robokassa в{" "}
-          <code className="text-amber-200">.env.local</code> и перезапустите сервер.
-        </p>
-      )}
+        {message && (
+          <div
+            className={`rounded-lg p-3 text-sm ${
+              message.type === 'ok'
+                ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                : 'bg-red-500/15 text-red-300 border border-red-500/30'
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
 
-      <div className="mt-6 flex flex-col gap-2">
-        <button
-          type="submit"
-          disabled={pending || !paymentsEnabled}
-          className="btn-primary w-full py-3"
-        >
-          {pending ? "Создаём платёж…" : `Оплатить ${formatRub(ENTRY_FEE_RUB)}`}
+        <button type="submit" className="btn-primary w-full mt-4 py-3">
+          Оплатить {formatRub(ENTRY_FEE_RUB)} и участвовать
         </button>
 
-        {canPayFromBalance && (
-          <button
-            type="button"
-            disabled={pending}
-            className="btn-secondary w-full py-3"
-            onClick={() => {
-              setMessage(null);
-              const form = formRef.current;
-              if (!form) return;
-              startTransition(async () => {
-                const result = await submitRegistrationFromBalance(readForm(form));
-                if (result.ok) {
-                  setMessage({
-                    type: "ok",
-                    text: `Вы зарегистрированы! Списано ${formatRub(ENTRY_FEE_RUB)}, остаток ${formatRub(result.balanceRub)}.`,
-                  });
-                  form.reset();
-                  router.refresh();
-                } else {
-                  setMessage({ type: "err", text: result.error });
-                }
-              });
-            }}
-          >
-            Оплатить с баланса ({formatRub(ENTRY_FEE_RUB)})
-          </button>
-        )}
-      </div>
-    </form>
+        <p className="text-center text-xs text-zinc-600">
+          Нажимая «Оплатить», вы принимаете условия{' '}
+          <Link to="/privacy" className="text-zinc-500 underline hover:text-zinc-300">
+            политики конфиденциальности
+          </Link>
+        </p>
+      </form>
+    </div>
   );
-}
+};
