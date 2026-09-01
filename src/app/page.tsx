@@ -1,18 +1,16 @@
 import Link from "next/link";
 import {
-  DEFAULT_MAX_PLAYERS,
   ENTRY_FEE_RUB,
   PRIZE_BY_PLACE,
+  TOTAL_PRIZES_RUB,
 } from "@/lib/constants";
 import { formatRub } from "@/lib/format";
-import { defaultPotentialPool } from "@/lib/prize-pool";
 import { getTournaments } from "@/lib/tournament-store";
 import { TournamentCard } from "@/components/TournamentCard";
 
 export default async function HomePage() {
   const tournaments = await getTournaments();
   const featured = tournaments.slice(0, 3);
-  const examplePool = defaultPotentialPool(DEFAULT_MAX_PLAYERS);
 
   return (
     <div>
@@ -24,17 +22,15 @@ export default async function HomePage() {
             CS2 · Dota 2 · PUBG · Valorant
           </p>
           <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
-            Турниры с общим банком —{" "}
+            Киберспортивные турниры —{" "}
             <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
               {formatRub(ENTRY_FEE_RUB)}
             </span>{" "}
-            за вход
+            взнос
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-zinc-400">
-            {DEFAULT_MAX_PLAYERS} игроков × {formatRub(ENTRY_FEE_RUB)} = банк{" "}
-            {formatRub(examplePool)}. Призы: {formatRub(PRIZE_BY_PLACE[1])} /{" "}
-            {formatRub(PRIZE_BY_PLACE[2])} / {formatRub(PRIZE_BY_PLACE[3])} за
-            топ-3. Остальные — без выплат, но с шансом на медаль.
+            Взнос за участие всего {formatRub(ENTRY_FEE_RUB)}. Призовой фонд {formatRub(TOTAL_PRIZES_RUB)}:{" "}
+            {formatRub(PRIZE_BY_PLACE[1])} / {formatRub(PRIZE_BY_PLACE[2])} / {formatRub(PRIZE_BY_PLACE[3])} за топ-3 места.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link href="/tournaments" className="btn-primary px-6 py-3">
@@ -69,7 +65,7 @@ export default async function HomePage() {
           {[
             {
               title: "1. Взнос",
-              text: `Каждый игрок платит ${formatRub(ENTRY_FEE_RUB)} на общий счёт турнира.`,
+              text: `Каждый игрок вносит ${formatRub(ENTRY_FEE_RUB)} за участие в турнире.`,
             },
             {
               title: "2. Игра",

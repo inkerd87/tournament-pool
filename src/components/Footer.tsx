@@ -23,9 +23,10 @@ export function Footer() {
             </Link>
           </div>
         </div>
-        <p className="max-w-xs text-xs leading-relaxed text-zinc-600">
-          ©Copyright NightByte. Все права защищены
-        </p>
+        <div className="max-w-xs space-y-1 text-xs leading-relaxed text-zinc-600 sm:text-right">
+          <p>©Copyright NightByte. Все права защищены</p>
+          <p className="text-zinc-500">ИНН: 910408161157</p>
+        </div>
       </div>
     </footer>
   );

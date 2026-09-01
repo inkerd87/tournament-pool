@@ -1,6 +1,5 @@
 import { formatRub } from "@/lib/format";
-import { PRIZE_BY_PLACE } from "@/lib/constants";
-import { poolSummary } from "@/lib/prize-pool";
+import { ENTRY_FEE_RUB, PRIZE_BY_PLACE, TOTAL_PRIZES_RUB } from "@/lib/constants";
 
 type Props = {
   registered: number;
@@ -10,14 +9,11 @@ type Props = {
 const medals = ["🥇", "🥈", "🥉"] as const;
 
 export function PrizeBreakdown({ registered, maxPlayers }: Props) {
-  const summary = poolSummary(registered, maxPlayers);
-
   return (
     <div className="surface-card p-6">
-      <h2 className="text-lg font-bold text-white">Призы и банк</h2>
+      <h2 className="text-lg font-bold text-white">Призовой фонд</h2>
       <p className="mt-1 text-sm leading-relaxed text-zinc-500">
-        Каждый участник вносит {formatRub(summary.entryFee)}. Призы только за 1–3
-        место — остальные играют за шанс попасть в топ.
+        Взнос за участие — {formatRub(ENTRY_FEE_RUB)}. Призы гарантированно выплачиваются за 1–3 места.
       </p>
 
       <ul className="mt-6 space-y-2">
@@ -39,30 +35,24 @@ export function PrizeBreakdown({ registered, maxPlayers }: Props) {
 
       <dl className="mt-6 grid gap-3 border-t border-[color:var(--border)] pt-4 text-sm">
         <div className="flex justify-between">
-          <dt className="text-zinc-500">Собрано сейчас</dt>
+          <dt className="text-zinc-500">Взнос с игрока</dt>
           <dd className="font-mono font-medium text-white">
-            {formatRub(summary.collected)}
+            {formatRub(ENTRY_FEE_RUB)}
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-zinc-500">Банк при {maxPlayers} игроках</dt>
-          <dd className="font-mono font-semibold text-cyan-400">
-            {formatRub(summary.potential)}
+          <dt className="text-zinc-500">Общий призовой фонд</dt>
+          <dd className="font-mono font-semibold text-amber-200/90">
+            {formatRub(TOTAL_PRIZES_RUB)}
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-zinc-500">Выплаты топ-3</dt>
-          <dd className="font-mono text-zinc-300">{formatRub(summary.prizesPaid)}</dd>
-        </div>
-        <div className="flex justify-between text-xs">
-          <dt className="text-zinc-600">Остаток банка при полном наборе*</dt>
-          <dd className="font-mono text-zinc-500">{formatRub(summary.remainderAtFull)}</dd>
+          <dt className="text-zinc-500">Участников</dt>
+          <dd className="font-mono text-zinc-300">
+            {registered} / {maxPlayers}
+          </dd>
         </div>
       </dl>
-      <p className="mt-3 text-xs text-zinc-600">
-        * Остаток можно зарезервировать на комиссию платформы, анти-чит и организацию
-        — настройка для продакшена.
-      </p>
     </div>
   );
 }

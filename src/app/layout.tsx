@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: `%s · ${SITE_NAME}`,
   },
   description:
-    "Платформа турниров: взнос 100 ₽ с игрока, общий банк, призы за 1–3 место.",
+    "Платформа турниров: взнос 100 ₽ с игрока, призы за 1–3 место.",
 };
 
 export default function RootLayout({

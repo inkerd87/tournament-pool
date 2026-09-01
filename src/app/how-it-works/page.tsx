@@ -1,21 +1,17 @@
 import Link from "next/link";
 import {
-  DEFAULT_MAX_PLAYERS,
   ENTRY_FEE_RUB,
   PRIZE_BY_PLACE,
   SITE_NAME,
   TOTAL_PRIZES_RUB,
 } from "@/lib/constants";
 import { formatRub } from "@/lib/format";
-import { defaultPotentialPool } from "@/lib/prize-pool";
 
 export const metadata = {
   title: "Как это работает",
 };
 
 export default function HowItWorksPage() {
-  const fullPool = defaultPotentialPool(DEFAULT_MAX_PLAYERS);
-
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400/80">
@@ -25,9 +21,8 @@ export default function HowItWorksPage() {
         Как это работает
       </h1>
       <p className="mt-4 leading-relaxed text-zinc-400">
-        {SITE_NAME} — площадка любительских турниров. Игроки платят одинаковый
-        взнос в общий банк, организатор проводит матчи, денежные призы получают
-        только места 1–3.
+        {SITE_NAME} — площадка любительских турниров. Взнос за участие составляет {formatRub(ENTRY_FEE_RUB)},
+        денежные призы выплачиваются победителям за места 1–3.
       </p>
 
       <h2 className="mt-12 text-xl font-bold text-white">Путь игрока</h2>
@@ -66,28 +61,21 @@ export default function HowItWorksPage() {
         </li>
       </ol>
 
-      <h2 className="mt-12 text-xl font-bold text-white">Банк и призы</h2>
+      <h2 className="mt-12 text-xl font-bold text-white">Взносы и призы</h2>
       <ol className="mt-5 list-decimal space-y-5 pl-5 leading-relaxed text-zinc-300">
         <li>
-          При полном наборе (например, {DEFAULT_MAX_PLAYERS} человек) банк
-          составляет{" "}
-          <strong className="font-mono text-cyan-400">{formatRub(fullPool)}</strong>{" "}
-          ({DEFAULT_MAX_PLAYERS} × {formatRub(ENTRY_FEE_RUB)}).
+          Взнос за участие в турнире:{" "}
+          <strong className="font-mono text-cyan-400">{formatRub(ENTRY_FEE_RUB)}</strong> с игрока.
         </li>
         <li>
-          Выплаты только за места 1–3:{" "}
-          <strong className="text-amber-200/90">{formatRub(PRIZE_BY_PLACE[1])}</strong>
-          ,{" "}
-          <strong className="text-amber-200/90">{formatRub(PRIZE_BY_PLACE[2])}</strong>
-          ,{" "}
-          <strong className="text-amber-200/90">{formatRub(PRIZE_BY_PLACE[3])}</strong>{" "}
-          — всего {formatRub(TOTAL_PRIZES_RUB)}. Остальные участники приз не
-          получают.
+          Призовой фонд распределяется за места 1–3:{" "}
+          <strong className="text-amber-200/90">{formatRub(PRIZE_BY_PLACE[1])}</strong> (1 место),{" "}
+          <strong className="text-amber-200/90">{formatRub(PRIZE_BY_PLACE[2])}</strong> (2 место),{" "}
+          <strong className="text-amber-200/90">{formatRub(PRIZE_BY_PLACE[3])}</strong> (3 место)
+          — общий призовой фонд составляет {formatRub(TOTAL_PRIZES_RUB)}.
         </li>
         <li>
-          Разница между собранным банком и призовым фондом идёт на организацию
-          (площадка, модерация, платёжная комиссия). Это не лотерея с
-          случайным выигрышем: результат зависит от игры.
+          Результат матча зависит исключительно от навыков игроков. Призовые выплаты производятся по итогам турнира.
         </li>
       </ol>
 

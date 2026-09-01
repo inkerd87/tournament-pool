@@ -2,6 +2,7 @@ import Link from "next/link";
 import { GameBadge } from "@/components/GameBadge";
 import { formatDateTime, formatRub, statusLabel } from "@/lib/format";
 import { GAMES } from "@/lib/games";
+import { ENTRY_FEE_RUB, TOTAL_PRIZES_RUB } from "@/lib/constants";
 import { poolSummary } from "@/lib/prize-pool";
 import type { Tournament } from "@/lib/types";
 
@@ -51,10 +52,10 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
       </div>
       <div className="relative mt-4 flex items-end justify-between border-t border-white/5 pt-4">
         <div>
-          <p className="text-xs text-zinc-500">Банк при полном наборе</p>
-          <p className="text-xl font-bold text-white">{formatRub(summary.potential)}</p>
+          <p className="text-xs text-zinc-500">Призовой фонд</p>
+          <p className="text-xl font-bold text-amber-200/90">{formatRub(TOTAL_PRIZES_RUB)}</p>
         </div>
-        <span className="text-sm font-medium text-cyan-400">Взнос 100 ₽ →</span>
+        <span className="text-sm font-medium text-cyan-400">Взнос {formatRub(ENTRY_FEE_RUB)} →</span>
       </div>
     </Link>
   );
