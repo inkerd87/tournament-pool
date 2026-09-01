@@ -14,7 +14,7 @@
 /coverage
 
 # next.js
-/.next/
+# /.next/ (allowed for shared hosting pre-build)
 /out/
 
 # production

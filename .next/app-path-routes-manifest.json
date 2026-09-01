@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/account/page": "/account",
+  "/admin/page": "/admin",
+  "/api/payments/robokassa/result/route": "/api/payments/robokassa/result",
+  "/favicon.ico/route": "/favicon.ico",
+  "/how-it-works/page": "/how-it-works",
+  "/login/page": "/login",
+  "/page": "/",
+  "/payments/return/page": "/payments/return",
+  "/privacy/page": "/privacy",
+  "/tournaments/[id]/page": "/tournaments/[id]",
+  "/tournaments/page": "/tournaments"
+}

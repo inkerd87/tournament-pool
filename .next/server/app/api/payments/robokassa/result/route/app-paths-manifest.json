@@ -1,0 +1,3 @@
+{
+  "/api/payments/robokassa/result/route": "app/api/payments/robokassa/result/route.js"
+}

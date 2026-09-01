@@ -1,0 +1,29 @@
+{
+  "node": {
+    "404408ce2399369ca2dc1dba23d90b9252380a428d": {
+      "workers": {
+        "app/tournaments/[id]/page": {
+          "moduleId": 73470,
+          "async": false,
+          "exportedName": "submitRegistration",
+          "filename": "src/app/actions/register.ts"
+        }
+      },
+      "exportedName": "submitRegistration",
+      "filename": "src/app/actions/register.ts"
+    },
+    "407aa392367798790904125bca0cc21f2ac20124c9": {
+      "workers": {
+        "app/tournaments/[id]/page": {
+          "moduleId": 73470,
+          "async": false,
+          "exportedName": "submitRegistrationFromBalance",
+          "filename": "src/app/actions/register.ts"
+        }
+      },
+      "exportedName": "submitRegistrationFromBalance",
+      "filename": "src/app/actions/register.ts"
+    }
+  },
+  "edge": {}
+}
