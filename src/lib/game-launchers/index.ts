@@ -22,7 +22,7 @@ function createCs2Lobby(params: {
     map: "de_mirage",
     mode: "5v5 Competitive",
     region: "EU West",
-    roomId: `connect pa-${suffix.toLowerCase()}.poolarena.demo`,
+    roomId: `connect nb-${suffix.toLowerCase()}.nightbyte.demo`,
     password: randomPassword(6),
     instructions: [
       "Откройте CS2 → Play → Community Servers",
@@ -45,7 +45,7 @@ function createDota2Lobby(params: {
     map: "Captain's Mode",
     mode: "5v5",
     region: "Europe",
-    roomId: `PoolArena_${suffix}`,
+    roomId: `NightByte_${suffix}`,
     password: randomPassword(6),
     instructions: [
       "Dota 2 → Play → Browse Lobbies",
@@ -67,7 +67,7 @@ function createValorantLobby(params: {
     map: "Ascent",
     mode: "5v5 BO3",
     region: "EU",
-    roomId: `PA-${suffix}-${randomPassword(4)}`,
+    roomId: `NB-${suffix}-${randomPassword(4)}`,
     password: randomPassword(6),
     instructions: [
       "Valorant → Play → Custom Game → Join",

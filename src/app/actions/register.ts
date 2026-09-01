@@ -7,7 +7,7 @@ import {
   createWalletTopUpPayment,
 } from "@/lib/payment-store";
 import { buildPaymentUrl, isRobokassaConfigured } from "@/lib/robokassa";
-import { ENTRY_FEE_RUB } from "@/lib/constants";
+import { ENTRY_FEE_RUB, SITE_NAME } from "@/lib/constants";
 import { chargeEntryFee, findOrCreateUser, getUserById } from "@/lib/user-store";
 import {
   finalizeTournamentRegistration,
@@ -135,7 +135,7 @@ export async function startWalletTopUp(amountRub: number) {
     const paymentUrl = buildPaymentUrl({
       amountRub,
       invId: prepared.invoiceId,
-      description: "Пополнение кошелька PoolArena",
+      description: `Пополнение кошелька ${SITE_NAME}`,
       pendingId: prepared.pendingId,
     });
 

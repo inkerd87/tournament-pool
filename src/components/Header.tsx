@@ -18,7 +18,7 @@ export async function Header() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="group flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-black text-black">
-            PA
+            NB
           </span>
           <span className="text-lg font-semibold tracking-tight text-white group-hover:text-cyan-300">
             {SITE_NAME}

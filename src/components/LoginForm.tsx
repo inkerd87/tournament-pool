@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginAction } from "@/app/actions/auth";
-import { STARTING_BALANCE_RUB } from "@/lib/constants";
+import { SITE_NAME, STARTING_BALANCE_RUB } from "@/lib/constants";
 import { formatRub } from "@/lib/format";
 
 export function LoginForm() {
@@ -37,7 +37,9 @@ export function LoginForm() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400/80">
           Личный кабинет
         </p>
-        <h1 className="mt-2 text-2xl font-extrabold text-white">Вход в PoolArena</h1>
+        <h1 className="mt-2 text-2xl font-extrabold text-white">
+          Вход в {SITE_NAME}
+        </h1>
         <p className="mt-2 text-sm text-zinc-500">
           Новым игрокам начисляем {formatRub(STARTING_BALANCE_RUB)} на демо-баланс.
         </p>

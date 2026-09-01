@@ -3,6 +3,7 @@ import {
   DEFAULT_MAX_PLAYERS,
   ENTRY_FEE_RUB,
   PRIZE_BY_PLACE,
+  SITE_NAME,
   TOTAL_PRIZES_RUB,
 } from "@/lib/constants";
 import { formatRub } from "@/lib/format";
@@ -24,7 +25,7 @@ export default function HowItWorksPage() {
         Как это работает
       </h1>
       <p className="mt-4 leading-relaxed text-zinc-400">
-        PoolArena — площадка любительских турниров. Игроки платят одинаковый
+        {SITE_NAME} — площадка любительских турниров. Игроки платят одинаковый
         взнос в общий банк, организатор проводит матчи, денежные призы получают
         только места 1–3.
       </p>

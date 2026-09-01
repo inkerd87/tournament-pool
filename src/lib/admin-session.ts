@@ -5,7 +5,7 @@ const COOKIE_NAME = "pa_admin";
 
 function getSecret() {
   return new TextEncoder().encode(
-    process.env.AUTH_SECRET ?? "poolarena-dev-secret-change-me",
+    process.env.AUTH_SECRET ?? "nightbyte-dev-secret-change-me",
   );
 }
 

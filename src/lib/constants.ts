@@ -12,7 +12,7 @@ export const PRIZE_BY_PLACE: Record<1 | 2 | 3, number> = {
 export const TOTAL_PRIZES_RUB =
   PRIZE_BY_PLACE[1] + PRIZE_BY_PLACE[2] + PRIZE_BY_PLACE[3];
 
-export const SITE_NAME = "PoolArena";
+export const SITE_NAME = "NightByte";
 
 /** Баланс кошелька после пополнения через Robokassa */
 export const STARTING_BALANCE_RUB = 0;
