@@ -20,12 +20,19 @@ export const Header: React.FC = () => {
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0a0d12]/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link to="/" onClick={closeMenu} className="group flex items-center gap-2.5 shrink-0">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-black text-black shadow-md shadow-cyan-500/20">
-            NB
-          </span>
-          <span className="text-lg font-bold tracking-tight text-white group-hover:text-cyan-300 transition">
-            {SITE_NAME}
-          </span>
+          <img
+            src="/logo-icon.jpg"
+            alt="NightByte Logo"
+            className="h-10 w-10 rounded-xl object-contain border border-cyan-500/25 shadow-md shadow-cyan-500/25 group-hover:border-cyan-400/50 group-hover:scale-105 transition-all duration-200"
+          />
+          <div className="flex flex-col">
+            <span className="text-lg font-extrabold tracking-tight text-white group-hover:text-cyan-300 transition leading-tight">
+              {SITE_NAME}
+            </span>
+            <span className="text-[10px] font-semibold tracking-wider text-cyan-400 uppercase leading-none">
+              ONLINE.RU
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Navigation (>= 1024px) */}

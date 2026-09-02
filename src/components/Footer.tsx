@@ -7,11 +7,18 @@ export const Footer: React.FC = () => {
     <footer className="mt-auto border-t border-white/10 bg-[#0a0d12]">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:py-12 sm:flex-row sm:items-start sm:justify-between sm:px-6">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded bg-gradient-to-br from-cyan-400 to-violet-500 text-xs font-black text-black">
-              NB
-            </span>
-            <p className="font-extrabold tracking-tight text-white">{SITE_NAME}</p>
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo-icon.jpg"
+              alt="NightByte Logo"
+              className="h-9 w-9 rounded-xl object-contain border border-cyan-500/20 shadow-sm shadow-cyan-500/10"
+            />
+            <div className="flex flex-col">
+              <p className="font-extrabold tracking-tight text-white leading-tight">{SITE_NAME}</p>
+              <span className="text-[9px] font-semibold tracking-wider text-cyan-400 uppercase leading-none">
+                ONLINE.RU
+              </span>
+            </div>
           </div>
           <p className="mt-2.5 max-w-md text-xs sm:text-sm leading-relaxed text-zinc-400">
             Турниры по CS2, Dota 2, PUBG и Valorant. Фиксированный взнос 100 ₽ с игрока —
