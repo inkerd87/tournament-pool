@@ -68,6 +68,16 @@ export const HowItWorksPage: React.FC = () => {
             пожизненной блокировкой аккаунта без возврата средств.
           </p>
         </section>
+
+        <section className="space-y-4 rounded-2xl border border-cyan-500/20 bg-cyan-950/20 p-6">
+          <h2 className="text-xl font-bold text-cyan-300">5. Спортивный статус (Skill-Based)</h2>
+          <p className="leading-relaxed text-zinc-300 text-sm">
+            Все турниры на платформе NightByte являются официальными киберспортивными соревнованиями, в которых результат зависит исключительно от навыков, реакции, стратегии и подготовки участников.
+          </p>
+          <p className="leading-relaxed text-zinc-400 text-sm">
+            Взнос 100 ₽ — это фиксированная плата за организационные услуги и доступ к инфраструктуре матча, а не ставка на исход. Платформа категорически не проводит азартные игры, пари или лотереи: призовой фонд формируется организатором за достижение лучших спортивных результатов.
+          </p>
+        </section>
       </div>
 
       <div className="mt-12 pt-8 border-t border-white/10">
