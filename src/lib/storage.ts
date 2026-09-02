@@ -7,7 +7,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "CS2 Weekly Cup #1",
     game: "cs2",
     maxPlayers: DEFAULT_MAX_PLAYERS,
-    registeredCount: 48,
+    registeredCount: 0,
     startsAt: "2026-09-05T18:00:00+03:00",
     status: "recruiting",
     format: "5v5, single elimination, BO1",
@@ -18,7 +18,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "Dota 2 Open Pool",
     game: "dota2",
     maxPlayers: DEFAULT_MAX_PLAYERS,
-    registeredCount: 35,
+    registeredCount: 0,
     startsAt: "2026-09-06T20:00:00+03:00",
     status: "recruiting",
     format: "5v5, double elimination",
@@ -29,7 +29,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "PUBG Solo Showdown",
     game: "pubg",
     maxPlayers: 100,
-    registeredCount: 64,
+    registeredCount: 0,
     startsAt: "2026-09-07T19:00:00+03:00",
     status: "recruiting",
     format: "Solo, 3 матча, сумма очков",
@@ -40,7 +40,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "Valorant Skirmish",
     game: "valorant",
     maxPlayers: 64,
-    registeredCount: 28,
+    registeredCount: 0,
     startsAt: "2026-09-08T21:00:00+03:00",
     status: "recruiting",
     format: "5v5, BO3 финал",
@@ -49,9 +49,9 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments');
+  const data = localStorage.getItem('nb_tournaments_v4');
   if (!data) {
-    localStorage.setItem('nb_tournaments', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v4', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -62,7 +62,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v4', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {
@@ -84,7 +84,7 @@ export function saveUser(user: User | null) {
 }
 
 export function getStoredRegistrations(): Registration[] {
-  const data = localStorage.getItem('nb_registrations');
+  const data = localStorage.getItem('nb_registrations_v4');
   if (!data) return [];
   try {
     return JSON.parse(data);
@@ -94,20 +94,22 @@ export function getStoredRegistrations(): Registration[] {
 }
 
 export function saveRegistrations(regs: Registration[]) {
-  localStorage.setItem('nb_registrations', JSON.stringify(regs));
+  localStorage.setItem('nb_registrations_v4', JSON.stringify(regs));
 }
 
 export function getStoredMatches(): Record<string, TournamentMatchAccess> {
   const data = localStorage.getItem('nb_matches');
   if (!data) {
-    return {
-      "pubg-solo-001": {
-        tournamentId: "pubg-solo-001",
-        roomId: "NightByte_PUBG_01",
-        password: "NB" + Math.floor(1000 + Math.random() * 9000),
+    const initial = {
+      'pubg-solo-001': {
+        tournamentId: 'pubg-solo-001',
+        roomId: 'NightByte_PUBG_01',
+        password: 'NB' + Math.floor(1000 + Math.random() * 9000),
         updatedAt: new Date().toISOString(),
       }
     };
+    localStorage.setItem('nb_matches', JSON.stringify(initial));
+    return initial;
   }
   try {
     return JSON.parse(data);
@@ -120,16 +122,12 @@ export function saveMatches(matches: Record<string, TournamentMatchAccess>) {
   localStorage.setItem('nb_matches', JSON.stringify(matches));
 }
 
-export function getStoredHistory(userId: string): MatchHistoryEntry[] {
-  const data = localStorage.getItem(`nb_history_${userId}`);
+export function getStoredHistory(email: string): MatchHistoryEntry[] {
+  const data = localStorage.getItem(`nb_history_${email}`);
   if (!data) return [];
   try {
     return JSON.parse(data);
   } catch {
     return [];
   }
-}
-
-export function saveHistory(userId: string, history: MatchHistoryEntry[]) {
-  localStorage.setItem(`nb_history_${userId}`, JSON.stringify(history));
 }
