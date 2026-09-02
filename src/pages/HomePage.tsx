@@ -4,6 +4,14 @@ import { ENTRY_FEE_RUB, PRIZE_BY_PLACE, TOTAL_PRIZES_RUB } from '@/lib/constants
 import { formatRub } from '@/lib/format';
 import { useTournaments } from '@/context/TournamentContext';
 import { TournamentCard } from '@/components/TournamentCard';
+import { GameIcon } from '@/components/GameIcons';
+
+const HERO_GAMES = [
+  { id: 'cs2', name: 'CS2', color: '#f97316', glow: 'rgba(249, 115, 22, 0.4)' },
+  { id: 'dota2', name: 'Dota 2', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.4)' },
+  { id: 'pubg', name: 'PUBG', color: '#facc15', glow: 'rgba(250, 204, 21, 0.35)' },
+  { id: 'valorant', name: 'Valorant', color: '#ff4655', glow: 'rgba(255, 70, 85, 0.4)' },
+] as const;
 
 export const HomePage: React.FC = () => {
   const { tournaments } = useTournaments();
@@ -15,13 +23,34 @@ export const HomePage: React.FC = () => {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(34,211,238,0.25),transparent)]" />
         <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 bg-violet-600/20 blur-[100px]" />
         
-        <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-24">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            CS2 · Dota 2 · PUBG · Valorant
-          </span>
+        <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-20">
+          
+          {/* Neon Game Badges Strip */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mb-4 sm:mb-6">
+            <span className="text-[11px] uppercase tracking-widest font-extrabold text-zinc-500 mr-1 hidden sm:inline">
+              Дисциплины:
+            </span>
+            {HERO_GAMES.map((g) => (
+              <Link
+                key={g.id}
+                to="/tournaments"
+                className="group flex items-center gap-1.5 sm:gap-2 rounded-xl border border-white/10 bg-[#12161f]/90 px-3 py-1.5 text-xs font-bold text-zinc-300 transition-all duration-200 hover:border-white/30 hover:scale-105 active:scale-95"
+                style={{
+                  boxShadow: `0 0 15px -4px ${g.glow}`,
+                }}
+              >
+                <span
+                  className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-lg transition-transform group-hover:scale-110"
+                  style={{ backgroundColor: `${g.color}25`, color: g.color }}
+                >
+                  <GameIcon game={g.id} className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                </span>
+                <span className="group-hover:text-white transition-colors">{g.name}</span>
+              </Link>
+            ))}
+          </div>
 
-          <h1 className="mt-4 max-w-3xl text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
+          <h1 className="max-w-3xl text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
             Киберспортивные турниры —{' '}
             <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
               {formatRub(ENTRY_FEE_RUB)}
@@ -29,23 +58,23 @@ export const HomePage: React.FC = () => {
             взнос
           </h1>
 
-          <p className="mt-4 max-w-2xl text-base sm:text-lg text-zinc-400 leading-relaxed">
+          <p className="mt-3.5 sm:mt-5 max-w-2xl text-sm sm:text-lg text-zinc-400 leading-relaxed">
             Входной взнос всего {formatRub(ENTRY_FEE_RUB)}. Призовой фонд {formatRub(TOTAL_PRIZES_RUB)}:{' '}
             {formatRub(PRIZE_BY_PLACE[1])} / {formatRub(PRIZE_BY_PLACE[2])} / {formatRub(PRIZE_BY_PLACE[3])} за топ-3 места.
           </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Link to="/tournaments" className="btn-primary w-full sm:w-auto py-3 text-center">
+          <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <Link to="/tournaments" className="btn-primary w-full sm:w-auto py-3 px-6 text-center text-sm font-bold shadow-lg shadow-cyan-500/20">
               Смотреть турниры
             </Link>
-            <Link to="/how-it-works" className="btn-secondary w-full sm:w-auto py-3 text-center">
+            <Link to="/how-it-works" className="btn-secondary w-full sm:w-auto py-3 px-6 text-center text-sm font-semibold">
               Правила и выплаты
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white">Ближайшие события</h2>
@@ -64,7 +93,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       <section className="border-t border-white/10 bg-[#0a0d12]">
-        <div className="mx-auto grid max-w-6xl gap-4 sm:gap-6 px-4 py-12 sm:grid-cols-3 sm:px-6 sm:py-16">
+        <div className="mx-auto grid max-w-6xl gap-4 sm:gap-6 px-4 py-10 sm:grid-cols-3 sm:px-6 sm:py-16">
           {[
             {
               step: "01",
