@@ -1,8 +1,8 @@
 import CryptoJS from 'crypto-js';
 
 export const ROBOKASSA_LOGIN = 'Nightbyteon';
-export const ROBOKASSA_PASS_1 = 'IR4gsbkUGNFi1t29t0lZ';
-export const ROBOKASSA_PASS_2 = 'b5t5l7mQUIZtrQ5fXRy0';
+export const ROBOKASSA_PASS_1 = 'PRJIgwrcG3b4OY301Tvo';
+export const ROBOKASSA_PASS_2 = 'Y71HBH3yyaX6ChH5HSOQ';
 
 export function createRobokassaCheckoutUrl(params: {
   amountRub: number;
