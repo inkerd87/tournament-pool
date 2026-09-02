@@ -18,8 +18,8 @@ export const TournamentDetailPage: React.FC = () => {
 
   if (!tournament) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold text-white">Турнир не найден</h1>
+      <div className="mx-auto max-w-6xl px-4 py-16 text-center">
+        <h1 className="text-xl sm:text-2xl font-bold text-white">Турнир не найден</h1>
         <Link to="/tournaments" className="btn-primary mt-4 inline-flex">
           Ко всем турнирам
         </Link>
@@ -33,51 +33,52 @@ export const TournamentDetailPage: React.FC = () => {
   const canRegister = tournament.status === 'recruiting' && tournament.registeredCount < tournament.maxPlayers && !isRegistered;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <Link to="/tournaments" className="text-xs font-semibold text-zinc-500 hover:text-white">
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:py-12 sm:px-6">
+      <Link to="/tournaments" className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-white py-1">
         ← Ко всем турнирам
       </Link>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <GameBadge game={tournament.game} />
-            <span className="text-xs text-zinc-500">{statusLabel(tournament.status)}</span>
+            <span className="text-xs text-zinc-400">{statusLabel(tournament.status)}</span>
           </div>
-          <h1 className="mt-2 text-3xl font-extrabold text-white">{tournament.title}</h1>
+          <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-white">{tournament.title}</h1>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-3">
+      <div className="mt-6 sm:mt-8 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          <div className="surface-card p-6">
-            <h2 className="text-lg font-bold text-white">О турнире</h2>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">{tournament.description}</p>
-            <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-white/10 pt-4 text-sm sm:grid-cols-3">
+          <div className="surface-card p-5 sm:p-6">
+            <h2 className="text-base sm:text-lg font-bold text-white">О турнире</h2>
+            <p className="mt-2 text-xs sm:text-sm leading-relaxed text-zinc-300">{tournament.description}</p>
+            
+            <dl className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 border-t border-white/10 pt-4 text-xs sm:text-sm sm:grid-cols-3">
               <div>
-                <dt className="text-xs text-zinc-500">Формат</dt>
-                <dd className="font-semibold text-white">{tournament.format}</dd>
+                <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Формат</dt>
+                <dd className="mt-0.5 font-bold text-white">{tournament.format}</dd>
               </div>
               <div>
-                <dt className="text-xs text-zinc-500">Старт</dt>
-                <dd className="font-semibold text-white">{formatDateTime(tournament.startsAt)}</dd>
+                <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Старт</dt>
+                <dd className="mt-0.5 font-bold text-white">{formatDateTime(tournament.startsAt)}</dd>
               </div>
-              <div>
-                <dt className="text-xs text-zinc-500">Участников</dt>
-                <dd className="font-semibold text-white">{tournament.registeredCount} / {tournament.maxPlayers}</dd>
+              <div className="col-span-2 sm:col-span-1">
+                <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Участников</dt>
+                <dd className="mt-0.5 font-bold text-white">{tournament.registeredCount} / {tournament.maxPlayers}</dd>
               </div>
             </dl>
           </div>
 
           {isRegistered && (
-            <div className="surface-card p-6 border-emerald-500/30 bg-emerald-950/10">
+            <div className="surface-card p-5 sm:p-6 border-emerald-500/30 bg-emerald-950/10">
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
                 ✓ Вы зарегистрированы на этот турнир
               </span>
               {matchAccess ? (
                 <MatchAccessPanel match={matchAccess} tournamentTitle={tournament.title} />
               ) : (
-                <p className="mt-2 text-xs text-zinc-400">
+                <p className="mt-2 text-xs text-zinc-300">
                   Данные комнаты (Room ID и пароль) будут опубликованы здесь перед стартом матча.
                 </p>
               )}

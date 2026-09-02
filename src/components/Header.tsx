@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { SITE_NAME } from '@/lib/constants';
 import { formatRub } from '@/lib/format';
 import { useAuth } from '@/context/AuthContext';
@@ -11,24 +11,34 @@ const links = [
 
 export const Header: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0d12]/85 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0d12]/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link to="/" className="group flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-black text-black">
+        <Link to="/" onClick={closeMenu} className="group flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-black text-black shadow-md shadow-cyan-500/20">
             NB
           </span>
-          <span className="text-lg font-semibold tracking-tight text-white group-hover:text-cyan-300">
+          <span className="text-lg font-bold tracking-tight text-white group-hover:text-cyan-300 transition">
             {SITE_NAME}
           </span>
         </Link>
-        <nav className="flex items-center gap-1 sm:gap-2">
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-2">
           {links.map((l) => (
             <Link
               key={l.href}
               to={l.href}
-              className="rounded-lg px-3 py-2 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white"
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                location.pathname === l.href
+                  ? 'text-cyan-300 bg-white/5'
+                  : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+              }`}
             >
               {l.label}
             </Link>
@@ -36,9 +46,9 @@ export const Header: React.FC = () => {
           {user ? (
             <Link
               to="/account"
-              className="ml-1 flex items-center gap-2 rounded-lg border border-white/10 bg-[#12161f] py-1.5 pl-3 pr-2 text-sm transition hover:border-cyan-500/30"
+              className="ml-2 flex items-center gap-2 rounded-lg border border-white/10 bg-[#12161f] py-1.5 pl-3 pr-2 text-sm transition hover:border-cyan-500/30"
             >
-              <span className="hidden max-w-[100px] truncate text-zinc-300 sm:inline">
+              <span className="max-w-[120px] truncate text-zinc-200">
                 {user.nickname}
               </span>
               <span className="rounded-md bg-cyan-500/15 px-2 py-0.5 font-mono text-xs font-semibold text-cyan-300">
@@ -48,19 +58,108 @@ export const Header: React.FC = () => {
           ) : (
             <Link
               to="/login"
-              className="ml-1 rounded-lg px-3 py-2 text-sm text-zinc-400 transition hover:bg-white/5 hover:text-white"
+              className="ml-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-white/5 hover:text-white"
             >
               Войти
             </Link>
           )}
           <Link
             to="/tournaments"
-            className="btn-primary ml-2 hidden sm:inline-flex"
+            className="btn-primary ml-3"
           >
             Участвовать
           </Link>
         </nav>
+
+        {/* Mobile quick actions & hamburger */}
+        <div className="flex md:hidden items-center gap-2">
+          {user ? (
+            <Link
+              to="/account"
+              onClick={closeMenu}
+              className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#12161f] px-2.5 py-1 text-xs font-mono font-semibold text-cyan-300"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+              {formatRub(user.balanceRub)}
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              onClick={closeMenu}
+              className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-300 hover:text-white"
+            >
+              Войти
+            </Link>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Меню"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+          >
+            {mobileMenuOpen ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-b border-white/10 bg-[#0a0d12] px-4 py-4 space-y-2 shadow-2xl animate-in slide-in-from-top-2">
+          <Link
+            to="/tournaments"
+            onClick={closeMenu}
+            className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+              location.pathname === '/tournaments' ? 'bg-cyan-500/15 text-cyan-300' : 'text-zinc-300 hover:bg-white/5'
+            }`}
+          >
+            🏆 Все турниры
+          </Link>
+          <Link
+            to="/how-it-works"
+            onClick={closeMenu}
+            className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+              location.pathname === '/how-it-works' ? 'bg-cyan-500/15 text-cyan-300' : 'text-zinc-300 hover:bg-white/5'
+            }`}
+          >
+            ℹ️ Как это работает
+          </Link>
+          <Link
+            to="/account"
+            onClick={closeMenu}
+            className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+              location.pathname === '/account' ? 'bg-cyan-500/15 text-cyan-300' : 'text-zinc-300 hover:bg-white/5'
+            }`}
+          >
+            👤 Личный кабинет {user ? `(${user.nickname})` : ''}
+          </Link>
+          <Link
+            to="/privacy"
+            onClick={closeMenu}
+            className="block rounded-lg px-3 py-2 text-xs text-zinc-500 hover:text-zinc-300"
+          >
+            🔒 Политика конфиденциальности
+          </Link>
+
+          <div className="pt-2">
+            <Link
+              to="/tournaments"
+              onClick={closeMenu}
+              className="btn-primary w-full py-2.5 text-center"
+            >
+              Выбрать турнир и участвовать
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

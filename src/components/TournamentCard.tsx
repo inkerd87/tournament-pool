@@ -13,49 +13,59 @@ export const TournamentCard: React.FC<{ tournament: Tournament }> = ({ tournamen
   return (
     <Link
       to={`/tournaments/${tournament.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#12161f] p-5 transition hover:border-white/20 hover:shadow-[0_0_40px_-12px_var(--glow)]"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-[#12161f] p-4 sm:p-5 transition hover:border-white/25 active:scale-[0.99]"
       style={{ ['--glow' as string]: game.glow }}
     >
       <div
         className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full blur-3xl opacity-40"
         style={{ background: game.accent }}
       />
-      <div className="relative flex items-start justify-between gap-3">
-        <GameBadge game={tournament.game} />
-        <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-zinc-400">
-          {statusLabel(tournament.status)}
-        </span>
-      </div>
-      <h3 className="relative mt-3 text-lg font-semibold text-white group-hover:text-cyan-200">
-        {tournament.title}
-      </h3>
-      <p className="relative mt-1 text-sm text-zinc-500">{tournament.format}</p>
-      <p className="relative mt-4 text-sm text-zinc-400">
-        Старт: {formatDateTime(tournament.startsAt)}
-      </p>
-      <div className="relative mt-4">
-        <div className="mb-1 flex justify-between text-xs text-zinc-500">
-          <span>
-            {tournament.registeredCount} / {tournament.maxPlayers} игроков
+      
+      <div>
+        <div className="relative flex items-center justify-between gap-2">
+          <GameBadge game={tournament.game} />
+          <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-[11px] text-zinc-400">
+            {statusLabel(tournament.status)}
           </span>
-          <span>{fillPercent}%</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div
-            className="h-full rounded-full transition-all"
-            style={{
-              width: `${fillPercent}%`,
-              background: `linear-gradient(90deg, ${game.accent}, #22d3ee)`,
-            }}
-          />
+
+        <h3 className="relative mt-3 text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition">
+          {tournament.title}
+        </h3>
+        <p className="relative mt-1 text-xs text-zinc-400 line-clamp-1">{tournament.format}</p>
+        
+        <p className="relative mt-3 text-xs text-zinc-400">
+          Старт: <span className="text-zinc-300 font-medium">{formatDateTime(tournament.startsAt)}</span>
+        </p>
+
+        <div className="relative mt-4">
+          <div className="mb-1.5 flex justify-between text-[11px] text-zinc-400">
+            <span>
+              {tournament.registeredCount} / {tournament.maxPlayers} игроков
+            </span>
+            <span className="font-mono">{fillPercent}%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${fillPercent}%`,
+                background: `linear-gradient(90deg, ${game.accent}, #22d3ee)`,
+              }}
+            />
+          </div>
         </div>
       </div>
-      <div className="relative mt-4 flex items-end justify-between border-t border-white/5 pt-4">
+
+      <div className="relative mt-5 flex items-center justify-between border-t border-white/5 pt-3.5">
         <div>
-          <p className="text-xs text-zinc-500">Призовой фонд</p>
-          <p className="text-xl font-bold text-amber-200/90">{formatRub(TOTAL_PRIZES_RUB)}</p>
+          <p className="text-[10px] uppercase font-semibold tracking-wider text-zinc-500">Призовой фонд</p>
+          <p className="text-lg font-extrabold text-amber-300">{formatRub(TOTAL_PRIZES_RUB)}</p>
         </div>
-        <span className="text-sm font-medium text-cyan-400">Взнос {formatRub(ENTRY_FEE_RUB)} →</span>
+        <div className="flex items-center gap-1 rounded-lg bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-300 group-hover:bg-cyan-500 group-hover:text-black transition">
+          <span>Взнос {formatRub(ENTRY_FEE_RUB)}</span>
+          <span>→</span>
+        </div>
       </div>
     </Link>
   );

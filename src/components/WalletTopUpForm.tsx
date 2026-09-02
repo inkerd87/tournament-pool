@@ -17,13 +17,13 @@ export const WalletTopUpForm: React.FC = () => {
   };
 
   return (
-    <div className="surface-card p-6">
+    <div className="surface-card p-5 sm:p-6">
       <h3 className="text-base font-bold text-white">Пополнение баланса</h3>
-      <p className="mt-1 text-xs text-zinc-500">
+      <p className="mt-1 text-xs text-zinc-400">
         Через СБП или банковскую карту (Robokassa). Без комиссии.
       </p>
 
-      <div className="mt-4 grid grid-cols-4 gap-2">
+      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
         {AMOUNTS.map((amt) => (
           <button
             key={amt}
@@ -40,20 +40,20 @@ export const WalletTopUpForm: React.FC = () => {
         ))}
       </div>
 
-      <div className="mt-4 flex gap-3">
+      <div className="mt-4 flex flex-col sm:flex-row gap-2.5">
         <input
           type="number"
           min="50"
           max="50000"
           value={customAmount}
           onChange={(e) => setCustomAmount(e.target.value)}
-          className="input-field mt-0 font-mono text-sm"
+          className="input-field mt-0 font-mono text-base sm:text-sm py-2.5"
           placeholder="Сумма в рублях"
         />
         <button
           type="button"
           onClick={() => handleTopUp(Number(customAmount))}
-          className="btn-primary whitespace-nowrap text-xs px-4"
+          className="btn-primary whitespace-nowrap text-xs py-3 sm:py-2.5 px-4 font-bold"
         >
           Пополнить
         </button>
