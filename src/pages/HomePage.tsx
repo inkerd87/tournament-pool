@@ -76,14 +76,13 @@ export const HomePage: React.FC = () => {
 
                     {/* Square Icon Cube */}
                     <div
-                      className="flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 shadow-inner"
+                      className="flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 shadow-lg overflow-hidden border p-1"
                       style={{
-                        backgroundColor: `${g.color}20`,
-                        color: g.color,
-                        border: `1px solid ${g.color}40`,
+                        backgroundColor: `${g.color}15`,
+                        borderColor: `${g.color}40`,
                       }}
                     >
-                      <GameIcon game={g.id} className="w-8 h-8" />
+                      <GameIcon game={g.id} className="w-full h-full object-cover rounded-xl" />
                     </div>
 
                     {/* Game Name */}
