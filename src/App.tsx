@@ -14,11 +14,11 @@ import { PaymentReturnPage } from '@/pages/PaymentReturnPage';
 
 export const App: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#07090d] text-zinc-100 selection:bg-cyan-500/30 selection:text-white">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#07090d] text-zinc-100 selection:bg-cyan-500/30 selection:text-white">
       <div className="fixed inset-0 pointer-events-none page-grid z-0" />
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10 flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
         <Header />
-        <main className="flex-1">
+        <main className="flex-1 w-full max-w-full overflow-x-hidden">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/tournaments" element={<TournamentsPage />} />
