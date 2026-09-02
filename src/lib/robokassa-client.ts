@@ -11,6 +11,12 @@ export function createRobokassaCheckoutUrl(params: {
   login?: string;
   password1?: string;
   isTest?: boolean;
+  registrationData?: {
+    tournamentId: string;
+    nickname: string;
+    gameAccount: string;
+    email: string;
+  };
 }): string {
   const login = params.login || ROBOKASSA_LOGIN;
   const outSum = params.amountRub.toFixed(2);
@@ -19,7 +25,19 @@ export function createRobokassaCheckoutUrl(params: {
   const isTest = params.isTest !== false;
 
   const signature = CryptoJS.MD5(`${login}:${outSum}:${invId}:${pass1}`).toString();
-  const returnUrl = `${window.location.origin}/payments/return?invId=${invId}&amount=${params.amountRub}`;
+
+  let successParams = `invId=${invId}&amount=${params.amountRub}&status=success`;
+  let failParams = `invId=${invId}&status=fail`;
+
+  if (params.registrationData) {
+    const { tournamentId, nickname, gameAccount, email } = params.registrationData;
+    const regQuery = `&tId=${encodeURIComponent(tournamentId)}&nick=${encodeURIComponent(nickname)}&acc=${encodeURIComponent(gameAccount)}&email=${encodeURIComponent(email)}`;
+    successParams += regQuery;
+    failParams += `&tId=${encodeURIComponent(tournamentId)}`;
+  }
+
+  const returnUrl = `${window.location.origin}/payments/return?${successParams}`;
+  const failUrl = `${window.location.origin}/payments/return?${failParams}`;
 
   const qs = new URLSearchParams({
     MerchantLogin: login,
@@ -28,7 +46,7 @@ export function createRobokassaCheckoutUrl(params: {
     Description: params.description.slice(0, 100),
     SignatureValue: signature,
     SuccessURL: returnUrl,
-    FailURL: returnUrl,
+    FailURL: failUrl,
     Culture: 'ru',
     Encoding: 'utf-8',
     ...(isTest ? { IsTest: '1' } : {}),

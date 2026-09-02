@@ -57,10 +57,21 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
         navigate('/account');
       }, 1000);
     } else {
-      registerForTournament(tournamentId, nickname.trim(), gameAccount.trim(), email.trim());
+      // Сохраняем временные данные регистрации на случай возврата
+      const pendingData = {
+        tournamentId,
+        nickname: nickname.trim(),
+        gameAccount: gameAccount.trim(),
+        email: email.trim(),
+        amount: ENTRY_FEE_RUB,
+        createdAt: Date.now(),
+      };
+      localStorage.setItem('nb_pending_registration', JSON.stringify(pendingData));
+
       const checkoutUrl = createRobokassaCheckoutUrl({
         amountRub: ENTRY_FEE_RUB,
         description: `Взнос за турнир #${tournamentId}`,
+        registrationData: pendingData,
       });
       window.location.href = checkoutUrl;
     }
