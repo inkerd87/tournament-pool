@@ -52,3 +52,7 @@ data/tournament-match.json
 *.db
 *.sqlite
 *.sqlite3
+
+# MCP configs with secrets
+.cursor/
+.agents/

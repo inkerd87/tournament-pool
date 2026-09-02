@@ -1,5 +1,9 @@
 import CryptoJS from 'crypto-js';
 
+export const ROBOKASSA_LOGIN = 'Nightbyteon';
+export const ROBOKASSA_PASS_1 = 'IR4gsbkUGNFi1t29t0lZ';
+export const ROBOKASSA_PASS_2 = 'b5t5l7mQUIZtrQ5fXRy0';
+
 export function createRobokassaCheckoutUrl(params: {
   amountRub: number;
   description: string;
@@ -8,10 +12,10 @@ export function createRobokassaCheckoutUrl(params: {
   password1?: string;
   isTest?: boolean;
 }): string {
-  const login = params.login || 'NightByte';
+  const login = params.login || ROBOKASSA_LOGIN;
   const outSum = params.amountRub.toFixed(2);
   const invId = Math.floor(Date.now() / 1000) % 10000000;
-  const pass1 = params.password1 || 'dummy_pass';
+  const pass1 = params.password1 || ROBOKASSA_PASS_1;
   const isTest = params.isTest !== false;
 
   const signature = CryptoJS.MD5(`${login}:${outSum}:${invId}:${pass1}`).toString();
