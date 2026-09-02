@@ -24,6 +24,9 @@ export const Footer: React.FC = () => {
             <Link to="/how-it-works" className="text-zinc-400 hover:text-zinc-200">
               Как это работает
             </Link>
+            <Link to="/offer" className="text-zinc-400 hover:text-zinc-200">
+              Публичная оферта
+            </Link>
             <Link to="/privacy" className="text-zinc-400 hover:text-zinc-200">
               Конфиденциальность
             </Link>
@@ -32,9 +35,22 @@ export const Footer: React.FC = () => {
             </Link>
           </div>
         </div>
-        <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:pt-0 max-w-xs space-y-1 text-xs text-zinc-500 sm:text-right">
-          <p>© NightByte. Все права защищены</p>
+
+        <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:pt-0 max-w-xs space-y-1.5 text-xs text-zinc-500 sm:text-right">
+          <p className="text-zinc-400">© NightByte. Все права защищены</p>
           <p className="text-zinc-400 font-mono">ИНН: 910408161157</p>
+          <p>
+            Тел:{' '}
+            <a href="tel:+79787847414" className="text-cyan-400 hover:underline">
+              +7 978 784-74-14
+            </a>
+          </p>
+          <p>
+            Email:{' '}
+            <a href="mailto:inkerdany@mail.ru" className="text-cyan-400 hover:underline">
+              inkerdany@mail.ru
+            </a>
+          </p>
         </div>
       </div>
     </footer>

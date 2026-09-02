@@ -170,8 +170,12 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
           Оплатить {formatRub(ENTRY_FEE_RUB)} и участвовать
         </button>
 
-        <p className="text-center text-[11px] text-zinc-500">
+        <p className="text-center text-[11px] text-zinc-500 leading-normal">
           Нажимая «Оплатить», вы принимаете условия{' '}
+          <Link to="/offer" className="text-zinc-400 underline hover:text-zinc-200">
+            публичной оферты
+          </Link>{' '}
+          и{' '}
           <Link to="/privacy" className="text-zinc-400 underline hover:text-zinc-200">
             политики конфиденциальности
           </Link>

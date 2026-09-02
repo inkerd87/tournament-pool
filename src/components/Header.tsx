@@ -142,6 +142,13 @@ export const Header: React.FC = () => {
             👤 Личный кабинет {user ? `(${user.nickname})` : ''}
           </Link>
           <Link
+            to="/offer"
+            onClick={closeMenu}
+            className="block rounded-lg px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200"
+          >
+            📄 Публичная оферта
+          </Link>
+          <Link
             to="/privacy"
             onClick={closeMenu}
             className="block rounded-lg px-3 py-2 text-xs text-zinc-500 hover:text-zinc-300"

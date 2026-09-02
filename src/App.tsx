@@ -9,6 +9,7 @@ import { AccountPage } from '@/pages/AccountPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { HowItWorksPage } from '@/pages/HowItWorksPage';
 import { PrivacyPage } from '@/pages/PrivacyPage';
+import { OfferPage } from '@/pages/OfferPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { PaymentReturnPage } from '@/pages/PaymentReturnPage';
 
@@ -27,6 +28,8 @@ export const App: React.FC = () => {
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/offer" element={<OfferPage />} />
+            <Route path="/terms" element={<OfferPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/payments/return" element={<PaymentReturnPage />} />
             <Route path="*" element={<HomePage />} />
