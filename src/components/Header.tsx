@@ -17,9 +17,9 @@ export const Header: React.FC = () => {
   const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0d12]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0a0d12]/95 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link to="/" onClick={closeMenu} className="group flex items-center gap-2.5">
+        <Link to="/" onClick={closeMenu} className="group flex items-center gap-2.5 shrink-0">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-black text-black shadow-md shadow-cyan-500/20">
             NB
           </span>
@@ -28,8 +28,8 @@ export const Header: React.FC = () => {
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-2">
+        {/* Desktop Navigation (>= 1024px) */}
+        <nav className="hidden lg:flex items-center gap-2">
           {links.map((l) => (
             <Link
               key={l.href}
@@ -65,14 +65,14 @@ export const Header: React.FC = () => {
           )}
           <Link
             to="/tournaments"
-            className="btn-primary ml-3"
+            className="btn-primary ml-2 px-4 py-2 text-xs font-bold shrink-0 shadow-sm shadow-cyan-400/20"
           >
             Участвовать
           </Link>
         </nav>
 
-        {/* Mobile quick actions & hamburger */}
-        <div className="flex md:hidden items-center gap-2">
+        {/* Mobile & Tablet Bar (< 1024px) */}
+        <div className="flex lg:hidden items-center gap-2">
           {user ? (
             <Link
               to="/account"
@@ -96,7 +96,7 @@ export const Header: React.FC = () => {
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Меню"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 hover:text-white transition active:scale-95"
           >
             {mobileMenuOpen ? (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,7 +113,7 @@ export const Header: React.FC = () => {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-white/10 bg-[#0a0d12] px-4 py-4 space-y-2 shadow-2xl animate-in slide-in-from-top-2">
+        <div className="lg:hidden border-b border-white/10 bg-[#0a0d12] px-4 py-4 space-y-2 shadow-2xl">
           <Link
             to="/tournaments"
             onClick={closeMenu}
@@ -149,11 +149,11 @@ export const Header: React.FC = () => {
             🔒 Политика конфиденциальности
           </Link>
 
-          <div className="pt-2">
+          <div className="pt-2 w-full">
             <Link
               to="/tournaments"
               onClick={closeMenu}
-              className="btn-primary w-full py-2.5 text-center"
+              className="btn-primary w-full py-2.5 text-center text-xs font-bold"
             >
               Выбрать турнир и участвовать
             </Link>
