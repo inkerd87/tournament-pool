@@ -26,6 +26,7 @@ export function Footer() {
         <p className="max-w-xs text-xs leading-relaxed text-zinc-600">
           ©Copyright NightByte. Все права защищены
         </p>
+        <a href="https://freekassa.net" title="big-dark-1"><img src="https://cdn.freekassa.net/images/logos/banners/f/big-dark-1.png" alt="big-dark-1" /></a>
       </div>
     </footer>
   );
