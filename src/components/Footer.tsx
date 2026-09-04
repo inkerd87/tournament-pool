@@ -41,6 +41,21 @@ export const Footer: React.FC = () => {
               Администратор
             </Link>
           </div>
+          <div className="mt-4">
+            <a
+              href="https://freekassa.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="big-dark-1"
+              className="inline-block transition-opacity hover:opacity-80"
+            >
+              <img
+                src="https://cdn.freekassa.net/images/logos/banners/f/big-dark-1.png"
+                alt="big-dark-1"
+                className="h-8"
+              />
+            </a>
+          </div>
         </div>
 
         <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:pt-0 max-w-xs space-y-1.5 text-xs text-zinc-500 sm:text-right">
