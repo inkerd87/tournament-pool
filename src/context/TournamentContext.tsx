@@ -14,7 +14,7 @@ interface TournamentContextType {
   tournaments: Tournament[];
   registrations: Registration[];
   matches: Record<string, TournamentMatchAccess>;
-  registerForTournament: (tournamentId: string, nickname: string, gameAccount: string, email: string) => Promise<boolean> | boolean;
+  registerForTournament: (tournamentId: string, nickname: string, gameAccount: string, email: string, phone?: string) => Promise<boolean> | boolean;
   updateMatch: (tournamentId: string, roomId: string, password: string, joinUrl?: string) => Promise<void> | void;
   getUserRegistrations: (email: string) => Registration[];
   isUserRegistered: (tournamentId: string, email: string) => boolean;
@@ -128,7 +128,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, [refreshData]);
 
-  const registerForTournament = async (tournamentId: string, nickname: string, gameAccount: string, email: string) => {
+  const registerForTournament = async (
+    tournamentId: string,
+    nickname: string,
+    gameAccount: string,
+    email: string,
+    phone?: string
+  ) => {
     if (registrations.some(r => r.tournamentId === tournamentId && r.email.toLowerCase() === email.toLowerCase())) {
       return false;
     }
@@ -139,6 +145,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       nickname,
       gameAccount,
       email,
+      phone,
       paidAt: new Date().toISOString(),
     };
 
@@ -164,14 +171,17 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // Save to PostgreSQL via Supabase
     try {
-      await supabase.from('registrations').insert({
+      const regPayload: Record<string, any> = {
         id: newReg.id,
         tournament_id: tournamentId,
         nickname,
         game_account: gameAccount,
         email,
         paid_at: newReg.paidAt,
-      });
+      };
+      if (phone) regPayload.phone = phone;
+
+      await supabase.from('registrations').insert(regPayload);
 
       await supabase
         .from('tournaments')

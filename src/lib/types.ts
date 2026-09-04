@@ -24,6 +24,7 @@ export type Registration = {
   nickname: string;
   gameAccount: string;
   email: string;
+  phone?: string;
   paidAt: string;
 };
 
@@ -59,6 +60,7 @@ export type User = {
   id: string;
   email: string;
   nickname: string;
+  phone?: string;
   balanceRub: number;
   createdAt: string;
 };

@@ -29,6 +29,8 @@ export const PaymentReturnPage: React.FC = () => {
     let nick = searchParams.get('nick');
     let acc = searchParams.get('acc');
     let email = searchParams.get('email');
+    let phone = searchParams.get('phone') || '';
+    let password = '';
 
     if (!tId || !email) {
       try {
@@ -39,6 +41,8 @@ export const PaymentReturnPage: React.FC = () => {
           nick = parsed.nickname;
           acc = parsed.gameAccount;
           email = parsed.email;
+          if (parsed.phone) phone = parsed.phone;
+          if (parsed.password) password = parsed.password;
         }
       } catch (e) {
         console.error('Error reading pending registration:', e);
@@ -54,12 +58,12 @@ export const PaymentReturnPage: React.FC = () => {
 
       // Регистрируем игрока ТОЛЬКО СЕЙЧАС (после подтверждения оплаты)
       if (!isUserRegistered(tId, email)) {
-        registerForTournament(tId, nick, acc || '', email);
+        registerForTournament(tId, nick, acc || '', email, phone);
       }
 
       // Если пользователь не авторизован в браузере, авторизуем под его почтой
       if (!user || user.email.toLowerCase() !== email.toLowerCase()) {
-        login(email, nick);
+        login(email, password, nick, phone);
       }
 
       localStorage.removeItem('nb_pending_registration');

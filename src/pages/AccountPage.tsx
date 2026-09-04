@@ -33,7 +33,17 @@ export const AccountPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Личный кабинет</h1>
-          <p className="mt-1 text-xs sm:text-sm text-zinc-400 font-mono">{user.email}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-zinc-400">
+            <span className="font-bold text-white">{user.nickname}</span>
+            <span>•</span>
+            <span className="font-mono">{user.email}</span>
+            {user.phone && (
+              <>
+                <span>•</span>
+                <span className="font-mono text-cyan-300">{user.phone}</span>
+              </>
+            )}
+          </div>
         </div>
         <button
           onClick={logout}
