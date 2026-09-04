@@ -8,33 +8,33 @@ export const HowItWorksPage: React.FC = () => {
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
       <h1 className="text-3xl font-extrabold text-white sm:text-4xl">Как это работает</h1>
       <p className="mt-3 text-lg text-zinc-400">
-        Простая и прозрачная турнирная система: взнос {formatRub(ENTRY_FEE_RUB)} и гарантированные призы за топ-3.
+        Простая и прозрачная система соревнований: организационный сбор {formatRub(ENTRY_FEE_RUB)} и гарантированные награды за топ-3.
       </p>
 
       <div className="mt-12 space-y-12">
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-cyan-300">1. Регистрация и взнос</h2>
+          <h2 className="text-xl font-bold text-cyan-300">1. Регистрация и участие</h2>
           <p className="leading-relaxed text-zinc-300">
-            Входной взнос в любой регулярный турнир на платформе NightByte составляет фиксированные{' '}
+            Организационный сбор за участие в турнире на платформе NightByte составляет фиксированные{' '}
             <strong className="text-white">{formatRub(ENTRY_FEE_RUB)}</strong>.
-            Вы можете оплатить участие напрямую через СБП/карту или с баланса личного кабинета.
+            Вы можете оплатить сбор напрямую через СБП/карту или с баланса личного кабинета.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-cyan-300">2. Получение доступа к лобби</h2>
           <p className="leading-relaxed text-zinc-300">
-            После оплаты и набора участников в вашем личном кабинете на странице турнира появятся
+            После подтверждения участия и набора группы в вашем личном кабинете на странице турнира появятся
             данные для входа в приватную игру: <strong>Room ID</strong> и <strong>Пароль</strong>.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-cyan-300">3. Распределение призового фонда</h2>
+          <h2 className="text-xl font-bold text-cyan-300">3. Наградной фонд соревнований</h2>
           <p className="leading-relaxed text-zinc-300">
-            Общий призовой фонд турнира составляет{' '}
-            <strong className="text-amber-200">{formatRub(TOTAL_PRIZES_RUB)}</strong> и делится между
-            лучшими игроками:
+            Общий наградной фонд открытого спортивного конкурса составляет{' '}
+            <strong className="text-amber-200">{formatRub(TOTAL_PRIZES_RUB)}</strong> и распределяется между
+            призёрами за наилучшие спортивные результаты:
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center">

@@ -59,11 +59,11 @@ export const TournamentCard: React.FC<{ tournament: Tournament }> = ({ tournamen
 
       <div className="relative mt-5 flex items-center justify-between border-t border-white/5 pt-3.5">
         <div>
-          <p className="text-[10px] uppercase font-semibold tracking-wider text-zinc-500">Призовой фонд</p>
+          <p className="text-[10px] uppercase font-semibold tracking-wider text-zinc-500">Наградной фонд</p>
           <p className="text-lg font-extrabold text-amber-300">{formatRub(TOTAL_PRIZES_RUB)}</p>
         </div>
         <div className="flex items-center gap-1 rounded-lg bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-300 group-hover:bg-cyan-500 group-hover:text-black transition">
-          <span>Взнос {formatRub(ENTRY_FEE_RUB)}</span>
+          <span>Участие {formatRub(ENTRY_FEE_RUB)}</span>
           <span>→</span>
         </div>
       </div>

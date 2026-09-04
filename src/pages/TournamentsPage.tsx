@@ -17,7 +17,7 @@ export const TournamentsPage: React.FC = () => {
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Список турниров</h1>
         <p className="mt-1 text-xs sm:text-sm text-zinc-400">
-          Взнос 100 ₽ · Призовой фонд 2 200 ₽ · Выплаты за 1–3 места
+          Оргсбор 100 ₽ · Наградной фонд соревнований · Награды за 1–3 призовые места
         </p>
       </div>
 

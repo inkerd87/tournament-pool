@@ -38,12 +38,13 @@ export const HomePage: React.FC = () => {
                 <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
                   {formatRub(ENTRY_FEE_RUB)}
                 </span>{' '}
-                взнос
+                участие
               </h1>
 
               <p className="mt-4 max-w-xl text-sm sm:text-base text-zinc-400 leading-relaxed">
-                Входной взнос всего {formatRub(ENTRY_FEE_RUB)}. Призовой фонд {formatRub(TOTAL_PRIZES_RUB)}:{' '}
-                {formatRub(PRIZE_BY_PLACE[1])} / {formatRub(PRIZE_BY_PLACE[2])} / {formatRub(PRIZE_BY_PLACE[3])} за топ-3 места.
+                Открытые любительские соревнования по компьютерному спорту. Организационный сбор {formatRub(ENTRY_FEE_RUB)}.
+                Наградной фонд соревнований {formatRub(TOTAL_PRIZES_RUB)}:{' '}
+                {formatRub(PRIZE_BY_PLACE[1])} / {formatRub(PRIZE_BY_PLACE[2])} / {formatRub(PRIZE_BY_PLACE[3])} за 1–3 призовые места.
               </p>
 
               <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -51,7 +52,7 @@ export const HomePage: React.FC = () => {
                   Смотреть турниры
                 </Link>
                 <Link to="/how-it-works" className="btn-secondary w-full sm:w-auto py-3 px-6 text-center text-sm font-semibold">
-                  Правила и выплаты
+                  Регламент соревнований
                 </Link>
               </div>
             </div>
@@ -129,18 +130,18 @@ export const HomePage: React.FC = () => {
           {[
             {
               step: "01",
-              title: "Взнос 100 ₽",
-              text: `Каждый игрок вносит фиксированные ${formatRub(ENTRY_FEE_RUB)} с карты, СБП или баланса.`,
+              title: "Участие 100 ₽",
+              text: `Фиксированный организационный сбор ${formatRub(ENTRY_FEE_RUB)} за регистрацию и судейство. Оплата картой или СБП.`,
             },
             {
               step: "02",
-              title: "Вход в лобби",
-              text: "Сетка и пароль от приватной комнаты появляются в личном кабинете после набора участников.",
+              title: "Доступ в комнату",
+              text: "Сетка турнира и пароль от приватного лобби отображаются в личном кабинете после набора участников.",
             },
             {
               step: "03",
-              title: "Призы топ-3",
-              text: `Гарантированные выплаты: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])}.`,
+              title: "Награды топ-3",
+              text: `Наградной фонд соревнований: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])} за 1–3 призовые места.`,
             },
           ].map((item) => (
             <div

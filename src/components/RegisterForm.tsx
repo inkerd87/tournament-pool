@@ -70,7 +70,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
 
       const checkoutUrl = createRobokassaCheckoutUrl({
         amountRub: ENTRY_FEE_RUB,
-        description: `Взнос за турнир #${tournamentId}`,
+        description: `Оргсбор за участие в турнире #${tournamentId}`,
         registrationData: pendingData,
       });
       window.location.href = checkoutUrl;
@@ -81,7 +81,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
     <div className="surface-card p-5 sm:p-6">
       <h2 className="text-base sm:text-lg font-bold text-white">Регистрация на турнир</h2>
       <p className="mt-1 text-xs sm:text-sm text-zinc-400">
-        Взнос: <strong className="text-white font-bold">{formatRub(ENTRY_FEE_RUB)}</strong>
+        Организационный сбор: <strong className="text-white font-bold">{formatRub(ENTRY_FEE_RUB)}</strong>
       </p>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
