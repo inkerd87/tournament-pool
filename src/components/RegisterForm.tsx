@@ -5,6 +5,7 @@ import { useTournaments } from '@/context/TournamentContext';
 import { ENTRY_FEE_RUB } from '@/lib/constants';
 import { formatRub } from '@/lib/format';
 import { createRobokassaCheckoutUrl } from '@/lib/robokassa-client';
+import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
 type Props = {
   tournamentId: string;
@@ -22,6 +23,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
   const [email, setEmail] = useState(user?.email || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isAdult, setIsAdult] = useState(false);
   const [payMethod, setPayMethod] = useState<'card' | 'balance'>('card');
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
@@ -39,8 +41,28 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
     e.preventDefault();
     setMessage(null);
 
-    if (!nickname.trim() || !gameAccount.trim() || !email.trim() || !phone.trim()) {
-      setMessage({ type: 'err', text: 'Пожалуйста, заполните все поля, включая номер телефона.' });
+    if (!nickname.trim()) {
+      setMessage({ type: 'err', text: 'Укажите игровой никнейм.' });
+      return;
+    }
+
+    if (!gameAccount.trim()) {
+      setMessage({ type: 'err', text: 'Укажите ваш игровой идентификатор (Steam, Riot или PUBG).' });
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      setMessage({ type: 'err', text: 'Укажите корректный номер телефона (не менее 10 цифр, без букв).' });
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setMessage({ type: 'err', text: 'Укажите корректный адрес электронной почты (например, name@mail.ru).' });
+      return;
+    }
+
+    if (!isAdult) {
+      setMessage({ type: 'err', text: 'Участие в турнирах разрешено только лицам, достигшим 18 лет (18+).' });
       return;
     }
 
@@ -94,7 +116,13 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
 
   return (
     <div className="surface-card p-5 sm:p-6">
-      <h2 className="text-base sm:text-lg font-bold text-white">Регистрация на турнир</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-base sm:text-lg font-bold text-white">Регистрация на турнир</h2>
+        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-300">
+          🔞 18+
+        </span>
+      </div>
+
       <p className="mt-1 text-xs sm:text-sm text-zinc-400">
         Организационный сбор: <strong className="text-white font-bold">{formatRub(ENTRY_FEE_RUB)}</strong>
       </p>
@@ -142,11 +170,12 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
             <input
               type="tel"
               required
-              className="input-field text-base sm:text-sm py-2.5"
+              className="input-field text-base sm:text-sm py-2.5 font-mono"
               placeholder="+7 (999) 000-00-00"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
             />
+            <span className="text-[10px] text-zinc-500 mt-0.5 block">Только цифры, без букв</span>
           </div>
 
           <div>
@@ -188,10 +217,26 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
               onChange={(e) => setPassword(e.target.value)}
             />
             <p className="mt-1 text-[11px] text-zinc-500">
-              Используется для входа и проверки результатов турнира.
+              Используется для последующего входа и доступа к лобби.
             </p>
           </div>
         )}
+
+        {/* Возрастное подтверждение 18+ */}
+        <div className="rounded-xl border border-white/10 bg-black/30 p-3 sm:p-3.5">
+          <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-zinc-300">
+            <input
+              type="checkbox"
+              required
+              checked={isAdult}
+              onChange={(e) => setIsAdult(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-white/20 bg-black/40 text-cyan-500 focus:ring-cyan-500/30 accent-cyan-400 shrink-0"
+            />
+            <span className="leading-snug">
+              Подтверждаю, что мне исполнилось <strong className="text-white">18 лет</strong>, и я обладаю полной дееспособностью для участия в киберспортивных соревнованиях.
+            </span>
+          </label>
+        </div>
 
         <div className="pt-1">
           <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
@@ -248,7 +293,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
         </button>
 
         <p className="text-[11px] text-zinc-500 text-center leading-relaxed">
-          Нажимая кнопку, вы соглашаетесь с условиями{' '}
+          Нажимая кнопку, вы подтверждаете совершеннолетие (18+) и соглашаетесь с условиями{' '}
           <a href="/offer" target="_blank" className="text-cyan-400 hover:underline">
             Публичной оферты
           </a>{' '}

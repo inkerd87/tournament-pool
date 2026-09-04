@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [phone, setPhone] = useState('');
+  const [isAdult, setIsAdult] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,34 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!isValidEmail(email)) {
+      setError('Укажите корректный адрес электронной почты.');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      setError('Пароль должен содержать не менее 6 символов.');
+      return;
+    }
+
+    if (mode === 'register') {
+      if (!nickname.trim()) {
+        setError('Укажите ваш игровой никнейм.');
+        return;
+      }
+
+      if (!isValidPhone(phone)) {
+        setError('Укажите корректный номер телефона (не менее 10 цифр, без букв).');
+        return;
+      }
+
+      if (!isAdult) {
+        setError('Регистрация и участие разрешены только совершеннолетним лицам (18+).');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -73,17 +103,25 @@ export const LoginPage: React.FC = () => {
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            Регистрация
+            Регистрация 18+
           </button>
         </div>
 
-        <h1 className="text-xl sm:text-2xl font-extrabold text-white">
-          {mode === 'login' ? 'Вход в личный кабинет' : 'Создание аккаунта'}
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white">
+            {mode === 'login' ? 'Вход в личный кабинет' : 'Создание аккаунта'}
+          </h1>
+          {mode === 'register' && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-extrabold text-amber-300">
+              🔞 18+
+            </span>
+          )}
+        </div>
+
         <p className="mt-1.5 text-xs sm:text-sm text-zinc-400 leading-relaxed">
           {mode === 'login'
             ? 'Введите Email и пароль для доступа к турнирам и матчам.'
-            : 'Зарегистрируйтесь, чтобы участвовать в турнирах и отслеживать призовые.'}
+            : 'Зарегистрируйтесь, чтобы участвовать в соревнованиях и получать награды.'}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -111,11 +149,12 @@ export const LoginPage: React.FC = () => {
               <input
                 type="tel"
                 required
-                className="input-field mt-1 text-base sm:text-sm"
+                className="input-field mt-1 text-base sm:text-sm font-mono"
                 placeholder="+7 (999) 000-00-00"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
               />
+              <span className="text-[10px] text-zinc-500 mt-0.5 block">Только цифры, без букв</span>
             </div>
           )}
 
@@ -157,6 +196,23 @@ export const LoginPage: React.FC = () => {
             />
           </div>
 
+          {mode === 'register' && (
+            <div className="rounded-xl border border-white/10 bg-black/30 p-3 sm:p-3.5">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-zinc-300">
+                <input
+                  type="checkbox"
+                  required
+                  checked={isAdult}
+                  onChange={(e) => setIsAdult(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-white/20 bg-black/40 text-cyan-500 focus:ring-cyan-500/30 accent-cyan-400 shrink-0"
+                />
+                <span className="leading-snug">
+                  Подтверждаю, что мне исполнилось <strong className="text-white">18 лет</strong>, и я обладаю полной дееспособностью.
+                </span>
+              </label>
+            </div>
+          )}
+
           {error && (
             <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs sm:text-sm text-rose-300">
               {error}
@@ -172,7 +228,7 @@ export const LoginPage: React.FC = () => {
               ? 'Обработка...'
               : mode === 'login'
               ? 'Войти в профиль'
-              : 'Зарегистрироваться'}
+              : 'Зарегистрироваться (18+)'}
           </button>
         </form>
 
@@ -185,7 +241,7 @@ export const LoginPage: React.FC = () => {
                 onClick={() => { setMode('register'); setError(null); }}
                 className="text-cyan-400 hover:underline font-semibold"
               >
-                Создать аккаунт
+                Создать аккаунт (18+)
               </button>
             </p>
           ) : (

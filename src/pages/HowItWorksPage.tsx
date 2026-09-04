@@ -78,6 +78,19 @@ export const HowItWorksPage: React.FC = () => {
             Взнос 100 ₽ — это фиксированная плата за организационные услуги и доступ к инфраструктуре матча, а не ставка на исход. Платформа категорически не проводит азартные игры, пари или лотереи: призовой фонд формируется организатором за достижение лучших спортивных результатов.
           </p>
         </section>
+
+        <section className="space-y-4 rounded-2xl border border-amber-500/25 bg-amber-950/15 p-6">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 font-extrabold text-lg">🔞</span>
+            <h2 className="text-xl font-bold text-amber-300">6. Возрастное ограничение (Строго 18+)</h2>
+          </div>
+          <p className="leading-relaxed text-zinc-300 text-sm">
+            К участию во всех турнирах платформы NightByte допускаются исключительно лица, достигшие возраста <strong className="text-white">18 лет</strong> и обладающие полной дееспособностью.
+          </p>
+          <p className="leading-relaxed text-zinc-400 text-sm">
+            При регистрации на турнир участник подтверждает своё совершеннолетие. Организатор оставляет за собой право запросить подтверждение возраста победителей перед вручением наград.
+          </p>
+        </section>
       </div>
 
       <div className="mt-12 pt-8 border-t border-white/10">
