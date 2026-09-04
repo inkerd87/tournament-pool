@@ -47,6 +47,7 @@ export const Footer: React.FC = () => {
           <p className="text-zinc-400">© NightByte. Все права защищены</p>
           <p className="text-zinc-400 font-mono">ИНН: 910408161157</p>
           <p>
+            <a href="https://freekassa.net" title="big-dark-1"><img src="https://cdn.freekassa.net/images/logos/banners/f/big-dark-1.png" alt="big-dark-1" /></a>
             Тел:{' '}
             <a href="tel:+79787847414" className="text-cyan-400 hover:underline">
               +7 978 784-74-14
