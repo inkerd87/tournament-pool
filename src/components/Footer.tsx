@@ -13,12 +13,7 @@ export const Footer: React.FC = () => {
               alt="NightByte Logo"
               className="h-9 w-9 rounded-xl object-contain border border-cyan-500/20 shadow-sm shadow-cyan-500/10"
             />
-            <div className="flex flex-col">
-              <p className="font-extrabold tracking-tight text-white leading-tight">{SITE_NAME}</p>
-              <span className="text-[9px] font-semibold tracking-wider text-cyan-400 uppercase leading-none">
-                ONLINE.RU
-              </span>
-            </div>
+            <p className="font-extrabold tracking-tight text-white leading-tight">{SITE_NAME}</p>
           </div>
           <p className="mt-2.5 max-w-md text-xs sm:text-sm leading-relaxed text-zinc-400">
             Турниры по CS2, Dota 2, PUBG и Valorant. Организационный сбор 100 ₽ —

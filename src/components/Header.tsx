@@ -25,14 +25,9 @@ export const Header: React.FC = () => {
             alt="NightByte Logo"
             className="h-10 w-10 rounded-xl object-contain border border-cyan-500/25 shadow-md shadow-cyan-500/25 group-hover:border-cyan-400/50 group-hover:scale-105 transition-all duration-200"
           />
-          <div className="flex flex-col">
-            <span className="text-lg font-extrabold tracking-tight text-white group-hover:text-cyan-300 transition leading-tight">
-              {SITE_NAME}
-            </span>
-            <span className="text-[10px] font-semibold tracking-wider text-cyan-400 uppercase leading-none">
-              ONLINE.RU
-            </span>
-          </div>
+          <span className="text-lg font-extrabold tracking-tight text-white group-hover:text-cyan-300 transition leading-tight">
+            {SITE_NAME}
+          </span>
         </Link>
 
         {/* Desktop Navigation (>= 1024px) */}
