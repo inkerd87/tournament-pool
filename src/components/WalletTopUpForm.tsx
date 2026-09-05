@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { formatRub } from '@/lib/format';
-import { LAVA_PRODUCT_URL } from '@/lib/lava-client';
+import { PAYANYWAY_SHOWCASE_URL } from '@/lib/payanyway-client';
 
 const AMOUNTS = [100, 300, 500, 1000];
 
@@ -8,14 +8,14 @@ export const WalletTopUpForm: React.FC = () => {
   const [customAmount, setCustomAmount] = useState<string>('100');
 
   const handleTopUp = () => {
-    window.location.href = LAVA_PRODUCT_URL;
+    window.location.href = PAYANYWAY_SHOWCASE_URL;
   };
 
   return (
     <div className="surface-card p-5 sm:p-6">
       <h3 className="text-base font-bold text-white">Пополнение баланса</h3>
       <p className="mt-1 text-xs text-zinc-400">
-        Через СБП или банковскую карту (Lava Pay). Без комиссии.
+        Через СБП или банковскую карту (PayAnyWay / НКО «МОНЕТА»). Без комиссии.
       </p>
 
       <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -50,7 +50,7 @@ export const WalletTopUpForm: React.FC = () => {
           onClick={handleTopUp}
           className="btn-primary whitespace-nowrap text-xs py-3 sm:py-2.5 px-4 font-bold"
         >
-          Пополнить через Lava Pay (100 ₽)
+          Пополнить через PayAnyWay (100 ₽)
         </button>
       </div>
     </div>

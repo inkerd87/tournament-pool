@@ -119,7 +119,7 @@ export const PaymentReturnPage: React.FC = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">Статус:</span>
-            <span className="font-semibold text-cyan-400">Оплачено (Lava Pay / СБП)</span>
+            <span className="font-semibold text-cyan-400">Оплачено (PayAnyWay / СБП)</span>
           </div>
         </div>
 
