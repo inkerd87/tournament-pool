@@ -32,8 +32,8 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     registeredCount: 0,
     startsAt: "2026-09-07T19:00:00+03:00",
     status: "recruiting",
-    format: "Solo, 3 матча, сумма очков",
-    description: "Три катки на одной карте — побеждает лучшая суммарная статистика.",
+    format: "Solo, 1 катка (быстрые призовые)",
+    description: "Быстрый одиночный матч на 100 игроков: 1 катка — топ-3 выживших сразу получают призовые выплаты.",
   },
   {
     id: "valorant-skirmish-001",
@@ -49,9 +49,9 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v4');
+  const data = localStorage.getItem('nb_tournaments_v5');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v4', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v5', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -62,7 +62,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v4', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v5', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {

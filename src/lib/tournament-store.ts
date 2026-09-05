@@ -48,8 +48,8 @@ const SEED: Omit<Tournament, "registeredCount">[] = [
     maxPlayers: 100,
     startsAt: "2026-08-11T19:00:00+03:00",
     status: "recruiting",
-    format: "Solo, 3 матча, сумма очков",
-    description: "Три катки на одной карте — побеждает лучшая суммарная статистика.",
+    format: "Solo, 1 катка (быстрые призовые)",
+    description: "1 катка на 100 игроков — топ-3 выживших сразу получают призовые выплаты.",
   },
   {
     id: "valorant-skirmish-001",
