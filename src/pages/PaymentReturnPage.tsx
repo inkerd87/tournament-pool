@@ -6,7 +6,7 @@ import { formatRub } from '@/lib/format';
 
 export const PaymentReturnPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const { user, login } = useAuth();
+  const { user, login, updateBalance } = useAuth();
   const { registerForTournament, tournaments, isUserRegistered } = useTournaments();
 
   const status = searchParams.get('status');
@@ -14,17 +14,36 @@ export const PaymentReturnPage: React.FC = () => {
 
   const [registeredTournamentTitle, setRegisteredTournamentTitle] = useState<string>('');
   const [playerNickname, setPlayerNickname] = useState<string>('');
+  const [isTopUp, setIsTopUp] = useState<boolean>(false);
+  const [topUpAmount, setTopUpAmount] = useState<number>(100);
 
-  const amountStr = searchParams.get('amount') || searchParams.get('OutSum');
+  const amountStr = searchParams.get('amount') || searchParams.get('OutSum') || searchParams.get('MNT_AMOUNT');
   const amount = amountStr ? parseFloat(amountStr) : 100;
 
   useEffect(() => {
     if (isFailed) {
       localStorage.removeItem('nb_pending_registration');
+      localStorage.removeItem('nb_pending_topup');
       return;
     }
 
-    // Получаем данные либо из URL параметров, либо из локального хранилища
+    // 1. Проверяем пополнение баланса
+    let isTopUpAction = false;
+    let finalTopupAmount = 100;
+
+    try {
+      const savedTopup = localStorage.getItem('nb_pending_topup');
+      if (savedTopup) {
+        const parsed = JSON.parse(savedTopup);
+        finalTopupAmount = Number(parsed.amount) || 100;
+        isTopUpAction = true;
+        localStorage.removeItem('nb_pending_topup');
+      }
+    } catch (e) {
+      console.error('Error reading pending topup:', e);
+    }
+
+    // Данные турнира
     let tId = searchParams.get('tId');
     let nick = searchParams.get('nick');
     let acc = searchParams.get('acc');
@@ -49,6 +68,20 @@ export const PaymentReturnPage: React.FC = () => {
       }
     }
 
+    // Если нет данных турнира, значит это пополнение баланса
+    if (!tId && !isTopUpAction) {
+      isTopUpAction = true;
+      finalTopupAmount = amount;
+    }
+
+    if (isTopUpAction) {
+      setIsTopUp(true);
+      setTopUpAmount(finalTopupAmount);
+      updateBalance(finalTopupAmount);
+      return;
+    }
+
+    // Регистрация на турнир
     if (tId && nick && email) {
       setPlayerNickname(nick);
       const targetTourney = tournaments.find(t => t.id === tId);
@@ -56,7 +89,7 @@ export const PaymentReturnPage: React.FC = () => {
         setRegisteredTournamentTitle(targetTourney.title);
       }
 
-      // Регистрируем игрока ТОЛЬКО СЕЙЧАС (после подтверждения оплаты)
+      // Регистрируем игрока после подтверждения оплаты
       if (!isUserRegistered(tId, email)) {
         registerForTournament(tId, nick, acc || '', email, phone);
       }
@@ -68,7 +101,7 @@ export const PaymentReturnPage: React.FC = () => {
 
       localStorage.removeItem('nb_pending_registration');
     }
-  }, [searchParams, isFailed, tournaments, isUserRegistered, registerForTournament, user, login]);
+  }, [searchParams, isFailed, tournaments, isUserRegistered, registerForTournament, user, login, updateBalance, amount]);
 
   if (isFailed) {
     return (
@@ -79,14 +112,14 @@ export const PaymentReturnPage: React.FC = () => {
           </div>
           <h1 className="mt-4 text-2xl font-extrabold text-white">Оплата отменена</h1>
           <p className="mt-2 text-sm text-zinc-400">
-            Вы не были зарегистрированы на турнир. Средства с вашей карты не списывались.
+            Платёж был отменён. Средства с вашей карты не списывались.
           </p>
           <div className="mt-8 flex flex-col gap-3">
             <Link to="/tournaments" className="btn-primary">
               Вернуться к турнирам
             </Link>
-            <Link to="/" className="btn-secondary">
-              На главную
+            <Link to="/account" className="btn-secondary">
+              В личный кабинет
             </Link>
           </div>
         </div>
@@ -94,6 +127,54 @@ export const PaymentReturnPage: React.FC = () => {
     );
   }
 
+  // Экран успешного пополнения баланса
+  if (isTopUp) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-20 text-center sm:px-6">
+        <div className="surface-card p-8 border-emerald-500/30">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-3xl text-emerald-400">
+            ✓
+          </div>
+          <h1 className="mt-4 text-2xl font-extrabold text-white">Баланс пополнен!</h1>
+          <p className="mt-2 text-sm text-zinc-300">
+            Средства успешно зачислены и уже отображаются в вашем личном кабинете.
+          </p>
+
+          <div className="mt-5 rounded-xl border border-white/5 bg-black/30 p-4 text-left space-y-2 text-xs">
+            {user && (
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Пользователь:</span>
+                <span className="font-bold text-white">{user.nickname || user.email}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-zinc-500">Сумма зачисления:</span>
+              <span className="font-bold text-emerald-400">+{formatRub(topUpAmount)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-500">Статус:</span>
+              <span className="font-semibold text-cyan-400">Зачислено (PayAnyWay / СБП)</span>
+            </div>
+          </div>
+
+          <p className="mt-4 text-xs text-zinc-500">
+            Теперь вы можете оплачивать участие в турнирах моментально в один клик.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3">
+            <Link to="/account" className="btn-primary">
+              Перейти в личный кабинет
+            </Link>
+            <Link to="/tournaments" className="btn-secondary">
+              Выбрать турнир
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Экран успешной регистрации на турнир
   return (
     <div className="mx-auto max-w-md px-4 py-20 text-center sm:px-6">
       <div className="surface-card p-8 border-emerald-500/30">

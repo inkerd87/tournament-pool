@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
 import { formatRub } from '@/lib/format';
 import { PAYANYWAY_SHOWCASE_URL } from '@/lib/payanyway-client';
+import { useAuth } from '@/context/AuthContext';
 
 const AMOUNTS = [100, 300, 500, 1000];
 
 export const WalletTopUpForm: React.FC = () => {
+  const { user } = useAuth();
   const [customAmount, setCustomAmount] = useState<string>('100');
 
+  const parsedAmount = Math.max(10, Number(customAmount) || 100);
+
   const handleTopUp = () => {
+    localStorage.setItem(
+      'nb_pending_topup',
+      JSON.stringify({
+        amount: parsedAmount,
+        email: user?.email || '',
+        createdAt: Date.now(),
+      })
+    );
     window.location.href = PAYANYWAY_SHOWCASE_URL;
   };
-
-  const parsedAmount = Math.max(10, Number(customAmount) || 100);
 
   return (
     <div className="surface-card p-5 sm:p-6">
