@@ -141,7 +141,7 @@ export const HomePage: React.FC = () => {
             {
               step: "03",
               title: "Награды топ-3",
-              text: `Наградной фонд соревнований: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])} за 1–3 призовые места.`,
+              text: `Наградной фонд соревнований: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])} за 1–3 призовые места. Выплата призовых на карту или СБП — в срок до 24 часов (до суток).`,
             },
           ].map((item) => (
             <div

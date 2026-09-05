@@ -54,6 +54,13 @@ export const PrizeBreakdown: React.FC<Props> = ({ registered, maxPlayers }) => {
           </dd>
         </div>
       </dl>
+
+      <div className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-3 text-xs text-zinc-300 flex items-start gap-2.5">
+        <span className="text-base leading-none">⏱</span>
+        <div className="leading-snug">
+          <span className="font-bold text-cyan-300">Выплата призовых:</span> перевод на карту РФ или СБП осуществляется в срок <strong className="text-white">до 24 часов (до суток)</strong> после фиксации результатов матча.
+        </div>
+      </div>
     </div>
   );
 };

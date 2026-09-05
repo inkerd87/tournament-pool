@@ -59,6 +59,16 @@ export const HowItWorksPage: React.FC = () => {
               </p>
             </div>
           </div>
+
+          <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-4 text-sm text-zinc-300 flex items-start gap-3">
+            <span className="text-xl leading-none">⏱</span>
+            <div>
+              <p className="font-bold text-white">Срок и порядок призовых выплат (до суток)</p>
+              <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
+                Выплата гарантированных призов победителям соревнований (1, 2 и 3 места) осуществляется организатором в срок <strong className="text-white">до 24 часов (до одних суток)</strong> с момента окончания матча и фиксации результатов турнира. Выплата производится в безналичном порядке через Систему быстрых платежей (СБП) или переводом на банковскую карту РФ.
+              </p>
+            </div>
+          </div>
         </section>
 
         <section className="space-y-4">
