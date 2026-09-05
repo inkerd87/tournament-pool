@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { ENTRY_FEE_RUB } from '@/lib/constants';
 import { formatRub } from '@/lib/format';
-import { createRobokassaCheckoutUrl } from '@/lib/robokassa-client';
+import { LAVA_PRODUCT_URL } from '@/lib/lava-client';
 import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
 type Props = {
@@ -100,17 +100,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
       };
       localStorage.setItem('nb_pending_registration', JSON.stringify(pendingData));
 
-      const checkoutUrl = createRobokassaCheckoutUrl({
-        amountRub: ENTRY_FEE_RUB,
-        description: `Оргсбор за участие в турнире #${tournamentId}`,
-        registrationData: {
-          tournamentId,
-          nickname: nickname.trim(),
-          gameAccount: gameAccount.trim(),
-          email: email.trim(),
-        },
-      });
-      window.location.href = checkoutUrl;
+      // Перенаправляем на оплату через Lava.top
+      window.location.href = LAVA_PRODUCT_URL;
     }
   };
 
@@ -252,8 +243,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
                   : 'border-white/10 bg-black/20 text-zinc-400 hover:border-white/20'
               }`}
             >
-              <p className="text-xs font-bold text-white">💳 Карта / СБП</p>
-              <p className="text-[11px] text-zinc-400 mt-0.5">Любые банки РФ без комиссии</p>
+              <p className="text-xs font-bold text-white">💳 СБП / Карты РФ (Lava Pay)</p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, Т-Банк, Сбер, МИР без комиссии</p>
             </button>
 
             <button
@@ -289,7 +280,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
         )}
 
         <button type="submit" className="btn-primary w-full py-3 text-sm font-bold shadow-lg shadow-cyan-500/20">
-          {payMethod === 'balance' ? 'Оплатить 100 ₽ с баланса' : 'Перейти к оплате 100 ₽'}
+          {payMethod === 'balance' ? 'Оплатить 100 ₽ с баланса' : 'Оплатить 100 ₽ через Lava Pay (СБП / Карта)'}
         </button>
 
         <p className="text-[11px] text-zinc-500 text-center leading-relaxed">

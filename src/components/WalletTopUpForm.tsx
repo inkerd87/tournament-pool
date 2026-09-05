@@ -1,26 +1,21 @@
 import React, { useState } from 'react';
 import { formatRub } from '@/lib/format';
-import { createRobokassaCheckoutUrl } from '@/lib/robokassa-client';
+import { LAVA_PRODUCT_URL } from '@/lib/lava-client';
 
 const AMOUNTS = [100, 300, 500, 1000];
 
 export const WalletTopUpForm: React.FC = () => {
-  const [customAmount, setCustomAmount] = useState<string>('300');
+  const [customAmount, setCustomAmount] = useState<string>('100');
 
-  const handleTopUp = (amount: number) => {
-    if (amount < 10) return;
-    const checkoutUrl = createRobokassaCheckoutUrl({
-      amountRub: amount,
-      description: 'Пополнение кошелька NightByte',
-    });
-    window.location.href = checkoutUrl;
+  const handleTopUp = () => {
+    window.location.href = LAVA_PRODUCT_URL;
   };
 
   return (
     <div className="surface-card p-5 sm:p-6">
       <h3 className="text-base font-bold text-white">Пополнение баланса</h3>
       <p className="mt-1 text-xs text-zinc-400">
-        Через СБП или банковскую карту (Robokassa). Без комиссии.
+        Через СБП или банковскую карту (Lava Pay). Без комиссии.
       </p>
 
       <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -52,10 +47,10 @@ export const WalletTopUpForm: React.FC = () => {
         />
         <button
           type="button"
-          onClick={() => handleTopUp(Number(customAmount))}
+          onClick={handleTopUp}
           className="btn-primary whitespace-nowrap text-xs py-3 sm:py-2.5 px-4 font-bold"
         >
-          Пополнить
+          Пополнить через Lava Pay (100 ₽)
         </button>
       </div>
     </div>
