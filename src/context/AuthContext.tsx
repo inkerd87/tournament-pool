@@ -168,33 +168,92 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     try {
-      // Upsert into Supabase
-      const { data: inserted } = await supabase
+      // 1. Проверяем, существует ли уже пользователь в Supabase
+      const { data: existingUser, error: checkErr } = await supabase
         .from('users')
-        .upsert(
-          {
-            email: cleanEmail,
-            nickname: cleanNick,
-            phone: cleanPhone,
-            balance_rub: 0,
-          } as any,
-          { onConflict: 'email' }
-        )
-        .select()
+        .select('*')
+        .eq('email', cleanEmail)
         .maybeSingle();
 
-      if (inserted) {
-        userObj = {
-          id: inserted.id,
-          email: inserted.email,
-          nickname: inserted.nickname,
-          phone: (inserted as any).phone || cleanPhone,
-          balanceRub: Number(inserted.balance_rub) || 0,
-          createdAt: inserted.created_at,
+      if (existingUser) {
+        // Пользователь уже в базе — обновляем профиль
+        const updatePayload: Record<string, any> = {
+          nickname: cleanNick,
         };
+        if (cleanPhone) updatePayload.phone = cleanPhone;
+
+        const { data: updated } = await supabase
+          .from('users')
+          .update(updatePayload)
+          .eq('email', cleanEmail)
+          .select()
+          .maybeSingle();
+
+        if (updated) {
+          userObj = {
+            id: updated.id,
+            email: updated.email,
+            nickname: updated.nickname || cleanNick,
+            phone: (updated as any).phone || cleanPhone,
+            balanceRub: Number(updated.balance_rub) || 0,
+            createdAt: updated.created_at,
+          };
+        }
+      } else {
+        // 2. Создаем нового пользователя в Supabase
+        const insertPayload: Record<string, any> = {
+          email: cleanEmail,
+          nickname: cleanNick,
+          balance_rub: 0,
+        };
+        if (cleanPhone) insertPayload.phone = cleanPhone;
+
+        const { data: inserted, error: insErr } = await supabase
+          .from('users')
+          .insert(insertPayload)
+          .select()
+          .maybeSingle();
+
+        if (insErr) {
+          console.error('Supabase user insert error:', insErr);
+          // Если колонка phone отсутствует в таблице users (код 42703), пробуем без нее
+          if (insErr.message?.includes('phone') || insErr.code === '42703') {
+            const { data: fbInserted, error: fbErr } = await supabase
+              .from('users')
+              .insert({
+                email: cleanEmail,
+                nickname: cleanNick,
+                balance_rub: 0,
+              })
+              .select()
+              .maybeSingle();
+
+            if (fbInserted) {
+              userObj = {
+                id: fbInserted.id,
+                email: fbInserted.email,
+                nickname: fbInserted.nickname,
+                phone: cleanPhone,
+                balanceRub: Number(fbInserted.balance_rub) || 0,
+                createdAt: fbInserted.created_at,
+              };
+            } else if (fbErr) {
+              console.error('Supabase fallback user insert error:', fbErr);
+            }
+          }
+        } else if (inserted) {
+          userObj = {
+            id: inserted.id,
+            email: inserted.email,
+            nickname: inserted.nickname,
+            phone: (inserted as any).phone || cleanPhone,
+            balanceRub: Number(inserted.balance_rub) || 0,
+            createdAt: inserted.created_at,
+          };
+        }
       }
     } catch (e) {
-      console.warn('Could not sync user to Supabase:', e);
+      console.error('Could not sync user to Supabase:', e);
     }
 
     setUser(userObj);
@@ -259,34 +318,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     try {
-      const { data: existingUser, error } = await supabase
+      const { data: existingUser, error: checkErr } = await supabase
         .from('users')
         .select('*')
         .eq('email', cleanEmail)
         .maybeSingle();
 
-      if (!error && existingUser) {
+      if (existingUser) {
         userObj = {
           id: existingUser.id,
           email: existingUser.email,
-          nickname: existingUser.nickname,
+          nickname: existingUser.nickname || cleanNick,
           phone: (existingUser as any).phone || cleanPhone,
           balanceRub: Number(existingUser.balance_rub) || 0,
           createdAt: existingUser.created_at,
         };
+
+        if (cleanPhone || (cleanNick && cleanNick !== existingUser.nickname)) {
+          const updateData: Record<string, any> = {
+            nickname: cleanNick || existingUser.nickname,
+          };
+          if (cleanPhone) updateData.phone = cleanPhone;
+          await supabase
+            .from('users')
+            .update(updateData)
+            .eq('email', cleanEmail);
+        }
       } else {
-        const { data: inserted } = await supabase
+        const insertPayload: Record<string, any> = {
+          email: cleanEmail,
+          nickname: cleanNick,
+          balance_rub: 0,
+        };
+        if (cleanPhone) insertPayload.phone = cleanPhone;
+
+        const { data: inserted, error: insErr } = await supabase
           .from('users')
-          .insert({
-            email: cleanEmail,
-            nickname: cleanNick,
-            phone: cleanPhone,
-            balance_rub: 0,
-          } as any)
+          .insert(insertPayload)
           .select()
           .maybeSingle();
 
-        if (inserted) {
+        if (insErr) {
+          console.error('Supabase login insert error:', insErr);
+          if (insErr.message?.includes('phone') || insErr.code === '42703') {
+            const { data: fbInserted, error: fbErr } = await supabase
+              .from('users')
+              .insert({
+                email: cleanEmail,
+                nickname: cleanNick,
+                balance_rub: 0,
+              })
+              .select()
+              .maybeSingle();
+
+            if (fbInserted) {
+              userObj = {
+                id: fbInserted.id,
+                email: fbInserted.email,
+                nickname: fbInserted.nickname,
+                phone: cleanPhone,
+                balanceRub: Number(fbInserted.balance_rub) || 0,
+                createdAt: fbInserted.created_at,
+              };
+            } else if (fbErr) {
+              console.error('Supabase fallback login insert error:', fbErr);
+            }
+          }
+        } else if (inserted) {
           userObj = {
             id: inserted.id,
             email: inserted.email,
@@ -298,7 +396,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     } catch (e) {
-      console.warn('Could not sync login to Supabase:', e);
+      console.error('Could not sync login to Supabase:', e);
     }
 
     setUser(userObj);

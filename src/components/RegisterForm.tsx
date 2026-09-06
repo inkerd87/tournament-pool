@@ -40,7 +40,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
 
@@ -75,7 +75,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
     }
 
     if (!user) {
-      login(email.trim(), password.trim(), nickname.trim(), phone.trim());
+      await login(email.trim(), password.trim(), nickname.trim(), phone.trim());
     }
 
     if (payMethod === 'balance') {
