@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
@@ -17,33 +17,38 @@ export const PaymentReturnPage: React.FC = () => {
   const [isTopUp, setIsTopUp] = useState<boolean>(false);
   const [topUpAmount, setTopUpAmount] = useState<number>(100);
 
-  const amountStr = searchParams.get('amount') || searchParams.get('OutSum') || searchParams.get('MNT_AMOUNT');
-  const amount = amountStr ? parseFloat(amountStr) : 100;
+  // Защита от повторного выполнения и зацикливания
+  const hasProcessed = useRef<boolean>(false);
 
   useEffect(() => {
+    if (hasProcessed.current) return;
+    hasProcessed.current = true;
+
     if (isFailed) {
       localStorage.removeItem('nb_pending_registration');
       localStorage.removeItem('nb_pending_topup');
       return;
     }
 
-    // 1. Проверяем пополнение баланса
-    let isTopUpAction = false;
-    let finalTopupAmount = 100;
-
-    try {
-      const savedTopup = localStorage.getItem('nb_pending_topup');
-      if (savedTopup) {
-        const parsed = JSON.parse(savedTopup);
-        finalTopupAmount = Number(parsed.amount) || 100;
-        isTopUpAction = true;
-        localStorage.removeItem('nb_pending_topup');
+    // 1. Проверяем наличие ожидающего пополнения баланса
+    const savedTopupStr = localStorage.getItem('nb_pending_topup');
+    if (savedTopupStr) {
+      localStorage.removeItem('nb_pending_topup');
+      try {
+        const parsed = JSON.parse(savedTopupStr);
+        const amt = Number(parsed.amount);
+        if (!isNaN(amt) && amt > 0) {
+          setIsTopUp(true);
+          setTopUpAmount(amt);
+          updateBalance(amt);
+          return;
+        }
+      } catch (e) {
+        console.error('Error reading pending topup:', e);
       }
-    } catch (e) {
-      console.error('Error reading pending topup:', e);
     }
 
-    // Данные турнира
+    // 2. Проверяем регистрацию на турнир
     let tId = searchParams.get('tId');
     let nick = searchParams.get('nick');
     let acc = searchParams.get('acc');
@@ -51,37 +56,22 @@ export const PaymentReturnPage: React.FC = () => {
     let phone = searchParams.get('phone') || '';
     let password = '';
 
-    if (!tId || !email) {
+    const savedRegStr = localStorage.getItem('nb_pending_registration');
+    if (savedRegStr) {
+      localStorage.removeItem('nb_pending_registration');
       try {
-        const saved = localStorage.getItem('nb_pending_registration');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          tId = parsed.tournamentId;
-          nick = parsed.nickname;
-          acc = parsed.gameAccount;
-          email = parsed.email;
-          if (parsed.phone) phone = parsed.phone;
-          if (parsed.password) password = parsed.password;
-        }
+        const parsed = JSON.parse(savedRegStr);
+        tId = tId || parsed.tournamentId;
+        nick = nick || parsed.nickname;
+        acc = acc || parsed.gameAccount;
+        email = email || parsed.email;
+        phone = phone || parsed.phone || '';
+        password = parsed.password || '';
       } catch (e) {
         console.error('Error reading pending registration:', e);
       }
     }
 
-    // Если нет данных турнира, значит это пополнение баланса
-    if (!tId && !isTopUpAction) {
-      isTopUpAction = true;
-      finalTopupAmount = amount;
-    }
-
-    if (isTopUpAction) {
-      setIsTopUp(true);
-      setTopUpAmount(finalTopupAmount);
-      updateBalance(finalTopupAmount);
-      return;
-    }
-
-    // Регистрация на турнир
     if (tId && nick && email) {
       setPlayerNickname(nick);
       const targetTourney = tournaments.find(t => t.id === tId);
@@ -89,19 +79,15 @@ export const PaymentReturnPage: React.FC = () => {
         setRegisteredTournamentTitle(targetTourney.title);
       }
 
-      // Регистрируем игрока после подтверждения оплаты
       if (!isUserRegistered(tId, email)) {
         registerForTournament(tId, nick, acc || '', email, phone);
       }
 
-      // Если пользователь не авторизован в браузере, авторизуем под его почтой
       if (!user || user.email.toLowerCase() !== email.toLowerCase()) {
         login(email, password, nick, phone);
       }
-
-      localStorage.removeItem('nb_pending_registration');
     }
-  }, [searchParams, isFailed, tournaments, isUserRegistered, registerForTournament, user, login, updateBalance, amount]);
+  }, []); // Выполняется строго 1 раз при монтировании компонента
 
   if (isFailed) {
     return (

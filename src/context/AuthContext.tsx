@@ -35,6 +35,7 @@ interface AuthContextType {
   adminLogout: () => void;
   logout: () => void;
   updateBalance: (delta: number) => Promise<void>;
+  setBalance: (exactAmount: number) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -292,6 +293,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setBalance = async (exactAmount: number) => {
+    if (!user) return;
+    const newBalance = Math.max(0, exactAmount);
+    
+    setUser({
+      ...user,
+      balanceRub: newBalance,
+    });
+
+    try {
+      await supabase
+        .from('users')
+        .update({ balance_rub: newBalance })
+        .eq('email', user.email.toLowerCase());
+    } catch (e) {
+      console.warn('Could not set balance in Supabase:', e);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -303,6 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         adminLogout,
         logout,
         updateBalance,
+        setBalance,
       }}
     >
       {children}
