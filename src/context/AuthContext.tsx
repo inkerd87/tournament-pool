@@ -34,8 +34,9 @@ interface AuthContextType {
   adminLogin: (password: string) => boolean;
   adminLogout: () => void;
   logout: () => void;
-  updateBalance: (delta: number) => Promise<void>;
+  updateBalance: (delta: number, emailOverride?: string) => Promise<void>;
   setBalance: (exactAmount: number) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,32 +49,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     saveUser(user);
   }, [user]);
 
-  // Sync user with Supabase on mount
-  useEffect(() => {
-    if (!user) return;
-    const fetchLatestUser = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', user.email.toLowerCase())
-          .maybeSingle();
+  const refreshUser = async () => {
+    const currentUser = getStoredUser() || user;
+    if (!currentUser) return;
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', currentUser.email.toLowerCase())
+        .maybeSingle();
 
-        if (!error && data) {
-          setUser({
+      if (!error && data) {
+        setUser((prev) => {
+          const updated: User = {
             id: data.id,
             email: data.email,
             nickname: data.nickname,
-            phone: (data as any).phone || user.phone || '',
+            phone: (data as any).phone || currentUser.phone || '',
             balanceRub: Number(data.balance_rub) || 0,
             createdAt: data.created_at,
-          });
-        }
-      } catch (e) {
-        console.warn('Supabase user sync error:', e);
+          };
+          saveUser(updated);
+          return updated;
+        });
       }
-    };
-    fetchLatestUser();
+    } catch (e) {
+      console.warn('Supabase user sync error:', e);
+    }
+  };
+
+  // Sync user with Supabase on mount (unless pending topup is awaiting processing)
+  useEffect(() => {
+    const pendingTopup = localStorage.getItem('nb_pending_topup');
+    if (pendingTopup) {
+      return;
+    }
+    refreshUser();
   }, []);
 
   const register = async (
@@ -274,22 +285,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  const updateBalance = async (delta: number) => {
-    if (!user) return;
-    const newBalance = Math.max(0, user.balanceRub + delta);
-    
-    setUser({
-      ...user,
-      balanceRub: newBalance,
-    });
+  const updateBalance = async (delta: number, emailOverride?: string) => {
+    const targetEmail = (emailOverride || user?.email || '').trim().toLowerCase();
+    if (!targetEmail) return;
 
+    // 1. Fetch current balance directly from Supabase
+    let currentBalance = 0;
+    try {
+      const { data } = await supabase
+        .from('users')
+        .select('balance_rub')
+        .eq('email', targetEmail)
+        .maybeSingle();
+
+      if (data && data.balance_rub !== undefined && data.balance_rub !== null) {
+        currentBalance = Number(data.balance_rub) || 0;
+      } else {
+        const stored = getStoredUser();
+        if (stored && stored.email.toLowerCase() === targetEmail) {
+          currentBalance = stored.balanceRub;
+        } else if (user && user.email.toLowerCase() === targetEmail) {
+          currentBalance = user.balanceRub;
+        }
+      }
+    } catch {
+      const stored = getStoredUser();
+      if (stored && stored.email.toLowerCase() === targetEmail) {
+        currentBalance = stored.balanceRub;
+      } else if (user && user.email.toLowerCase() === targetEmail) {
+        currentBalance = user.balanceRub;
+      }
+    }
+
+    const newBalance = Math.max(0, currentBalance + delta);
+
+    // 2. Persist to Supabase first
     try {
       await supabase
         .from('users')
         .update({ balance_rub: newBalance })
-        .eq('email', user.email.toLowerCase());
+        .eq('email', targetEmail);
     } catch (e) {
       console.warn('Could not update balance in Supabase:', e);
+    }
+
+    // 3. Update React state and localStorage
+    setUser((prev) => {
+      if (prev && prev.email.toLowerCase() === targetEmail) {
+        const updated = { ...prev, balanceRub: newBalance };
+        saveUser(updated);
+        return updated;
+      }
+      return prev;
+    });
+
+    const stored = getStoredUser();
+    if (stored && stored.email.toLowerCase() === targetEmail) {
+      stored.balanceRub = newBalance;
+      saveUser(stored);
     }
   };
 
@@ -324,6 +377,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         updateBalance,
         setBalance,
+        refreshUser,
       }}
     >
       {children}

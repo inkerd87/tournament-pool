@@ -32,6 +32,9 @@ export const App: React.FC = () => {
             <Route path="/terms" element={<OfferPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/payments/return" element={<PaymentReturnPage />} />
+            <Route path="/payment/return" element={<PaymentReturnPage />} />
+            <Route path="/payment/success" element={<PaymentReturnPage />} />
+            <Route path="/payments/success" element={<PaymentReturnPage />} />
             <Route path="*" element={<HomePage />} />
           </Routes>
         </main>

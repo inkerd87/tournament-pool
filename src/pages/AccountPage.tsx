@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
@@ -9,8 +9,50 @@ import { MatchHistoryList } from '@/components/MatchHistoryList';
 import { getStoredHistory } from '@/lib/storage';
 
 export const AccountPage: React.FC = () => {
-  const { user, logout } = useAuth();
-  const { tournaments, getUserRegistrations, matches } = useTournaments();
+  const { user, logout, updateBalance, refreshUser } = useAuth();
+  const { tournaments, getUserRegistrations, matches, registerForTournament, isUserRegistered } = useTournaments();
+  const [topUpSuccess, setTopUpSuccess] = useState<number | null>(null);
+
+  // Проверяем, вернулся ли пользователь после оплаты через PayAnyWay (пополнение или турнир)
+  useEffect(() => {
+    if (!user) return;
+
+    // 1. Ожидающее пополнение баланса
+    const pendingTopupStr = localStorage.getItem('nb_pending_topup');
+    if (pendingTopupStr) {
+      localStorage.removeItem('nb_pending_topup');
+      try {
+        const data = JSON.parse(pendingTopupStr);
+        const amt = Number(data.amount);
+        if (!isNaN(amt) && amt > 0) {
+          updateBalance(amt, user.email);
+          setTopUpSuccess(amt);
+        }
+      } catch (e) {
+        console.error('Error processing pending topup on account page:', e);
+      }
+    }
+
+    // 2. Ожидающая регистрация на турнир
+    const pendingRegStr = localStorage.getItem('nb_pending_registration');
+    if (pendingRegStr) {
+      localStorage.removeItem('nb_pending_registration');
+      try {
+        const reg = JSON.parse(pendingRegStr);
+        if (reg.tournamentId && !isUserRegistered(reg.tournamentId, user.email)) {
+          registerForTournament(
+            reg.tournamentId,
+            reg.nickname || user.nickname,
+            reg.gameAccount || '',
+            user.email,
+            reg.phone || user.phone || ''
+          );
+        }
+      } catch (e) {
+        console.error('Error processing pending registration on account page:', e);
+      }
+    }
+  }, [user?.email]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -56,8 +98,25 @@ export const AccountPage: React.FC = () => {
       <div className="mt-6 sm:mt-8 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6">
           <div className="surface-card p-5 sm:p-6">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Баланс кошелька</p>
-            <p className="mt-1 text-3xl font-black text-white">{formatRub(user.balanceRub)}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Баланс кошелька</p>
+              <button
+                type="button"
+                onClick={() => refreshUser()}
+                className="text-[11px] text-zinc-500 hover:text-cyan-400 transition"
+                title="Синхронизировать баланс"
+              >
+                🔄 Обновить
+              </button>
+            </div>
+
+            {topUpSuccess && (
+              <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300">
+                ✓ Баланс успешно пополнен на +{formatRub(topUpSuccess)}!
+              </div>
+            )}
+
+            <p className="mt-2 text-3xl font-black text-white">{formatRub(user.balanceRub)}</p>
             <p className="mt-1 text-xs text-zinc-400">Для мгновенной оплаты участия без комиссии</p>
           </div>
 
