@@ -49,9 +49,9 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v5');
+  const data = localStorage.getItem('nb_tournaments_v6');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v5', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v6', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -62,7 +62,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v5', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v6', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {
