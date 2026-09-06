@@ -16,6 +16,7 @@ export const PaymentReturnPage: React.FC = () => {
   const [playerNickname, setPlayerNickname] = useState<string>('');
   const [isTopUp, setIsTopUp] = useState<boolean>(false);
   const [topUpAmount, setTopUpAmount] = useState<number>(100);
+  const [paidAmount, setPaidAmount] = useState<number>(100);
 
   // Защита от повторного выполнения и зацикливания
   const hasProcessed = useRef<boolean>(false);
@@ -77,6 +78,7 @@ export const PaymentReturnPage: React.FC = () => {
       const targetTourney = tournaments.find(t => t.id === tId);
       if (targetTourney) {
         setRegisteredTournamentTitle(targetTourney.title);
+        setPaidAmount(targetTourney.entryFeeRub);
       }
 
       if (!isUserRegistered(tId, email)) {
@@ -182,7 +184,7 @@ export const PaymentReturnPage: React.FC = () => {
           )}
           <div className="flex justify-between">
             <span className="text-zinc-500">Сумма взноса:</span>
-            <span className="font-bold text-emerald-400">{formatRub(amount)}</span>
+            <span className="font-bold text-emerald-400">{formatRub(paidAmount)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">Статус:</span>

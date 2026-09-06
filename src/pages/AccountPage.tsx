@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
@@ -9,10 +9,8 @@ import { MatchHistoryList } from '@/components/MatchHistoryList';
 import { getStoredHistory } from '@/lib/storage';
 
 export const AccountPage: React.FC = () => {
-  const { user, logout, setBalance } = useAuth();
+  const { user, logout } = useAuth();
   const { tournaments, getUserRegistrations, matches } = useTournaments();
-  const [editingBalance, setEditingBalance] = useState(false);
-  const [balanceInput, setBalanceInput] = useState('');
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -58,49 +56,8 @@ export const AccountPage: React.FC = () => {
       <div className="mt-6 sm:mt-8 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6">
           <div className="surface-card p-5 sm:p-6">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Баланс кошелька</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setBalanceInput(String(user.balanceRub));
-                  setEditingBalance(!editingBalance);
-                }}
-                className="text-[10px] text-zinc-500 hover:text-cyan-400 transition underline"
-              >
-                {editingBalance ? 'Отмена' : 'Скорректировать'}
-              </button>
-            </div>
-
-            {editingBalance ? (
-              <div className="mt-3 flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max="100000"
-                  value={balanceInput}
-                  onChange={(e) => setBalanceInput(e.target.value)}
-                  className="input-field mt-0 py-1.5 px-2.5 font-mono text-sm w-32"
-                  placeholder="Баланс ₽"
-                />
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const val = parseFloat(balanceInput);
-                    if (!isNaN(val) && val >= 0) {
-                      await setBalance(val);
-                      setEditingBalance(false);
-                    }
-                  }}
-                  className="btn-primary text-xs py-2 px-3 font-bold"
-                >
-                  Ок
-                </button>
-              </div>
-            ) : (
-              <p className="mt-1 text-3xl font-black text-white">{formatRub(user.balanceRub)}</p>
-            )}
-
+            <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Баланс кошелька</p>
+            <p className="mt-1 text-3xl font-black text-white">{formatRub(user.balanceRub)}</p>
             <p className="mt-1 text-xs text-zinc-400">Для мгновенной оплаты участия без комиссии</p>
           </div>
 
