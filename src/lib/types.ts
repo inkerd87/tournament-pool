@@ -25,6 +25,7 @@ export type Tournament = {
     3: number;
   };
   winnerPerPlayerRub?: number;
+  isPremium?: boolean;
 };
 
 export type Registration = {

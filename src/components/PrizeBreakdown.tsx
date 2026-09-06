@@ -32,14 +32,25 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
   }
 
   return (
-    <div className="surface-card p-6">
-      <h2 className="text-lg font-bold text-white">Наградной фонд</h2>
+    <div className={`surface-card p-6 ${tournament.isPremium ? 'border-amber-500/40 bg-gradient-to-b from-[#181512] to-[#12161f] shadow-lg shadow-amber-500/10' : ''}`}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-white">Наградной фонд</h2>
+        {tournament.isPremium && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-400/20 px-2.5 py-0.5 text-xs font-extrabold text-amber-300">
+            ⭐ Премиум
+          </span>
+        )}
+      </div>
       <p className="mt-1 text-sm leading-relaxed text-zinc-400">
         {tournament.winnerPerPlayerRub ? (
           <>
             Взнос за участие — <strong className="text-white">{formatRub(entryFee)}</strong> с игрока. Награда победившей команде:{' '}
             <strong className="text-amber-300 font-bold">{formatRub(prizePool)}</strong> (по{' '}
             <strong className="text-cyan-300">{formatRub(tournament.winnerPerPlayerRub)}</strong> на каждого игрока команды).
+          </>
+        ) : tournament.isPremium ? (
+          <>
+            Организационный сбор за участие — <strong className="text-white">{formatRub(entryFee)}</strong>. Премиум наградной фонд <strong className="text-amber-300 font-bold">{formatRub(prizePool)}</strong> распределяется среди топ-3 выживших игроков: 1-е место — <strong className="text-white">15 000 ₽</strong>, 2-е место — <strong className="text-white">8 000 ₽</strong>, 3-е место — <strong className="text-white">5 000 ₽</strong>.
           </>
         ) : (
           <>

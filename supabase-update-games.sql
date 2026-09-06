@@ -49,6 +49,17 @@ where game = 'dota2';
 insert into public.tournaments (id, title, game, max_players, registered_count, starts_at, status, format, description)
 values
   (
+    'pubg-premium-001',
+    'PUBG Solo Premium Showdown',
+    'pubg',
+    100,
+    0,
+    '2026-09-07T21:00:00+03:00',
+    'recruiting',
+    'Solo, 1 катка (Премиум фонд 28 000 ₽)',
+    'Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.'
+  ),
+  (
     'warzone-solo-001',
     'Warzone Battle Royale',
     'warzone',

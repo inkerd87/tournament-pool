@@ -12,6 +12,14 @@ export const PRIZE_BY_PLACE: Record<1 | 2 | 3, number> = {
 export const TOTAL_PRIZES_RUB =
   PRIZE_BY_PLACE[1] + PRIZE_BY_PLACE[2] + PRIZE_BY_PLACE[3];
 
+export const PUBG_PREMIUM_ENTRY_FEE_RUB = 1000;
+export const PUBG_PREMIUM_PRIZE_POOL_RUB = 28000;
+export const PUBG_PREMIUM_PRIZES: Record<1 | 2 | 3, number> = {
+  1: 15000,
+  2: 8000,
+  3: 5000,
+};
+
 export const SITE_NAME = "NightByte";
 
 /** Баланс кошелька после пополнения через Robokassa */

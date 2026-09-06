@@ -74,19 +74,32 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           .map(t => {
             const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
             const isSoon = t.game === 'warzone' || t.game === 'fortnite';
-            const entryFeeRub = isCsOrDota ? 1500 : 100;
-            const prizePoolRub = isCsOrDota ? 12000 : 2200;
-            const maxPlayers = isCsOrDota ? 10 : (t.max_players || 100);
-            const prizes = isCsOrDota
-              ? { 1: 12000, 2: 0, 3: 0 }
-              : { 1: 1000, 2: 700, 3: 500 };
+            const isPubgPremium = t.id === 'pubg-premium-001' || t.is_premium || (t.game === 'pubg' && t.title?.toLowerCase().includes('premium'));
+            
+            let entryFeeRub = 100;
+            let prizePoolRub = 2200;
+            let maxPlayers = t.max_players || 100;
+            let prizes = { 1: 1000, 2: 700, 3: 500 };
+
+            if (isCsOrDota) {
+              entryFeeRub = 1500;
+              prizePoolRub = 12000;
+              maxPlayers = 10;
+              prizes = { 1: 12000, 2: 0, 3: 0 };
+            } else if (isPubgPremium) {
+              entryFeeRub = 1000;
+              prizePoolRub = 28000;
+              maxPlayers = 100;
+              prizes = { 1: 15000, 2: 8000, 3: 5000 };
+            }
+
             const status = isSoon ? 'soon' : (t.status as any);
 
             return {
               id: t.id,
               title: isCsOrDota
                 ? (t.game === 'cs2' ? 'CS2 5v5 Cash Clash #1' : 'Dota 2 5v5 Battle Cup')
-                : t.title,
+                : (isPubgPremium ? 'PUBG Solo Premium Showdown' : t.title),
               game: t.game,
               maxPlayers,
               registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length || t.registered_count || 0,
@@ -94,18 +107,36 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               status,
               format: isCsOrDota
                 ? (t.game === 'cs2' ? '5v5, BO1 — Призовой фонд 12 000 ₽' : '5v5, Captains Mode — Призовой фонд 12 000 ₽')
-                : t.format,
+                : (isPubgPremium ? 'Solo, 1 катка (Премиум фонд 28 000 ₽)' : t.format),
               description: isCsOrDota
                 ? 'Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.'
-                : t.description,
+                : (isPubgPremium
+                    ? 'Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.'
+                    : t.description),
               entryFeeRub,
               prizePoolRub,
               prizes,
               winnerPerPlayerRub: isCsOrDota ? 2400 : undefined,
+              isPremium: isPubgPremium,
             };
           });
 
         const defaultExtra: Tournament[] = [
+          {
+            id: "pubg-premium-001",
+            title: "PUBG Solo Premium Showdown",
+            game: "pubg",
+            maxPlayers: 100,
+            registeredCount: currentRegs.filter(r => r.tournamentId === "pubg-premium-001").length,
+            startsAt: "2026-09-07T21:00:00+03:00",
+            status: "recruiting",
+            format: "Solo, 1 катка (Премиум фонд 28 000 ₽)",
+            description: "Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.",
+            entryFeeRub: 1000,
+            prizePoolRub: 28000,
+            prizes: { 1: 15000, 2: 8000, 3: 5000 },
+            isPremium: true,
+          },
           {
             id: "warzone-solo-001",
             title: "Warzone Battle Royale",

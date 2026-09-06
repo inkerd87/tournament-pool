@@ -41,10 +41,26 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-07T19:00:00+03:00",
     status: "recruiting",
     format: "Solo, 1 катка (быстрые призовые)",
-    description: "Быстрый одиночный матч на 100 игроков: 1 катка — топ-3 выживших сразу получают призовые выплаты.",
+    description: "Быстрый одиночный матч на 100 игроков: 1 катка — топ-3 выживших сразу получают призовые выплаты. Орг. сбор 100 ₽.",
     entryFeeRub: 100,
     prizePoolRub: 2200,
     prizes: { 1: 1000, 2: 700, 3: 500 },
+    isPremium: false,
+  },
+  {
+    id: "pubg-premium-001",
+    title: "PUBG Solo Premium Showdown",
+    game: "pubg",
+    maxPlayers: 100,
+    registeredCount: 0,
+    startsAt: "2026-09-07T21:00:00+03:00",
+    status: "recruiting",
+    format: "Solo, 1 катка (Премиум фонд 28 000 ₽)",
+    description: "Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.",
+    entryFeeRub: 1000,
+    prizePoolRub: 28000,
+    prizes: { 1: 15000, 2: 8000, 3: 5000 },
+    isPremium: true,
   },
   {
     id: "warzone-solo-001",
@@ -73,9 +89,9 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v9');
+  const data = localStorage.getItem('nb_tournaments_v10');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v9', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v10', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -86,7 +102,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v9', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v10', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {
@@ -130,7 +146,13 @@ export function getStoredMatches(): Record<string, TournamentMatchAccess> {
         roomId: 'NightByte_PUBG_01',
         password: 'NB' + Math.floor(1000 + Math.random() * 9000),
         updatedAt: new Date().toISOString(),
-      }
+      },
+      'pubg-premium-001': {
+        tournamentId: 'pubg-premium-001',
+        roomId: 'NightByte_PUBG_VIP01',
+        password: 'NB' + Math.floor(1000 + Math.random() * 9000),
+        updatedAt: new Date().toISOString(),
+      },
     };
     localStorage.setItem('nb_matches', JSON.stringify(initial));
     return initial;

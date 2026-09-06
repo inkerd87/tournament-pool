@@ -38,10 +38,59 @@ export const TournamentDetailPage: React.FC = () => {
         ← Ко всем турнирам
       </Link>
 
+      {tournament.game === 'pubg' && (
+        <div className="my-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-[#12161f] to-amber-500/5 p-3.5 sm:p-4 shadow-lg shadow-amber-500/5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-black font-extrabold text-base shadow-md shadow-amber-500/20">
+              ⭐
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-extrabold text-white">Режим: Премиум матч</span>
+                <span className="rounded-full bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                  {tournament.isPremium ? 'Включен Премиум' : 'Включен Обычный'}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
+                Переключайтесь между обычным турниром (взнос 100 ₽) и премиум-матчем с призовым фондом 28 000 ₽.
+              </p>
+            </div>
+          </div>
+
+          <div className="relative inline-flex items-center rounded-xl bg-black/60 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
+            <Link
+              to="/tournaments/pubg-solo-001"
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
+                !tournament.isPremium
+                  ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              🎮 Обычный (100 ₽)
+            </Link>
+            <Link
+              to="/tournaments/pubg-premium-001"
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
+                tournament.isPremium
+                  ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-black shadow-md shadow-amber-400/30'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <span>⭐ Премиум (1 000 ₽)</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <GameBadge game={tournament.game} />
+            {tournament.isPremium && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-300 shadow-sm shadow-amber-500/20">
+                ⭐ Премиум матч
+              </span>
+            )}
             <span className="text-xs text-zinc-400">{statusLabel(tournament.status)}</span>
           </div>
           <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-white">{tournament.title}</h1>
