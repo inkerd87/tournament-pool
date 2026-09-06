@@ -30,18 +30,18 @@ export const PUBGIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-
 
 export const WarzoneIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <img
-    src="/games/warzone.svg"
+    src="/games/warzone.jpg"
     alt="Call of Duty: Warzone"
-    className={`${className} object-contain rounded`}
+    className={`${className} object-cover rounded`}
     loading="lazy"
   />
 );
 
 export const FortniteIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <img
-    src="/games/fortnite.svg"
+    src="/games/fortnite.webp"
     alt="Fortnite"
-    className={`${className} object-contain rounded`}
+    className={`${className} object-cover rounded`}
     loading="lazy"
   />
 );
