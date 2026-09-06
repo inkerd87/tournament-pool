@@ -11,6 +11,12 @@ export const WalletTopUpForm: React.FC = () => {
 
   const parsedAmount = Math.max(10, Number(customAmount) || 100);
 
+  const handleStep = (delta: number) => {
+    const current = Math.max(0, Number(customAmount) || 0);
+    const next = Math.max(50, Math.min(50000, current + delta));
+    setCustomAmount(String(next));
+  };
+
   const handleTopUp = () => {
     localStorage.setItem(
       'nb_pending_topup',
@@ -55,19 +61,67 @@ export const WalletTopUpForm: React.FC = () => {
 
       {/* Поле ввода и кнопка в аккуратной вертикальной компоновке */}
       <div className="mt-3.5 space-y-2.5">
-        <div className="relative">
+        <div className="relative flex items-center rounded-xl border border-white/10 bg-black/40 px-3.5 py-1.5 focus-within:border-cyan-500/60 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all shadow-inner">
           <input
             type="number"
             min="50"
             max="50000"
+            step="50"
             value={customAmount}
             onChange={(e) => setCustomAmount(e.target.value)}
-            className="input-field mt-0 font-mono text-base sm:text-sm py-2.5 pr-8"
+            className="w-full bg-transparent font-mono text-base sm:text-sm font-bold text-white outline-none placeholder:text-zinc-600"
             placeholder="Своя сумма"
           />
-          <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400 pointer-events-none">
-            ₽
-          </span>
+
+          <div className="flex items-center gap-2 pl-2">
+            <span className="text-xs font-bold text-zinc-400 select-none font-mono">
+              ₽
+            </span>
+
+            {/* Стильные стрелки-степпер в стиле NightByte */}
+            <div className="flex flex-col rounded-lg border border-white/10 bg-white/5 overflow-hidden shadow-sm">
+              <button
+                type="button"
+                onClick={() => handleStep(50)}
+                className="group flex h-4 w-6 items-center justify-center bg-black/30 hover:bg-cyan-500/25 active:bg-cyan-500/40 text-zinc-400 hover:text-cyan-300 transition-colors"
+                title="Увеличить на 50 ₽"
+                aria-label="Увеличить на 50 ₽"
+              >
+                <svg
+                  className="w-2.5 h-2.5 transition-transform group-hover:-translate-y-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="18 15 12 9 6 15" />
+                </svg>
+              </button>
+              <div className="h-px w-full bg-white/10" />
+              <button
+                type="button"
+                onClick={() => handleStep(-50)}
+                disabled={Number(customAmount) <= 50}
+                className="group flex h-4 w-6 items-center justify-center bg-black/30 hover:bg-cyan-500/25 active:bg-cyan-500/40 text-zinc-400 hover:text-cyan-300 disabled:opacity-20 disabled:pointer-events-none transition-colors"
+                title="Уменьшить на 50 ₽"
+                aria-label="Уменьшить на 50 ₽"
+              >
+                <svg
+                  className="w-2.5 h-2.5 transition-transform group-hover:translate-y-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
 
         <button
