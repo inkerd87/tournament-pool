@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="fnBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#2a0d3d"/>
+      <stop offset="100%" stop-color="#0a0312"/>
+    </radialGradient>
+    <linearGradient id="fnGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="fnYellow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <filter id="fnGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Outer Card Frame -->
+  <rect width="256" height="256" rx="48" fill="url(#fnBg)" stroke="#a855f7" stroke-opacity="0.35" stroke-width="4"/>
+  
+  <!-- Stylized Fortnite "F" Logo -->
+  <g transform="translate(68, 44)">
+    <!-- Shadow / 3D Extrusion -->
+    <path d="M12 0 L92 0 L92 34 L48 34 L48 62 L82 62 L82 94 L48 94 L48 162 L12 162 Z" fill="#4c1d95" opacity="0.6" transform="translate(4, 6)"/>
+    <!-- Main Iconic F -->
+    <path d="M12 0 L92 0 L92 34 L48 34 L48 62 L82 62 L82 94 L48 94 L48 162 L12 162 Z" fill="url(#fnGradient)" filter="url(#fnGlow)"/>
+    <!-- Top Highlight Angle -->
+    <path d="M12 0 L92 0 L84 14 L12 14 Z" fill="#fff" opacity="0.4"/>
+    <path d="M48 62 L82 62 L76 72 L48 72 Z" fill="#fff" opacity="0.3"/>
+  </g>
+  
+  <!-- Badge Text: FORTNITE -->
+  <rect x="56" y="210" width="144" height="22" rx="6" fill="#000" fill-opacity="0.75" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="128" y="226" font-family="'Manrope', -apple-system, sans-serif" font-weight="900" font-size="12" fill="#c084fc" text-anchor="middle" letter-spacing="3">FORTNITE</text>
+</svg>

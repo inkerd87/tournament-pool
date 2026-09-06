@@ -44,34 +44,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Fetch from Supabase PostgreSQL
   const refreshData = useCallback(async () => {
     try {
-      // 1. Fetch tournaments
-      const { data: dbTournaments, error: tErr } = await supabase
-        .from('tournaments')
-        .select('*')
-        .order('starts_at', { ascending: true });
-
-      if (!tErr && dbTournaments && dbTournaments.length > 0) {
-        const mapped: Tournament[] = dbTournaments.map(t => ({
-          id: t.id,
-          title: t.title,
-          game: t.game,
-          maxPlayers: t.max_players,
-          registeredCount: t.registered_count,
-          startsAt: t.starts_at,
-          status: t.status,
-          format: t.format,
-          description: t.description,
-        }));
-        setTournaments(mapped);
-      }
-
-      // 2. Fetch registrations
+      // 1. Fetch registrations first so we can accurately count registered players
       const { data: dbRegs, error: rErr } = await supabase
         .from('registrations')
         .select('*');
 
+      let currentRegs: Registration[] = [];
       if (!rErr && dbRegs) {
-        const mappedRegs: Registration[] = dbRegs.map(r => ({
+        currentRegs = dbRegs.map(r => ({
           id: r.id,
           tournamentId: r.tournament_id,
           nickname: r.nickname,
@@ -79,7 +59,62 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           email: r.email,
           paidAt: r.paid_at,
         }));
-        setRegistrations(mappedRegs);
+        setRegistrations(currentRegs);
+      }
+
+      // 2. Fetch tournaments
+      const { data: dbTournaments, error: tErr } = await supabase
+        .from('tournaments')
+        .select('*')
+        .order('starts_at', { ascending: true });
+
+      if (!tErr && dbTournaments && dbTournaments.length > 0) {
+        const mapped: Tournament[] = dbTournaments
+          .filter(t => t.game !== ('valorant' as any) && t.id !== 'valorant-skirmish-001')
+          .map(t => ({
+            id: t.id,
+            title: t.title,
+            game: t.game,
+            maxPlayers: t.max_players,
+            registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length || t.registered_count || 0,
+            startsAt: t.starts_at,
+            status: t.status,
+            format: t.format,
+            description: t.description,
+          }));
+
+        const defaultExtra: Tournament[] = [
+          {
+            id: "warzone-solo-001",
+            title: "Warzone Resurgence Showdown",
+            game: "warzone",
+            maxPlayers: 100,
+            registeredCount: currentRegs.filter(r => r.tournamentId === "warzone-solo-001").length,
+            startsAt: "2026-09-08T18:00:00+03:00",
+            status: "recruiting",
+            format: "Solo Resurgence, 1 катка",
+            description: "Быстрая королевская битва в Warzone: 1 катка на выживание — топ-3 получают призовые выплаты сразу.",
+          },
+          {
+            id: "fortnite-solo-001",
+            title: "Fortnite Zero Build Cup",
+            game: "fortnite",
+            maxPlayers: 100,
+            registeredCount: currentRegs.filter(r => r.tournamentId === "fortnite-solo-001").length,
+            startsAt: "2026-09-09T18:00:00+03:00",
+            status: "recruiting",
+            format: "Solo Zero Build, 1 катка",
+            description: "Одиночная битва без построек (Zero Build): 1 катка — топ-3 выживших сразу получают призовые выплаты.",
+          },
+        ];
+
+        defaultExtra.forEach(extra => {
+          if (!mapped.some(t => t.id === extra.id)) {
+            mapped.push(extra);
+          }
+        });
+
+        setTournaments(mapped);
       }
 
       // 3. Fetch matches

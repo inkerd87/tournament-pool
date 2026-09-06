@@ -55,7 +55,7 @@ function createDota2Lobby(params: {
   };
 }
 
-function createValorantLobby(params: {
+function createWarzoneLobby(params: {
   tournamentId: string;
   registrations: Registration[];
 }): TournamentLobby {
@@ -64,15 +64,39 @@ function createValorantLobby(params: {
     id: crypto.randomUUID(),
     matchNumber: 1,
     playerRegistrationIds: params.registrations.map((r) => r.id),
-    map: "Ascent",
-    mode: "5v5 BO3",
-    region: "EU",
-    roomId: `NB-${suffix}-${randomPassword(4)}`,
+    map: "Urzikstan / Rebirth Island",
+    mode: "Battle Royale / Resurgence",
+    region: "Europe",
+    roomId: `WZ-NB-${suffix}`,
     password: randomPassword(6),
     instructions: [
-      "Valorant → Play → Custom Game → Join",
-      "Введите код турнира (Room ID) и пароль",
-      "Заходите с Riot ID из регистрации",
+      "Запустите Call of Duty: Warzone",
+      "Перейдите в Private Match (Закрытый матч) → Join",
+      "Введите код лобби (Room ID) и пароль",
+      "Играйте с Activision ID, указанного при регистрации",
+    ],
+  };
+}
+
+function createFortniteLobby(params: {
+  tournamentId: string;
+  registrations: Registration[];
+}): TournamentLobby {
+  const suffix = params.tournamentId.replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase();
+  return {
+    id: crypto.randomUUID(),
+    matchNumber: 1,
+    playerRegistrationIds: params.registrations.map((r) => r.id),
+    map: "Battle Royale Island",
+    mode: "Solo Zero Build",
+    region: "Europe",
+    roomId: `FN-NB-${suffix}`,
+    password: randomPassword(6),
+    instructions: [
+      "Запустите Fortnite",
+      "Выберите режим 'Королевская битва' (или 'Нулевая высота')",
+      "В настройках подбора нажмите 'Свой ключ' (Custom Key)",
+      "Введите ключ лобби из поля Room ID и нажмите Играть",
     ],
   };
 }
@@ -84,7 +108,8 @@ const LAUNCHERS: Record<
   pubg: createPubgCustomMatch,
   cs2: createCs2Lobby,
   dota2: createDota2Lobby,
-  valorant: createValorantLobby,
+  warzone: createWarzoneLobby,
+  fortnite: createFortniteLobby,
 };
 
 export function createGameLobby(

@@ -22,7 +22,7 @@ export const AdminPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-extrabold text-white">Панель администратора</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Управление доступами к игровым лобби (CS2, Dota 2, PUBG, Valorant)
+            Управление доступами к игровым лобби (CS2, Dota 2, PUBG, Warzone, Fortnite)
           </p>
         </div>
         <button

@@ -28,10 +28,19 @@ export const PUBGIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-
   />
 );
 
-export const ValorantIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+export const WarzoneIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <img
-    src="/games/valorant.webp"
-    alt="Valorant"
+    src="/games/warzone.svg"
+    alt="Call of Duty: Warzone"
+    className={`${className} object-contain rounded`}
+    loading="lazy"
+  />
+);
+
+export const FortniteIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <img
+    src="/games/fortnite.svg"
+    alt="Fortnite"
     className={`${className} object-contain rounded`}
     loading="lazy"
   />
@@ -45,7 +54,9 @@ export const GameIcon: React.FC<{ game: GameId; className?: string }> = ({ game,
       return <DotaIcon className={className} />;
     case 'pubg':
       return <PUBGIcon className={className} />;
-    case 'valorant':
-      return <ValorantIcon className={className} />;
+    case 'warzone':
+      return <WarzoneIcon className={className} />;
+    case 'fortnite':
+      return <FortniteIcon className={className} />;
   }
 };

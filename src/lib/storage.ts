@@ -36,22 +36,33 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Быстрый одиночный матч на 100 игроков: 1 катка — топ-3 выживших сразу получают призовые выплаты.",
   },
   {
-    id: "valorant-skirmish-001",
-    title: "Valorant Skirmish",
-    game: "valorant",
-    maxPlayers: 64,
+    id: "warzone-solo-001",
+    title: "Warzone Resurgence Showdown",
+    game: "warzone",
+    maxPlayers: 100,
     registeredCount: 0,
-    startsAt: "2026-09-08T21:00:00+03:00",
+    startsAt: "2026-09-08T18:00:00+03:00",
     status: "recruiting",
-    format: "5v5, BO3 финал",
-    description: "Рейтинговые матчи без ограничений по рангу.",
+    format: "Solo Resurgence, 1 катка",
+    description: "Быстрая королевская битва в Warzone: 1 катка на выживание — топ-3 получают призовые выплаты сразу.",
+  },
+  {
+    id: "fortnite-solo-001",
+    title: "Fortnite Zero Build Cup",
+    game: "fortnite",
+    maxPlayers: 100,
+    registeredCount: 0,
+    startsAt: "2026-09-09T18:00:00+03:00",
+    status: "recruiting",
+    format: "Solo Zero Build, 1 катка",
+    description: "Одиночная битва без построек (Zero Build): 1 катка — топ-3 выживших сразу получают призовые выплаты.",
   },
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v6');
+  const data = localStorage.getItem('nb_tournaments_v7');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v6', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v7', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -62,7 +73,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v6', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v7', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {

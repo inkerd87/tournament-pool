@@ -32,7 +32,7 @@ export default function HowItWorksPage() {
           <Link href="/tournaments" className="link-accent">
             Турниры
           </Link>{" "}
-          — CS2, Dota 2, PUBG, Valorant. У каждого события свой формат, лимит
+          — CS2, Dota 2, PUBG, Warzone, Fortnite. У каждого события свой формат, лимит
           мест и время старта.
         </li>
         <li>

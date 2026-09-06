@@ -19,7 +19,7 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 bg-violet-600/20 blur-[100px]" />
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
           <p className="text-sm font-medium uppercase tracking-widest text-cyan-400">
-            CS2 · Dota 2 · PUBG · Valorant
+            CS2 · Dota 2 · PUBG · Warzone · Fortnite
           </p>
           <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
             Киберспортивные турниры —{" "}

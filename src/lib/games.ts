@@ -22,10 +22,16 @@ export const GAMES: Record<
     accent: "#facc15",
     glow: "rgba(250, 204, 21, 0.3)",
   },
-  valorant: {
-    name: "Valorant",
-    short: "Valorant",
-    accent: "#ff4655",
-    glow: "rgba(255, 70, 85, 0.35)",
+  warzone: {
+    name: "Call of Duty: Warzone",
+    short: "Warzone",
+    accent: "#22c55e",
+    glow: "rgba(34, 197, 94, 0.35)",
+  },
+  fortnite: {
+    name: "Fortnite",
+    short: "Fortnite",
+    accent: "#a855f7",
+    glow: "rgba(168, 85, 247, 0.35)",
   },
 };

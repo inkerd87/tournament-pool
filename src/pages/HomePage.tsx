@@ -10,7 +10,8 @@ const HERO_GAMES = [
   { id: 'cs2', name: 'CS2', color: '#f97316', glow: 'rgba(249, 115, 22, 0.45)', tag: '5v5 BO1' },
   { id: 'dota2', name: 'Dota 2', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.45)', tag: '5v5 MOBA' },
   { id: 'pubg', name: 'PUBG', color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)', tag: 'Battle Royale' },
-  { id: 'valorant', name: 'Valorant', color: '#ff4655', glow: 'rgba(255, 70, 85, 0.45)', tag: 'Ranked 5v5' },
+  { id: 'warzone', name: 'Warzone', color: '#22c55e', glow: 'rgba(34, 197, 94, 0.45)', tag: 'Resurgence' },
+  { id: 'fortnite', name: 'Fortnite', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.45)', tag: 'Zero Build' },
 ] as const;
 
 export const HomePage: React.FC = () => {
@@ -57,9 +58,9 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right: 4 Game Cubes (Tiles 2x2) */}
+            {/* Right: 5 Game Cubes */}
             <div className="lg:col-span-5">
-              <div className="grid grid-cols-2 gap-3.5 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
                 {HERO_GAMES.map((g) => (
                   <Link
                     key={g.id}

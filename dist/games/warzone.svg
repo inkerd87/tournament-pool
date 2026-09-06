@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="wzBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#142c1b"/>
+      <stop offset="100%" stop-color="#060c08"/>
+    </radialGradient>
+    <linearGradient id="wzGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="50%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="wzAccent" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <filter id="wzGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Outer Card Frame -->
+  <rect width="256" height="256" rx="48" fill="url(#wzBg)" stroke="#22c55e" stroke-opacity="0.35" stroke-width="4"/>
+  
+  <!-- Subtle Tactical Crosshair Lines -->
+  <line x1="128" y1="28" x2="128" y2="52" stroke="#22c55e" stroke-width="3" stroke-opacity="0.4"/>
+  <line x1="128" y1="204" x2="128" y2="228" stroke="#22c55e" stroke-width="3" stroke-opacity="0.4"/>
+  <line x1="28" y1="128" x2="52" y2="128" stroke="#22c55e" stroke-width="3" stroke-opacity="0.4"/>
+  <line x1="204" y1="128" x2="228" y2="128" stroke="#22c55e" stroke-width="3" stroke-opacity="0.4"/>
+  
+  <!-- Tactical Chevron / Wings (Warzone military rank) -->
+  <path d="M68 84 L128 50 L188 84 L172 96 L128 72 L84 96 Z" fill="url(#wzGreen)" filter="url(#wzGlow)"/>
+  <path d="M78 108 L128 80 L178 108 L164 118 L128 98 L92 118 Z" fill="url(#wzGreen)" opacity="0.85"/>
+
+  <!-- Bold Stylized WZ Monogram -->
+  <!-- Letter W -->
+  <path d="M56 128 L72 196 L96 196 L112 146 L128 196 L152 196 L168 128 L146 128 L136 172 L122 134 L102 134 L88 172 L78 128 Z" fill="url(#wzAccent)" filter="url(#wzGlow)"/>
+  
+  <!-- Badge Text: WARZONE -->
+  <rect x="64" y="206" width="128" height="22" rx="6" fill="#000" fill-opacity="0.75" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="128" y="222" font-family="'Manrope', -apple-system, sans-serif" font-weight="900" font-size="13" fill="#4ade80" text-anchor="middle" letter-spacing="3">WARZONE</text>
+</svg>

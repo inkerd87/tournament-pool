@@ -21,7 +21,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
           <p className="mt-2.5 max-w-md text-xs sm:text-sm leading-relaxed text-zinc-400">
-            Турниры по CS2, Dota 2, PUBG и Valorant. Организационный сбор 100 ₽ —
+            Турниры по CS2, Dota 2, PUBG, Warzone и Fortnite. Организационный сбор 100 ₽ —
             награды за 1–3 призовые места.{' '}
             <span className="inline-block font-bold text-amber-400 font-mono">18+</span>
           </p>
