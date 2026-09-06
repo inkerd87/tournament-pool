@@ -1,7 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ENTRY_FEE_RUB, PRIZE_BY_PLACE, TOTAL_PRIZES_RUB } from '@/lib/constants';
-import { formatRub } from '@/lib/format';
 import { useTournaments } from '@/context/TournamentContext';
 import { TournamentCard } from '@/components/TournamentCard';
 import { GameIcon } from '@/components/GameIcons';
@@ -35,17 +33,14 @@ export const HomePage: React.FC = () => {
               </span>
 
               <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
-                Киберспортивные турниры —{' '}
+                Киберспортивные турниры{' '}
                 <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
-                  {formatRub(ENTRY_FEE_RUB)}
-                </span>{' '}
-                участие
+                  NightByte
+                </span>
               </h1>
 
               <p className="mt-4 max-w-xl text-sm sm:text-base text-zinc-400 leading-relaxed">
-                Открытые любительские соревнования по компьютерному спорту. Организационный сбор {formatRub(ENTRY_FEE_RUB)}.
-                Наградной фонд соревнований {formatRub(TOTAL_PRIZES_RUB)}:{' '}
-                {formatRub(PRIZE_BY_PLACE[1])} / {formatRub(PRIZE_BY_PLACE[2])} / {formatRub(PRIZE_BY_PLACE[3])} за 1–3 призовые места.
+                Открытые любительские соревнования по CS2, Dota 2, PUBG, Warzone и Fortnite. Различные форматы матчей, честное судейство и приятные денежные призы победителям.
               </p>
 
               <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -131,18 +126,18 @@ export const HomePage: React.FC = () => {
           {[
             {
               step: "01",
-              title: "Участие 100 ₽",
-              text: `Фиксированный организационный сбор ${formatRub(ENTRY_FEE_RUB)} за регистрацию и судейство. Оплата картой или СБП.`,
+              title: "Участие",
+              text: "Выберите турнир и подходящий формат состязания, укажите игровой ID и подтвердите участие. Оплата взноса банковской картой РФ или через СБП.",
             },
             {
               step: "02",
               title: "Доступ в комнату",
-              text: "Сетка турнира и пароль от приватного лобби отображаются в личном кабинете после набора участников.",
+              text: "Сетка турнира и данные для подключения к лобби (Room ID и пароль) отображаются в личном кабинете после набора участников.",
             },
             {
               step: "03",
-              title: "Награды топ-3",
-              text: `Наградной фонд соревнований: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])} за 1–3 призовые места. Выплата призовых на карту или СБП — в срок до 24 часов (до суток).`,
+              title: "Приятные призы",
+              text: "Победителей соревнований ждут приятные денежные призы. Выплата наград осуществляется на банковскую карту или через СБП в срок до 24 часов (до суток).",
             },
           ].map((item) => (
             <div
