@@ -1,19 +1,22 @@
 -- Обновление базы данных Supabase: замена Valorant на Call of Duty: Warzone и Fortnite
 -- Выполните этот запрос в https://supabase.com/dashboard/project/qblybjpioynwgheqhxyo/sql
 
--- 1. Обновляем ограничение списка игр (убираем valorant, добавляем warzone и fortnite)
+-- 1. Сначала удаляем старый турнир Valorant (и связанные записи, если есть),
+-- чтобы в таблице не оставалось строк с game = 'valorant'
+delete from public.registrations where tournament_id = 'valorant-skirmish-001';
+delete from public.matches where tournament_id = 'valorant-skirmish-001';
+delete from public.tournaments where id = 'valorant-skirmish-001' or game = 'valorant';
+
+-- 2. Теперь безопасно обновляем ограничение на список игр
 alter table public.tournaments drop constraint if exists tournaments_game_check;
 alter table public.tournaments add constraint tournaments_game_check check (game in ('cs2', 'dota2', 'pubg', 'warzone', 'fortnite'));
 
--- 2. Добавляем политики на добавление и удаление турниров
+-- 3. Добавляем политики на добавление и удаление турниров
 drop policy if exists "Public tournaments insert" on public.tournaments;
 create policy "Public tournaments insert" on public.tournaments for insert with check (true);
 
 drop policy if exists "Public tournaments delete" on public.tournaments;
 create policy "Public tournaments delete" on public.tournaments for delete using (true);
-
--- 3. Удаляем старый турнир Valorant
-delete from public.tournaments where id = 'valorant-skirmish-001' or game = 'valorant';
 
 -- 4. Добавляем турниры по Warzone и Fortnite
 insert into public.tournaments (id, title, game, max_players, registered_count, starts_at, status, format, description)
