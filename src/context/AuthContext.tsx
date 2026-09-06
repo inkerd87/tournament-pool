@@ -78,10 +78,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Sync user with Supabase on mount
+  // Sync user with Supabase on mount and listen to live Realtime updates
   useEffect(() => {
     refreshUser();
-  }, []);
+
+    const currentUser = user || getStoredUser();
+    if (!currentUser?.email) return;
+
+    const cleanEmail = currentUser.email.toLowerCase();
+
+    // Real-time subscription to changes in 'users' table
+    const userChannel = supabase
+      .channel(`realtime-user-${cleanEmail}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users',
+        },
+        (payload: any) => {
+          if (payload?.new?.email && payload.new.email.toLowerCase() === cleanEmail) {
+            console.log('✅ Realtime balance/profile update received for user:', payload.new);
+            refreshUser();
+          }
+        }
+      )
+      .subscribe();
+
+    // Fallback sync every 4 seconds when user is logged in
+    const interval = setInterval(() => {
+      refreshUser();
+    }, 4000);
+
+    const handleFocus = () => {
+      refreshUser();
+    };
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      supabase.removeChannel(userChannel);
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, [user?.email]);
 
   const register = async (
     email: string,

@@ -164,26 +164,60 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, []);
 
-  // Initial fetch and real-time subscription
+  // Initial fetch, real-time subscription, and automatic live synchronization
   useEffect(() => {
     refreshData();
 
-    // Subscribe to real-time changes
+    // 1. Supabase Realtime WebSocket subscription
     const channel = supabase
-      .channel('schema-db-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tournaments' }, () => {
-        refreshData();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, () => {
-        refreshData();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
-        refreshData();
-      })
-      .subscribe();
+      .channel('realtime-tournaments-feed')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tournaments' },
+        () => {
+          refreshData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registrations' },
+        () => {
+          refreshData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'matches' },
+        () => {
+          refreshData();
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Supabase Realtime connected for tournaments/registrations/matches');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.warn('Realtime channel warning:', err);
+        }
+      });
+
+    // 2. Continuous fallback polling (every 4 seconds) to guarantee 100% data freshness
+    // even if WebSockets are paused, reconnecting or throttled by mobile browsers
+    const interval = setInterval(() => {
+      refreshData();
+    }, 4000);
+
+    // 3. Instant sync when user focuses or returns to the window
+    const handleFocus = () => {
+      refreshData();
+    };
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
     };
   }, [refreshData]);
 
