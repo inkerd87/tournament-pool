@@ -4,7 +4,8 @@ export type TournamentStatus =
   | "recruiting"
   | "full"
   | "live"
-  | "finished";
+  | "finished"
+  | "soon";
 
 export type Tournament = {
   id: string;
@@ -16,6 +17,14 @@ export type Tournament = {
   status: TournamentStatus;
   format: string;
   description: string;
+  entryFeeRub?: number;
+  prizePoolRub?: number;
+  prizes?: {
+    1: number;
+    2: number;
+    3: number;
+  };
+  winnerPerPlayerRub?: number;
 };
 
 export type Registration = {

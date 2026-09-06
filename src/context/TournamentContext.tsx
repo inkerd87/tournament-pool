@@ -71,29 +71,52 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (!tErr && dbTournaments && dbTournaments.length > 0) {
         const mapped: Tournament[] = dbTournaments
           .filter(t => t.game !== ('valorant' as any) && t.id !== 'valorant-skirmish-001')
-          .map(t => ({
-            id: t.id,
-            title: t.title,
-            game: t.game,
-            maxPlayers: t.max_players,
-            registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length || t.registered_count || 0,
-            startsAt: t.starts_at,
-            status: t.status,
-            format: t.format,
-            description: t.description,
-          }));
+          .map(t => {
+            const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
+            const isSoon = t.game === 'warzone' || t.game === 'fortnite';
+            const entryFeeRub = isCsOrDota ? 1500 : 100;
+            const prizePoolRub = isCsOrDota ? 12000 : 2200;
+            const maxPlayers = isCsOrDota ? 10 : (t.max_players || 100);
+            const prizes = isCsOrDota
+              ? { 1: 12000, 2: 0, 3: 0 }
+              : { 1: 1000, 2: 700, 3: 500 };
+            const status = isSoon ? 'soon' : (t.status as any);
+
+            return {
+              id: t.id,
+              title: isCsOrDota
+                ? (t.game === 'cs2' ? 'CS2 5v5 Cash Clash #1' : 'Dota 2 5v5 Battle Cup')
+                : t.title,
+              game: t.game,
+              maxPlayers,
+              registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length || t.registered_count || 0,
+              startsAt: t.starts_at,
+              status,
+              format: isCsOrDota
+                ? (t.game === 'cs2' ? '5v5, BO1 — Победитель забирает 12 000 ₽' : '5v5, Captains Mode — Победитель забирает 12 000 ₽')
+                : t.format,
+              description: isCsOrDota
+                ? 'Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Победившая команда забирает весь банк: 12 000 ₽ (по 2 400 ₽ на каждого игрока)! Проигравшие получают 0 ₽.'
+                : t.description,
+              entryFeeRub,
+              prizePoolRub,
+              prizes,
+              winnerPerPlayerRub: isCsOrDota ? 2400 : undefined,
+            };
+          });
 
         const defaultExtra: Tournament[] = [
           {
             id: "warzone-solo-001",
-            title: "Warzone Resurgence Showdown",
+            title: "Warzone Battle Royale",
             game: "warzone",
             maxPlayers: 100,
             registeredCount: currentRegs.filter(r => r.tournamentId === "warzone-solo-001").length,
-            startsAt: "2026-09-08T18:00:00+03:00",
-            status: "recruiting",
+            startsAt: "2026-09-10T19:00:00+03:00",
+            status: "soon",
             format: "Solo Resurgence, 1 катка",
-            description: "Быстрая королевская битва в Warzone: 1 катка на выживание — топ-3 получают призовые выплаты сразу.",
+            description: "Турнир по Call of Duty: Warzone откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
+            entryFeeRub: 100,
           },
           {
             id: "fortnite-solo-001",
@@ -101,10 +124,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             game: "fortnite",
             maxPlayers: 100,
             registeredCount: currentRegs.filter(r => r.tournamentId === "fortnite-solo-001").length,
-            startsAt: "2026-09-09T18:00:00+03:00",
-            status: "recruiting",
+            startsAt: "2026-09-11T19:00:00+03:00",
+            status: "soon",
             format: "Solo Zero Build, 1 катка",
-            description: "Одиночная битва без построек (Zero Build): 1 катка — топ-3 выживших сразу получают призовые выплаты.",
+            description: "Турнир по Fortnite откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
+            entryFeeRub: 100,
           },
         ];
 

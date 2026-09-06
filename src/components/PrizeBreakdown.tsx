@@ -1,56 +1,109 @@
 import React from 'react';
 import { formatRub } from '@/lib/format';
-import { ENTRY_FEE_RUB, PRIZE_BY_PLACE, TOTAL_PRIZES_RUB } from '@/lib/constants';
+import { Tournament } from '@/lib/types';
+import { ENTRY_FEE_RUB, TOTAL_PRIZES_RUB, PRIZE_BY_PLACE } from '@/lib/constants';
 
 type Props = {
-  registered: number;
-  maxPlayers: number;
+  tournament: Tournament;
+  registered?: number;
+  maxPlayers?: number;
 };
 
 const medals = ['🥇', '🥈', '🥉'] as const;
 
-export const PrizeBreakdown: React.FC<Props> = ({ registered, maxPlayers }) => {
+export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
+  const isSoon = tournament.status === 'soon';
+  const entryFee = tournament.entryFeeRub ?? ENTRY_FEE_RUB;
+  const prizePool = tournament.prizePoolRub ?? TOTAL_PRIZES_RUB;
+  const prizes = tournament.prizes ?? PRIZE_BY_PLACE;
+
+  if (isSoon) {
+    return (
+      <div className="surface-card p-6 border-amber-500/20 bg-amber-950/10">
+        <div className="flex items-center gap-2 text-amber-300 font-bold">
+          <span className="text-xl">⏳</span>
+          <h2 className="text-lg">Скоро на платформе</h2>
+        </div>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+          Регламент, точный призовой фонд и дата открытия регистрации появятся в ближайшее время.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="surface-card p-6">
       <h2 className="text-lg font-bold text-white">Наградной фонд</h2>
-      <p className="mt-1 text-sm leading-relaxed text-zinc-500">
-        Организационный сбор за участие — {formatRub(ENTRY_FEE_RUB)}. Награды гарантированно вручаются за 1–3 призовые места.
+      <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+        {tournament.winnerPerPlayerRub ? (
+          <>
+            Взнос за участие — <strong className="text-white">{formatRub(entryFee)}</strong> с игрока. Победившая команда забирает весь банк:{' '}
+            <strong className="text-amber-300 font-bold">{formatRub(prizePool)}</strong> (по{' '}
+            <strong className="text-cyan-300">{formatRub(tournament.winnerPerPlayerRub)}</strong> на каждого игрока команды).
+          </>
+        ) : (
+          <>
+            Организационный сбор за участие — {formatRub(entryFee)}. Награды гарантированно вручаются за 1–3 призовые места.
+          </>
+        )}
       </p>
 
       <ul className="mt-6 space-y-2">
-        {([1, 2, 3] as const).map((place) => (
-          <li
-            key={place}
-            className="flex items-center justify-between rounded-lg border border-white/10 bg-black/20 px-4 py-3"
-          >
-            <span className="flex items-center gap-2 text-zinc-300">
-              <span aria-hidden>{medals[place - 1]}</span>
-              {place}-е место
-            </span>
-            <span className="font-mono text-lg font-bold text-amber-200/90">
-              {formatRub(PRIZE_BY_PLACE[place])}
-            </span>
-          </li>
-        ))}
+        {([1, 2, 3] as const).map((place) => {
+          const prizeAmt = prizes[place] ?? 0;
+          if (tournament.winnerPerPlayerRub && place === 3) return null; // Не показываем 3 место для 5v5 матча двух команд
+
+          return (
+            <li
+              key={place}
+              className={`flex items-center justify-between rounded-lg border px-4 py-3 ${
+                place === 1
+                  ? 'border-amber-500/30 bg-amber-500/10 shadow-sm shadow-amber-500/10'
+                  : 'border-white/10 bg-black/20 opacity-75'
+              }`}
+            >
+              <div className="flex flex-col">
+                <span className="flex items-center gap-2 text-zinc-200 font-semibold text-sm">
+                  <span aria-hidden>{medals[place - 1]}</span>
+                  {place}-е место {place === 1 && tournament.winnerPerPlayerRub ? '(Команда-победитель)' : ''}
+                </span>
+                {place === 1 && tournament.winnerPerPlayerRub && (
+                  <span className="text-[11px] text-cyan-300 font-mono mt-0.5">
+                    по {formatRub(tournament.winnerPerPlayerRub)} каждому игроку
+                  </span>
+                )}
+              </div>
+              <span className={`font-mono text-lg font-bold ${place === 1 ? 'text-amber-300' : 'text-zinc-400'}`}>
+                {prizeAmt > 0 ? formatRub(prizeAmt) : '0 ₽'}
+              </span>
+            </li>
+          );
+        })}
       </ul>
 
       <dl className="mt-6 grid gap-3 border-t border-white/10 pt-4 text-sm">
         <div className="flex justify-between">
-          <dt className="text-zinc-500">Оргсбор с игрока</dt>
+          <dt className="text-zinc-500">Взнос с игрока</dt>
           <dd className="font-mono font-medium text-white">
-            {formatRub(ENTRY_FEE_RUB)}
+            {formatRub(entryFee)}
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-zinc-500">Общий наградной фонд</dt>
-          <dd className="font-mono font-semibold text-amber-200/90">
-            {formatRub(TOTAL_PRIZES_RUB)}
+          <dt className="text-zinc-500">Банк матча</dt>
+          <dd className="font-mono font-medium text-zinc-300">
+            {formatRub(entryFee * tournament.maxPlayers)} ({tournament.maxPlayers} × {formatRub(entryFee)})
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-zinc-500">Участников</dt>
+          <dt className="text-zinc-500">Награда за 1 место</dt>
+          <dd className="font-mono font-semibold text-amber-300">
+            {formatRub(prizePool)}
+          </dd>
+        </div>
+        <div className="flex justify-between">
+          <dt className="text-zinc-500">Набрано участников</dt>
           <dd className="font-mono text-zinc-300">
-            {registered} / {maxPlayers}
+            {tournament.registeredCount} / {tournament.maxPlayers}
           </dd>
         </div>
       </dl>

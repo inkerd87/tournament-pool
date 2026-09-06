@@ -10,12 +10,15 @@ import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation'
 type Props = {
   tournamentId: string;
   canRegister: boolean;
+  entryFeeRub?: number;
 };
 
-export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => {
+export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entryFeeRub }) => {
   const navigate = useNavigate();
   const { user, login, updateBalance } = useAuth();
   const { registerForTournament } = useTournaments();
+
+  const fee = entryFeeRub ?? ENTRY_FEE_RUB;
 
   const [nickname, setNickname] = useState(user?.nickname || '');
   const [gameAccount, setGameAccount] = useState('');
@@ -27,12 +30,12 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
   const [payMethod, setPayMethod] = useState<'card' | 'balance'>('card');
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  const canPayFromBalance = user && user.balanceRub >= ENTRY_FEE_RUB;
+  const canPayFromBalance = user && user.balanceRub >= fee;
 
   if (!canRegister) {
     return (
       <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-5 text-xs sm:text-sm text-amber-100">
-        Регистрация закрыта — все места заняты или турнир уже начался.
+        Регистрация закрыта — все места заняты или турнир скоро откроется.
       </div>
     );
   }
@@ -47,7 +50,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
     }
 
     if (!gameAccount.trim()) {
-      setMessage({ type: 'err', text: 'Укажите ваш игровой идентификатор (Steam, Riot или PUBG).' });
+      setMessage({ type: 'err', text: 'Укажите ваш игровой идентификатор (Steam, Activision, Epic Games или PUBG).' });
       return;
     }
 
@@ -76,11 +79,11 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
     }
 
     if (payMethod === 'balance') {
-      if (!user || user.balanceRub < ENTRY_FEE_RUB) {
-        setMessage({ type: 'err', text: 'Недостаточно средств на балансе.' });
+      if (!user || user.balanceRub < fee) {
+        setMessage({ type: 'err', text: `Недостаточно средств на балансе. Требуется ${formatRub(fee)}.` });
         return;
       }
-      updateBalance(-ENTRY_FEE_RUB);
+      updateBalance(-fee);
       registerForTournament(tournamentId, nickname.trim(), gameAccount.trim(), email.trim(), phone.trim());
       setMessage({ type: 'ok', text: 'Успешно! Вы зарегистрированы на турнир.' });
       setTimeout(() => {
@@ -95,7 +98,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
         email: email.trim(),
         phone: phone.trim(),
         password: password.trim(),
-        amount: ENTRY_FEE_RUB,
+        amount: fee,
         createdAt: Date.now(),
       };
       localStorage.setItem('nb_pending_registration', JSON.stringify(pendingData));
@@ -115,7 +118,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
       </div>
 
       <p className="mt-1 text-xs sm:text-sm text-zinc-400">
-        Организационный сбор: <strong className="text-white font-bold">{formatRub(ENTRY_FEE_RUB)}</strong>
+        Организационный сбор: <strong className="text-white font-bold">{formatRub(fee)}</strong>
       </p>
 
       {user && (
@@ -141,13 +144,13 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
 
         <div>
           <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-            Игровой ID (Steam ID / Riot ID / PUBG ID) *
+            Игровой ID (Steam ID / Activision / Epic Games / PUBG ID) *
           </label>
           <input
             type="text"
             required
             className="input-field text-base sm:text-sm py-2.5"
-            placeholder="Например: 76561198000000000 или Ninja#EUW"
+            placeholder="Например: 76561198000000000 или Player#1234"
             value={gameAccount}
             onChange={(e) => setGameAccount(e.target.value)}
           />
@@ -280,7 +283,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister }) => 
         )}
 
         <button type="submit" className="btn-primary w-full py-3 text-sm font-bold shadow-lg shadow-cyan-500/20">
-          {payMethod === 'balance' ? 'Оплатить 100 ₽ с баланса' : 'Оплатить 100 ₽ через PayAnyWay (СБП / Карта)'}
+          {payMethod === 'balance' ? `Оплатить ${formatRub(fee)} с баланса` : `Оплатить ${formatRub(fee)} через PayAnyWay (СБП / Карта)`}
         </button>
 
         <p className="text-[11px] text-zinc-500 text-center leading-relaxed">

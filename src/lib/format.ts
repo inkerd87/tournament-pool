@@ -31,13 +31,14 @@ export function placementLabel(placement: number | null): string {
 }
 
 export function statusLabel(
-  status: "recruiting" | "full" | "live" | "finished",
+  status: "recruiting" | "full" | "live" | "finished" | "soon",
 ): string {
   const map = {
     recruiting: "Набор игроков",
     full: "Мест нет",
     live: "Идёт турнир",
     finished: "Завершён",
+    soon: "Скоро",
   };
-  return map[status];
+  return map[status] || "Скоро";
 }

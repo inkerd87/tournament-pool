@@ -85,13 +85,25 @@ export const TournamentDetailPage: React.FC = () => {
             </div>
           )}
 
-          {!isRegistered && (
-            <RegisterForm tournamentId={tournament.id} canRegister={canRegister} />
-          )}
+          {tournament.status === 'soon' ? (
+            <div className="surface-card p-8 border-amber-500/30 bg-amber-950/10 text-center">
+              <span className="text-4xl">⏳</span>
+              <h3 className="mt-3 text-lg font-bold text-white">Регистрация откроется скоро</h3>
+              <p className="mt-1.5 text-xs sm:text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
+                Регламент, игровые лобби и дата старта турнира по <strong className="text-white">{game.name}</strong> будут объявлены в ближайшее время. Следите за обновлениями!
+              </p>
+            </div>
+          ) : !isRegistered ? (
+            <RegisterForm
+              tournamentId={tournament.id}
+              canRegister={canRegister}
+              entryFeeRub={tournament.entryFeeRub}
+            />
+          ) : null}
         </div>
 
         <div>
-          <PrizeBreakdown registered={tournament.registeredCount} maxPlayers={tournament.maxPlayers} />
+          <PrizeBreakdown tournament={tournament} />
         </div>
       </div>
     </div>

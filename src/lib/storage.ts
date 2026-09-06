@@ -4,25 +4,33 @@ import { DEFAULT_MAX_PLAYERS, ENTRY_FEE_RUB } from './constants';
 const INITIAL_TOURNAMENTS: Tournament[] = [
   {
     id: "cs2-weekly-001",
-    title: "CS2 Weekly Cup #1",
+    title: "CS2 5v5 Cash Clash #1",
     game: "cs2",
-    maxPlayers: DEFAULT_MAX_PLAYERS,
+    maxPlayers: 10,
     registeredCount: 0,
-    startsAt: "2026-09-05T18:00:00+03:00",
+    startsAt: "2026-09-08T20:00:00+03:00",
     status: "recruiting",
-    format: "5v5, single elimination, BO1",
-    description: "Открытый кубок для всех рангов. Сетка публикуется после закрытия регистрации.",
+    format: "5v5, BO1 — Победитель забирает 12 000 ₽",
+    description: "Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Победившая команда забирает весь банк: 12 000 ₽ (по 2 400 ₽ на каждого игрока)! Проигравшие получают 0 ₽.",
+    entryFeeRub: 1500,
+    prizePoolRub: 12000,
+    prizes: { 1: 12000, 2: 0, 3: 0 },
+    winnerPerPlayerRub: 2400,
   },
   {
     id: "dota2-open-001",
-    title: "Dota 2 Open Pool",
+    title: "Dota 2 5v5 Battle Cup",
     game: "dota2",
-    maxPlayers: DEFAULT_MAX_PLAYERS,
+    maxPlayers: 10,
     registeredCount: 0,
-    startsAt: "2026-09-06T20:00:00+03:00",
+    startsAt: "2026-09-08T21:30:00+03:00",
     status: "recruiting",
-    format: "5v5, double elimination",
-    description: "Командный турнир — соберите пятёрку или найдите teammates в лобби.",
+    format: "5v5, Captains Mode — Победитель забирает 12 000 ₽",
+    description: "Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Победившая команда забирает весь банк: 12 000 ₽ (по 2 400 ₽ на каждого игрока)! Проигравшие получают 0 ₽.",
+    entryFeeRub: 1500,
+    prizePoolRub: 12000,
+    prizes: { 1: 12000, 2: 0, 3: 0 },
+    winnerPerPlayerRub: 2400,
   },
   {
     id: "pubg-solo-001",
@@ -34,17 +42,21 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     status: "recruiting",
     format: "Solo, 1 катка (быстрые призовые)",
     description: "Быстрый одиночный матч на 100 игроков: 1 катка — топ-3 выживших сразу получают призовые выплаты.",
+    entryFeeRub: 100,
+    prizePoolRub: 2200,
+    prizes: { 1: 1000, 2: 700, 3: 500 },
   },
   {
     id: "warzone-solo-001",
-    title: "Warzone Resurgence Showdown",
+    title: "Warzone Battle Royale",
     game: "warzone",
     maxPlayers: 100,
     registeredCount: 0,
-    startsAt: "2026-09-08T18:00:00+03:00",
-    status: "recruiting",
+    startsAt: "2026-09-10T19:00:00+03:00",
+    status: "soon",
     format: "Solo Resurgence, 1 катка",
-    description: "Быстрая королевская битва в Warzone: 1 катка на выживание — топ-3 получают призовые выплаты сразу.",
+    description: "Турнир по Call of Duty: Warzone откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
+    entryFeeRub: 100,
   },
   {
     id: "fortnite-solo-001",
@@ -52,17 +64,18 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     game: "fortnite",
     maxPlayers: 100,
     registeredCount: 0,
-    startsAt: "2026-09-09T18:00:00+03:00",
-    status: "recruiting",
+    startsAt: "2026-09-11T19:00:00+03:00",
+    status: "soon",
     format: "Solo Zero Build, 1 катка",
-    description: "Одиночная битва без построек (Zero Build): 1 катка — топ-3 выживших сразу получают призовые выплаты.",
+    description: "Турнир по Fortnite откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
+    entryFeeRub: 100,
   },
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v7');
+  const data = localStorage.getItem('nb_tournaments_v8');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v7', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v8', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -73,7 +86,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v7', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v8', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {
