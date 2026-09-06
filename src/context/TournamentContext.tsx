@@ -93,10 +93,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               startsAt: t.starts_at,
               status,
               format: isCsOrDota
-                ? (t.game === 'cs2' ? '5v5, BO1 — Победитель забирает 12 000 ₽' : '5v5, Captains Mode — Победитель забирает 12 000 ₽')
+                ? (t.game === 'cs2' ? '5v5, BO1 — Призовой фонд 12 000 ₽' : '5v5, Captains Mode — Призовой фонд 12 000 ₽')
                 : t.format,
               description: isCsOrDota
-                ? 'Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Победившая команда забирает весь банк: 12 000 ₽ (по 2 400 ₽ на каждого игрока)! Проигравшие получают 0 ₽.'
+                ? 'Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.'
                 : t.description,
               entryFeeRub,
               prizePoolRub,

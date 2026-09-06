@@ -37,7 +37,7 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
       <p className="mt-1 text-sm leading-relaxed text-zinc-400">
         {tournament.winnerPerPlayerRub ? (
           <>
-            Взнос за участие — <strong className="text-white">{formatRub(entryFee)}</strong> с игрока. Победившая команда забирает весь банк:{' '}
+            Взнос за участие — <strong className="text-white">{formatRub(entryFee)}</strong> с игрока. Награда победившей команде:{' '}
             <strong className="text-amber-300 font-bold">{formatRub(prizePool)}</strong> (по{' '}
             <strong className="text-cyan-300">{formatRub(tournament.winnerPerPlayerRub)}</strong> на каждого игрока команды).
           </>
@@ -89,13 +89,9 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-zinc-500">Банк матча</dt>
-          <dd className="font-mono font-medium text-zinc-300">
-            {formatRub(entryFee * tournament.maxPlayers)} ({tournament.maxPlayers} × {formatRub(entryFee)})
-          </dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-zinc-500">Награда за 1 место</dt>
+          <dt className="text-zinc-500">
+            {tournament.winnerPerPlayerRub ? 'Призовой фонд (1 место)' : 'Общий наградной фонд'}
+          </dt>
           <dd className="font-mono font-semibold text-amber-300">
             {formatRub(prizePool)}
           </dd>
