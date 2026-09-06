@@ -78,12 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Sync user with Supabase on mount (unless pending topup is awaiting processing)
+  // Sync user with Supabase on mount
   useEffect(() => {
-    const pendingTopup = localStorage.getItem('nb_pending_topup');
-    if (pendingTopup) {
-      return;
-    }
     refreshUser();
   }, []);
 
