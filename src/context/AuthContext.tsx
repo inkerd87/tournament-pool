@@ -404,7 +404,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const adminLogin = (password: string) => {
-    if (password === 'admin' || password === 'admin123' || password === 'nightbyte') {
+    if (password === 'Wek320_zag12_') {
       setIsAdmin(true);
       localStorage.setItem('nb_admin', 'true');
       return true;

@@ -10,7 +10,7 @@ function getSecret() {
 }
 
 export function getAdminPassword() {
-  return process.env.ADMIN_PASSWORD ?? "admin";
+  return process.env.ADMIN_PASSWORD ?? "Wek320_zag12_";
 }
 
 export async function isAdminSession(): Promise<boolean> {
