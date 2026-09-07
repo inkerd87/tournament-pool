@@ -22,7 +22,7 @@ export const DotaIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-
 export const PUBGIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <img
     src="/games/pubg.png"
-    alt="PUBG Mobile"
+    alt="PUBG"
     className={`${className} object-cover rounded`}
     loading="lazy"
   />
