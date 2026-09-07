@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { ENTRY_FEE_RUB } from '@/lib/constants';
 import { formatRub } from '@/lib/format';
-import { PAYANYWAY_SHOWCASE_URL } from '@/lib/payanyway-client';
+import { createFreeKassaPaymentUrl } from '@/lib/freekassa-client';
 import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
 type Props = {
@@ -91,7 +91,9 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
       }, 1000);
     } else {
       // Сохраняем временные данные регистрации на случай возврата
+      const orderId = `reg_${tournamentId}_${Date.now()}`;
       const pendingData = {
+        orderId,
         tournamentId,
         nickname: nickname.trim(),
         gameAccount: gameAccount.trim(),
@@ -103,8 +105,24 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
       };
       localStorage.setItem('nb_pending_registration', JSON.stringify(pendingData));
 
-      // Перенаправляем на витрину оплаты PayAnyWay для самозанятых (НКО МОНЕТА)
-      window.location.href = PAYANYWAY_SHOWCASE_URL;
+      // Перенаправляем на платежную страницу FreeKassa (Shop ID: 75872)
+      const paymentUrl = createFreeKassaPaymentUrl({
+        amount: fee,
+        orderId,
+        email: email.trim(),
+        phone: phone.trim(),
+        currency: 'RUB',
+        customParams: {
+          type: 'tournament',
+          tournamentid: tournamentId,
+          nickname: nickname.trim(),
+          gameaccount: gameAccount.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+        },
+      });
+
+      window.location.href = paymentUrl;
     }
   };
 
@@ -246,8 +264,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
                   : 'border-white/10 bg-black/20 text-zinc-400 hover:border-white/20'
               }`}
             >
-              <p className="text-xs font-bold text-white">💳 СБП / Карты РФ (PayAnyWay)</p>
-              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, Т-Банк, Сбер, МИР через НКО «МОНЕТА»</p>
+              <p className="text-xs font-bold text-white">💳 СБП / Карты / FreeKassa</p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, Карты МИР, Visa, FKWallet, Криптовалюта</p>
             </button>
 
             <button
@@ -283,7 +301,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
         )}
 
         <button type="submit" className="btn-primary w-full py-3 text-sm font-bold shadow-lg shadow-cyan-500/20">
-          {payMethod === 'balance' ? `Оплатить ${formatRub(fee)} с баланса` : `Оплатить ${formatRub(fee)} через PayAnyWay (СБП / Карта)`}
+          {payMethod === 'balance' ? `Оплатить ${formatRub(fee)} с баланса` : `Оплатить ${formatRub(fee)} через FreeKassa`}
         </button>
 
         <p className="text-[11px] text-zinc-500 text-center leading-relaxed">

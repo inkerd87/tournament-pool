@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { formatRub } from '@/lib/format';
-import { PAYANYWAY_SHOWCASE_URL } from '@/lib/payanyway-client';
+import { createFreeKassaPaymentUrl } from '@/lib/freekassa-client';
 import { useAuth } from '@/context/AuthContext';
 
 const AMOUNTS = [100, 300, 500, 1000];
@@ -18,15 +18,31 @@ export const WalletTopUpForm: React.FC = () => {
   };
 
   const handleTopUp = () => {
+    const orderId = `topup_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const email = (user?.email || '').trim();
+
     localStorage.setItem(
       'nb_pending_topup',
       JSON.stringify({
+        orderId,
         amount: parsedAmount,
-        email: user?.email || '',
+        email,
         createdAt: Date.now(),
       })
     );
-    window.location.href = PAYANYWAY_SHOWCASE_URL;
+
+    const paymentUrl = createFreeKassaPaymentUrl({
+      amount: parsedAmount,
+      orderId,
+      email,
+      currency: 'RUB',
+      customParams: {
+        type: 'topup',
+        email,
+      },
+    });
+
+    window.location.href = paymentUrl;
   };
 
   return (
@@ -34,11 +50,11 @@ export const WalletTopUpForm: React.FC = () => {
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-white">Пополнение баланса</h3>
         <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
-          СБП / МИР
+          СБП / КАРТЫ / КРИПТА
         </span>
       </div>
       <p className="mt-1 text-xs text-zinc-400">
-        Через СБП или банковскую карту (PayAnyWay / НКО «МОНЕТА»). Без комиссии.
+        Через СБП, банковскую карту (МИР, Visa), FKWallet или USDT (FreeKassa).
       </p>
 
       {/* Быстрый выбор суммы */}
