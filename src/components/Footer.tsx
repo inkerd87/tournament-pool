@@ -46,13 +46,13 @@ export const Footer: React.FC = () => {
               href="https://freekassa.net"
               target="_blank"
               rel="noopener noreferrer"
-              title="big-dark-1"
-              className="inline-block transition-opacity hover:opacity-80"
+              title="Приём платежей FreeKassa"
+              className="inline-block transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
               <img
-                src="https://cdn.freekassa.net/images/logos/banners/f/big-dark-1.png"
-                alt="big-dark-1"
-                className="h-8"
+                src="/freekassa-banner.svg"
+                alt="FreeKassa - Приём платежей"
+                className="h-9 w-auto drop-shadow-md"
               />
             </a>
           </div>

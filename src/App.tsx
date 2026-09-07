@@ -12,6 +12,7 @@ import { PrivacyPage } from '@/pages/PrivacyPage';
 import { OfferPage } from '@/pages/OfferPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { PaymentReturnPage } from '@/pages/PaymentReturnPage';
+import { LaunchAnnouncementModal } from '@/components/LaunchAnnouncementModal';
 
 export const App: React.FC = () => {
   return (
@@ -39,6 +40,7 @@ export const App: React.FC = () => {
           </Routes>
         </main>
         <Footer />
+        <LaunchAnnouncementModal />
       </div>
     </div>
   );
