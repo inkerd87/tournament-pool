@@ -55,11 +55,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!currentUser) return;
     try {
       const cleanEmail = currentUser.email.toLowerCase().trim();
-      const { data, error } = await supabase
+      
+      // Таймаут 3 секунды, чтобы медленный или заблокированный Supabase не подвешивал приложение
+      const queryPromise = supabase
         .from('users')
         .select('*')
         .ilike('email', cleanEmail)
         .maybeSingle();
+
+      const timeoutPromise = new Promise<{ data: null; error: any }>((_, reject) =>
+        setTimeout(() => reject(new Error('Supabase sync timeout')), 3000)
+      );
+
+      const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
 
       if (!error && data) {
         const dbBalance = Number(data.balance_rub) || 0;
@@ -76,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .update({ balance_rub: balanceToUse })
             .ilike('email', cleanEmail)
             .then(() => {})
-            .catch((err) => console.warn('Sync balance error:', err));
+            .catch(() => {});
         }
 
         setUser((prev) => {
@@ -93,11 +101,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     } catch (e) {
-      console.warn('Supabase user sync error:', e);
+      // Игнорируем сетевые таймауты Supabase, чтобы не ломать локальную работу
+      console.warn('Supabase sync notice:', e);
     }
   };
 
-  // Sync user with Supabase on mount and listen to live Realtime updates
+  // Sync user with Supabase on mount once and listen to live Realtime updates
   useEffect(() => {
     refreshUser();
 
@@ -118,29 +127,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
         (payload: any) => {
           if (payload?.new?.email && payload.new.email.toLowerCase() === cleanEmail) {
-            console.log('✅ Realtime balance/profile update received for user:', payload.new);
             refreshUser();
           }
         }
       )
       .subscribe();
 
-    // Fallback sync every 4 seconds when user is logged in
-    const interval = setInterval(() => {
-      refreshUser();
-    }, 4000);
-
-    const handleFocus = () => {
-      refreshUser();
-    };
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleFocus);
-
     return () => {
       supabase.removeChannel(userChannel);
-      clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleFocus);
     };
   }, [user?.email]);
 
@@ -477,33 +471,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       saveUser(newUserObj);
     }
 
-    // 3. Сохраняем в Supabase
+    // 3. Сохраняем в Supabase в фоне без блокировки интерфейса
     const finalEmail = (activeUser?.email || targetEmail).toLowerCase().trim();
     if (finalEmail) {
-      try {
-        const { data: updatedRows } = await supabase
-          .from('users')
-          .update({ balance_rub: newBalance })
-          .ilike('email', finalEmail)
-          .select();
-
-        if (!updatedRows || updatedRows.length === 0) {
-          await supabase
-            .from('users')
-            .upsert(
-              {
-                email: finalEmail,
-                nickname: activeUser?.nickname || finalEmail.split('@')[0],
-                phone: activeUser?.phone || '',
-                balance_rub: newBalance,
-              },
-              { onConflict: 'email' }
-            );
-        }
-      } catch (e) {
-        console.warn('Could not update balance in Supabase:', e);
-      }
+      supabase
+        .from('users')
+        .update({ balance_rub: newBalance })
+        .ilike('email', finalEmail)
+        .then(({ error, data }) => {
+          if (error || !data) {
+            supabase
+              .from('users')
+              .upsert(
+                {
+                  email: finalEmail,
+                  nickname: activeUser?.nickname || finalEmail.split('@')[0],
+                  phone: activeUser?.phone || '',
+                  balance_rub: newBalance,
+                },
+                { onConflict: 'email' }
+              )
+              .then(() => {})
+              .catch(() => {});
+          }
+        })
+        .catch(() => {});
     }
+
+    try {
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
   };
 
   const setBalance = async (exactAmount: number) => {
