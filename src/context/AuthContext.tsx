@@ -56,15 +56,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const cleanEmail = currentUser.email.toLowerCase().trim();
       
-      // Таймаут 3 секунды, чтобы медленный или заблокированный Supabase не подвешивал приложение
+      // Быстрый запрос по индексу
       const queryPromise = supabase
         .from('users')
         .select('*')
-        .ilike('email', cleanEmail)
+        .eq('email', cleanEmail)
         .maybeSingle();
 
       const timeoutPromise = new Promise<{ data: null; error: any }>((_, reject) =>
-        setTimeout(() => reject(new Error('Supabase sync timeout')), 3000)
+        setTimeout(() => reject(new Error('Supabase sync timeout')), 5000)
       );
 
       const { data, error } = (await Promise.race([queryPromise, timeoutPromise])) as any;
@@ -74,15 +74,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const currentLocalUser = getStoredUser() || user;
         const localBalance = Number(currentLocalUser?.balanceRub) || 0;
 
-        // Никогда не затираем баланс пользователя при задержках репликации или рассинхроне:
-        // Всегда берём максимальное значение и досинхронизируем в Supabase при необходимости!
-        const balanceToUse = Math.max(dbBalance, localBalance);
+        // Защита от задержки репликации только в первые 5 секунд после локального пополнения:
+        const recentlyUpdated = Date.now() - (lastBalanceUpdateRef.current || 0) < 5000;
+        const balanceToUse = recentlyUpdated ? Math.max(dbBalance, localBalance) : dbBalance;
 
-        if (localBalance > dbBalance) {
+        if (recentlyUpdated && localBalance > dbBalance) {
           supabase
             .from('users')
             .update({ balance_rub: balanceToUse })
-            .ilike('email', cleanEmail)
+            .eq('email', cleanEmail)
             .then(() => {})
             .catch(() => {});
         }

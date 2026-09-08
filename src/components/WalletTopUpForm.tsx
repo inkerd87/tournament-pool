@@ -272,24 +272,8 @@ export const WalletTopUpForm: React.FC = () => {
           </div>
 
           <p className="mt-2.5 text-[10px] text-zinc-500 text-center">
-            Мгновенное зачисление на баланс личного кабинета
+            Зачисление на баланс личного кабинета после оплаты
           </p>
-
-          {/* Быстрое бесплатное пополнение для тестирования платформы без списания средств */}
-          <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-            <span className="text-[11px] text-zinc-500 font-medium">Тестовый режим:</span>
-            <button
-              type="button"
-              onClick={() => {
-                updateBalance(100, user?.email);
-                setSuccessMessage('Тестовые 100 ₽ успешно зачислены (0 ₽ к оплате)!');
-              }}
-              className="text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg px-2.5 py-1 transition flex items-center gap-1 shadow-sm"
-              title="Начислить 100 ₽ для проверки турниров и функционала без списания реальных денег"
-            >
-              <span>🧪</span> +100 ₽ без списания (тест)
-            </button>
-          </div>
         </>
       )}
     </div>
