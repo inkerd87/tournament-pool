@@ -12,6 +12,7 @@ export type Tournament = {
   title: string;
   game: GameId;
   maxPlayers: number;
+  minPlayers?: number;
   registeredCount: number;
   startsAt: string;
   status: TournamentStatus;

@@ -111,6 +111,11 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
           <dt className="text-zinc-500">Набрано участников</dt>
           <dd className="font-mono text-zinc-300">
             {tournament.registeredCount} / {tournament.maxPlayers}
+            {tournament.minPlayers && (
+              <span className="text-zinc-500 text-xs ml-1 font-sans">
+                (мин. {tournament.minPlayers})
+              </span>
+            )}
           </dd>
         </div>
       </dl>

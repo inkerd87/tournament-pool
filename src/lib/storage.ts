@@ -7,11 +7,12 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "CS2 5v5 Cash Clash #1",
     game: "cs2",
     maxPlayers: 10,
+    minPlayers: 10,
     registeredCount: 0,
     startsAt: "2026-09-08T20:00:00+03:00",
     status: "recruiting",
     format: "5v5, BO1 — Призовой фонд 12 000 ₽",
-    description: "Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.",
+    description: "Командный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.",
     entryFeeRub: 1500,
     prizePoolRub: 12000,
     prizes: { 1: 12000, 2: 0, 3: 0 },
@@ -22,11 +23,12 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "Dota 2 5v5 Battle Cup",
     game: "dota2",
     maxPlayers: 10,
+    minPlayers: 10,
     registeredCount: 0,
     startsAt: "2026-09-08T21:30:00+03:00",
     status: "recruiting",
     format: "5v5, Captains Mode — Призовой фонд 12 000 ₽",
-    description: "Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.",
+    description: "Командный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.",
     entryFeeRub: 1500,
     prizePoolRub: 12000,
     prizes: { 1: 12000, 2: 0, 3: 0 },
@@ -37,11 +39,12 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "PUBG Solo Showdown",
     game: "pubg",
     maxPlayers: 100,
+    minPlayers: 50,
     registeredCount: 0,
     startsAt: "2026-09-07T19:00:00+03:00",
     status: "recruiting",
     format: "Solo, 1 катка (быстрые призовые)",
-    description: "Быстрый одиночный матч на 100 игроков: 1 катка — топ-3 выживших сразу получают призовые выплаты. Орг. сбор 100 ₽.",
+    description: "Быстрый одиночный матч до 100 игроков (старт от 50 участников): 1 катка — топ-3 выживших сразу получают призовые выплаты. Орг. сбор 100 ₽.",
     entryFeeRub: 100,
     prizePoolRub: 2200,
     prizes: { 1: 1000, 2: 700, 3: 500 },
@@ -52,11 +55,12 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "PUBG Solo Premium Showdown",
     game: "pubg",
     maxPlayers: 100,
+    minPlayers: 50,
     registeredCount: 0,
     startsAt: "2026-09-07T21:00:00+03:00",
     status: "recruiting",
     format: "Solo, 1 катка (Премиум фонд 28 000 ₽)",
-    description: "Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.",
+    description: "Премиум одиночный матч до 100 игроков (старт от 50 участников): 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.",
     entryFeeRub: 1000,
     prizePoolRub: 28000,
     prizes: { 1: 15000, 2: 8000, 3: 5000 },
@@ -67,6 +71,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "Warzone Battle Royale",
     game: "warzone",
     maxPlayers: 100,
+    minPlayers: 50,
     registeredCount: 0,
     startsAt: "2026-09-10T19:00:00+03:00",
     status: "soon",
@@ -79,6 +84,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     title: "Fortnite Zero Build Cup",
     game: "fortnite",
     maxPlayers: 100,
+    minPlayers: 50,
     registeredCount: 0,
     startsAt: "2026-09-11T19:00:00+03:00",
     status: "soon",
@@ -89,20 +95,25 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v10');
+  const data = localStorage.getItem('nb_tournaments_v11');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v10', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v11', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
-    return JSON.parse(data);
+    const list: Tournament[] = JSON.parse(data);
+    return list.map(t => {
+      const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
+      const minPlayers = t.minPlayers || (isCsOrDota ? 10 : 50);
+      return { ...t, minPlayers };
+    });
   } catch {
     return INITIAL_TOURNAMENTS;
   }
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v10', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v11', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {

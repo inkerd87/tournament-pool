@@ -83,17 +83,20 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               let entryFeeRub = 100;
               let prizePoolRub = 2200;
               let maxPlayers = t.max_players || 100;
+              let minPlayers = isCsOrDota ? 10 : 50;
               let prizes = { 1: 1000, 2: 700, 3: 500 };
 
               if (isCsOrDota) {
                 entryFeeRub = 1500;
                 prizePoolRub = 12000;
                 maxPlayers = 10;
+                minPlayers = 10;
                 prizes = { 1: 12000, 2: 0, 3: 0 };
               } else if (isPubgPremium) {
                 entryFeeRub = 1000;
                 prizePoolRub = 28000;
                 maxPlayers = 100;
+                minPlayers = 50;
                 prizes = { 1: 15000, 2: 8000, 3: 5000 };
               }
 
@@ -106,6 +109,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                   : (isPubgPremium ? 'PUBG Solo Premium Showdown' : t.title),
                 game: t.game,
                 maxPlayers,
+                minPlayers,
                 registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length || t.registered_count || 0,
                 startsAt: t.starts_at,
                 status,
@@ -113,9 +117,9 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                   ? (t.game === 'cs2' ? '5v5, BO1 — Призовой фонд 12 000 ₽' : '5v5, Captains Mode — Призовой фонд 12 000 ₽')
                   : (isPubgPremium ? 'Solo, 1 катка (Премиум фонд 28 000 ₽)' : t.format),
                 description: isCsOrDota
-                  ? 'Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.'
+                  ? 'Командный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.'
                   : (isPubgPremium
-                      ? 'Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.'
+                      ? 'Премиум одиночный матч до 100 игроков (старт от 50 участников): 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.'
                       : t.description),
                 entryFeeRub,
                 prizePoolRub,
@@ -131,11 +135,12 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               title: "PUBG Solo Premium Showdown",
               game: "pubg",
               maxPlayers: 100,
+              minPlayers: 50,
               registeredCount: currentRegs.filter(r => r.tournamentId === "pubg-premium-001").length,
               startsAt: "2026-09-07T21:00:00+03:00",
               status: "recruiting",
               format: "Solo, 1 катка (Премиум фонд 28 000 ₽)",
-              description: "Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.",
+              description: "Премиум одиночный матч до 100 игроков (старт от 50 участников): 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.",
               entryFeeRub: 1000,
               prizePoolRub: 28000,
               prizes: { 1: 15000, 2: 8000, 3: 5000 },
@@ -146,6 +151,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               title: "Warzone Battle Royale",
               game: "warzone",
               maxPlayers: 100,
+              minPlayers: 50,
               registeredCount: currentRegs.filter(r => r.tournamentId === "warzone-solo-001").length,
               startsAt: "2026-09-10T19:00:00+03:00",
               status: "soon",
@@ -158,6 +164,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               title: "Fortnite Zero Build Cup",
               game: "fortnite",
               maxPlayers: 100,
+              minPlayers: 50,
               registeredCount: currentRegs.filter(r => r.tournamentId === "fortnite-solo-001").length,
               startsAt: "2026-09-11T19:00:00+03:00",
               status: "soon",

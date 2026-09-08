@@ -162,6 +162,11 @@ export const TournamentCard: React.FC<{
             <div className="mb-1.5 flex justify-between text-[11px] text-zinc-400">
               <span>
                 {tournament.registeredCount} / {tournament.maxPlayers} игроков
+                {tournament.minPlayers && (
+                  <span className="text-[10px] text-zinc-500 ml-1 font-medium">
+                    (старт от {tournament.minPlayers})
+                  </span>
+                )}
               </span>
               <span className="font-mono">{fillPercent}%</span>
             </div>

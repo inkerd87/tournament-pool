@@ -35,12 +35,14 @@ export async function launchTournamentIfReady(params: {
   tournamentId: string;
   game: GameId;
   maxPlayers: number;
+  minPlayers?: number;
   registrations: Registration[];
 }): Promise<TournamentRuntime | null> {
   const existing = await getTournamentRuntime(params.tournamentId);
   if (existing) return existing;
 
-  if (params.registrations.length < params.maxPlayers) return null;
+  const minRequired = params.minPlayers ?? params.maxPlayers;
+  if (params.registrations.length < minRequired) return null;
 
   const lobby = createGameLobby(params.game, {
     tournamentId: params.tournamentId,
