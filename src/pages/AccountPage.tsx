@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
@@ -9,18 +9,39 @@ import { MatchHistoryList } from '@/components/MatchHistoryList';
 import { getStoredHistory } from '@/lib/storage';
 
 export const AccountPage: React.FC = () => {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout, refreshUser, updateBalance } = useAuth();
   const { tournaments, getUserRegistrations, matches, registerForTournament, isUserRegistered } = useTournaments();
+  const [topUpSuccess, setTopUpSuccess] = useState<number | null>(null);
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // При возврате проверяем наличие незавершенной регистрации на турнир
+  // При возврате проверяем наличие незавершенного пополнения или регистрации
   useEffect(() => {
+    if (!user) return;
+
+    // 1. Проверяем незавершённое пополнение баланса
+    const pendingTopupStr = localStorage.getItem('nb_pending_topup');
+    if (pendingTopupStr) {
+      try {
+        const parsedTopup = JSON.parse(pendingTopupStr);
+        const amt = Number(parsedTopup.amount) || 0;
+        const age = Date.now() - (parsedTopup.createdAt || 0);
+
+        // Если пополнение инициировано менее 2 часов назад
+        if (amt > 0 && age < 2 * 60 * 60 * 1000) {
+          localStorage.removeItem('nb_pending_topup');
+          updateBalance(amt, user.email);
+          setTopUpSuccess(amt);
+        } else {
+          localStorage.removeItem('nb_pending_topup');
+        }
+      } catch (e) {
+        console.error('Error processing pending topup on account page:', e);
+      }
+    }
+
+    // 2. При возврате проверяем наличие незавершенной регистрации на турнир
     try {
       const savedRegStr = localStorage.getItem('nb_pending_registration');
-      if (savedRegStr && user) {
+      if (savedRegStr) {
         const parsed = JSON.parse(savedRegStr);
         if (parsed.tournamentId) {
           localStorage.removeItem('nb_pending_registration');
@@ -91,6 +112,19 @@ export const AccountPage: React.FC = () => {
                 🔄 Обновить
               </button>
             </div>
+
+            {topUpSuccess && (
+              <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300 flex items-center justify-between">
+                <span className="font-bold">✓ Баланс успешно пополнен на +{formatRub(topUpSuccess)}!</span>
+                <button
+                  type="button"
+                  onClick={() => setTopUpSuccess(null)}
+                  className="text-emerald-400 hover:text-emerald-200 text-xs ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             <p className="mt-2 text-3xl font-black text-white">{formatRub(user.balanceRub)}</p>
             <p className="mt-1 text-xs text-zinc-400">Для мгновенной оплаты участия без комиссии</p>

@@ -74,7 +74,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           supabase
             .from('users')
             .update({ balance_rub: balanceToUse })
-            .ilike('email', cleanEmail);
+            .ilike('email', cleanEmail)
+            .then(() => {})
+            .catch((err) => console.warn('Sync balance error:', err));
         }
 
         setUser((prev) => {
