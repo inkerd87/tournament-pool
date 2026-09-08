@@ -159,12 +159,12 @@ export const TournamentCard: React.FC<{
 
         {!isSoon && (
           <div className="relative mt-4">
-            <div className="mb-1.5 flex justify-between text-[11px] text-zinc-400">
-              <span>
-                {tournament.registeredCount} / {tournament.maxPlayers} игроков
+            <div className="mb-1.5 flex items-center justify-between text-[11px] text-zinc-400">
+              <span className="flex items-center flex-wrap gap-1">
+                <span>{tournament.registeredCount} / {tournament.maxPlayers} игроков</span>
                 {tournament.minPlayers && (
-                  <span className="text-[10px] text-zinc-500 ml-1 font-medium">
-                    (старт от {tournament.minPlayers})
+                  <span className="inline-flex items-center rounded border border-red-900/60 bg-red-950/70 px-1.5 py-0.5 text-[10px] font-bold text-red-400">
+                    старт от {tournament.minPlayers}
                   </span>
                 )}
               </span>

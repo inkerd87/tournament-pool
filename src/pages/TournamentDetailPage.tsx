@@ -114,11 +114,11 @@ export const TournamentDetailPage: React.FC = () => {
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Участников</dt>
-                <dd className="mt-0.5 font-bold text-white">
-                  {tournament.registeredCount} / {tournament.maxPlayers}
+                <dd className="mt-0.5 font-bold text-white flex items-center flex-wrap gap-1.5">
+                  <span>{tournament.registeredCount} / {tournament.maxPlayers}</span>
                   {tournament.minPlayers && (
-                    <span className="text-zinc-400 text-xs font-normal ml-1">
-                      (старт от {tournament.minPlayers})
+                    <span className="inline-flex items-center rounded border border-red-900/60 bg-red-950/70 px-2 py-0.5 text-xs font-bold text-red-400">
+                      старт от {tournament.minPlayers}
                     </span>
                   )}
                 </dd>

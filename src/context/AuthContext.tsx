@@ -431,6 +431,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    saveUser(null);
     setUser(null);
   };
 

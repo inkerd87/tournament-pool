@@ -107,13 +107,13 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
             {formatRub(prizePool)}
           </dd>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <dt className="text-zinc-500">Набрано участников</dt>
-          <dd className="font-mono text-zinc-300">
-            {tournament.registeredCount} / {tournament.maxPlayers}
+          <dd className="font-mono text-zinc-300 flex items-center gap-1.5">
+            <span>{tournament.registeredCount} / {tournament.maxPlayers}</span>
             {tournament.minPlayers && (
-              <span className="text-zinc-500 text-xs ml-1 font-sans">
-                (мин. {tournament.minPlayers})
+              <span className="inline-flex items-center rounded border border-red-900/60 bg-red-950/70 px-1.5 py-0.5 text-[10px] font-bold text-red-400 font-sans">
+                мин. {tournament.minPlayers}
               </span>
             )}
           </dd>

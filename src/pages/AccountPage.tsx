@@ -60,6 +60,10 @@ export const AccountPage: React.FC = () => {
     }
   }, [user?.email]);
 
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   const userRegistrations = getUserRegistrations(user.email);
   const registeredTournaments = userRegistrations
     .map((reg) => {
