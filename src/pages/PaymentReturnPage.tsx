@@ -156,7 +156,12 @@ export const PaymentReturnPage: React.FC = () => {
       exactAmount = parsedUrlAmount;
     }
 
-    let topUpEmail = (urlEmail || user?.email || '').trim();
+    // Приоритет определения пользователя для зачисления:
+    // 1. Текущий авторизованный пользователь (в state или localStorage)
+    // 2. Email из сохраненной заявки на пополнение nb_pending_topup
+    // 3. Email из параметров шлюза urlEmail (только если содержит '@')
+    const currentUser = user || getStoredUser();
+    let topUpEmail = (currentUser?.email || '').trim();
 
     const savedTopupStr = localStorage.getItem('nb_pending_topup');
     if (savedTopupStr) {
@@ -173,6 +178,10 @@ export const PaymentReturnPage: React.FC = () => {
       } catch (e) {
         console.error('Error reading pending topup:', e);
       }
+    }
+
+    if (!topUpEmail && urlEmail && urlEmail.includes('@')) {
+      topUpEmail = urlEmail.trim();
     }
 
     if (exactAmount > 0) {
@@ -195,7 +204,7 @@ export const PaymentReturnPage: React.FC = () => {
       }
 
       if (!alreadyProcessed) {
-        const finalEmail = topUpEmail || user?.email || '';
+        const finalEmail = topUpEmail || user?.email || getStoredUser()?.email || '';
         updateBalance(exactAmount, finalEmail);
 
         if (!user && finalEmail) {
@@ -254,6 +263,12 @@ export const PaymentReturnPage: React.FC = () => {
               <span className="text-zinc-500">Сумма зачисления:</span>
               <span className="font-bold text-emerald-400">+{formatRub(topUpAmount)}</span>
             </div>
+            {user && (
+              <div className="flex justify-between border-t border-white/5 pt-2">
+                <span className="text-zinc-500">Текущий баланс:</span>
+                <span className="font-extrabold text-white">{formatRub(user.balanceRub)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-zinc-500">Статус:</span>
               <span className="font-semibold text-cyan-400">Зачислено (PayAnyWay / СБП)</span>

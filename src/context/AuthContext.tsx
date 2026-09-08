@@ -64,17 +64,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!error && data) {
         const dbBalance = Number(data.balance_rub) || 0;
         const currentLocalUser = getStoredUser() || user;
-        const localBalance = currentLocalUser?.balanceRub || 0;
+        const localBalance = Number(currentLocalUser?.balanceRub) || 0;
 
-        // Protect against race conditions and replication lag:
-        // if balance was updated locally in the last 25s and DB still has an older lower balance,
-        // preserve the higher balance and re-sync to Supabase!
-        let balanceToUse = dbBalance;
-        if (Date.now() - lastBalanceUpdateRef.current < 25000 && localBalance > dbBalance) {
-          balanceToUse = localBalance;
+        // Никогда не затираем баланс пользователя при задержках репликации или рассинхроне:
+        // Всегда берём максимальное значение и досинхронизируем в Supabase при необходимости!
+        const balanceToUse = Math.max(dbBalance, localBalance);
+
+        if (localBalance > dbBalance) {
           supabase
             .from('users')
-            .update({ balance_rub: localBalance })
+            .update({ balance_rub: balanceToUse })
             .ilike('email', cleanEmail);
         }
 
@@ -440,81 +439,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateBalance = async (delta: number, emailOverride?: string) => {
-    const targetEmail = (emailOverride || user?.email || getStoredUser()?.email || '').trim().toLowerCase();
-    if (!targetEmail) return;
+    const activeUser = user || getStoredUser();
+    const targetEmail = (
+      activeUser?.email || 
+      emailOverride || 
+      ''
+    ).trim().toLowerCase();
 
+    if (!targetEmail && !activeUser) return;
+
+    localStorage.setItem('nb_last_balance_update', String(Date.now()));
     lastBalanceUpdateRef.current = Date.now();
 
-    // 1. Fetch current balance directly from Supabase or local user
-    let currentBalance = 0;
-    try {
-      const { data } = await supabase
-        .from('users')
-        .select('balance_rub')
-        .ilike('email', targetEmail)
-        .maybeSingle();
-
-      if (data && data.balance_rub !== undefined && data.balance_rub !== null) {
-        currentBalance = Number(data.balance_rub) || 0;
-      } else {
-        const stored = getStoredUser();
-        if (stored && stored.email.toLowerCase() === targetEmail) {
-          currentBalance = stored.balanceRub || 0;
-        } else if (user && user.email.toLowerCase() === targetEmail) {
-          currentBalance = user.balanceRub || 0;
-        }
-      }
-    } catch {
-      const stored = getStoredUser();
-      if (stored && stored.email.toLowerCase() === targetEmail) {
-        currentBalance = stored.balanceRub || 0;
-      } else if (user && user.email.toLowerCase() === targetEmail) {
-        currentBalance = user.balanceRub || 0;
-      }
-    }
-
+    // 1. Текущий баланс активного пользователя
+    const currentBalance = Number(activeUser?.balanceRub) || 0;
     const newBalance = Math.max(0, currentBalance + delta);
 
-    // 2. Persist to Supabase with upsert fallback if row does not exist
-    try {
-      const { data: updatedRows } = await supabase
-        .from('users')
-        .update({ balance_rub: newBalance })
-        .ilike('email', targetEmail)
-        .select();
-
-      if (!updatedRows || updatedRows.length === 0) {
-        const currentObj = user || getStoredUser();
-        await supabase
-          .from('users')
-          .upsert(
-            {
-              email: targetEmail,
-              nickname: currentObj?.nickname || 'Player',
-              phone: currentObj?.phone || '',
-              balance_rub: newBalance,
-            },
-            { onConflict: 'email' }
-          );
-      }
-    } catch (e) {
-      console.warn('Could not update balance in Supabase:', e);
+    // 2. Мгновенно обновляем локальный React state и localStorage
+    if (activeUser) {
+      const updated: User = {
+        ...activeUser,
+        balanceRub: newBalance,
+      };
+      setUser(updated);
+      saveUser(updated);
+    } else {
+      const newUserObj: User = {
+        id: 'usr_' + Math.random().toString(36).substring(2, 9),
+        email: targetEmail,
+        nickname: targetEmail.split('@')[0],
+        balanceRub: newBalance,
+        createdAt: new Date().toISOString(),
+      };
+      setUser(newUserObj);
+      saveUser(newUserObj);
     }
 
-    // 3. Update React state and localStorage immediately
-    setUser((prev) => {
-      if (prev && prev.email.toLowerCase() === targetEmail) {
-        const updated = { ...prev, balanceRub: newBalance };
-        saveUser(updated);
-        return updated;
-      }
-      return prev;
-    });
+    // 3. Сохраняем в Supabase
+    const finalEmail = (activeUser?.email || targetEmail).toLowerCase().trim();
+    if (finalEmail) {
+      try {
+        const { data: updatedRows } = await supabase
+          .from('users')
+          .update({ balance_rub: newBalance })
+          .ilike('email', finalEmail)
+          .select();
 
-    const stored = getStoredUser();
-    if (stored && stored.email.toLowerCase() === targetEmail) {
-      stored.balanceRub = newBalance;
-      saveUser(stored);
+        if (!updatedRows || updatedRows.length === 0) {
+          await supabase
+            .from('users')
+            .upsert(
+              {
+                email: finalEmail,
+                nickname: activeUser?.nickname || finalEmail.split('@')[0],
+                phone: activeUser?.phone || '',
+                balance_rub: newBalance,
+              },
+              { onConflict: 'email' }
+            );
+        }
+      } catch (e) {
+        console.warn('Could not update balance in Supabase:', e);
+      }
     }
   };
 
