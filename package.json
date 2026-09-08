@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "vite",
-    "build": "vite build",
+    "build": "cp index.src.html index.html && vite build && cp dist/index.html ./index.html && rm -rf assets && cp -r dist/assets ./assets",
     "preview": "vite preview"
   },
   "dependencies": {
