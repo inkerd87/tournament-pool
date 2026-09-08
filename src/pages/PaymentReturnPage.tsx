@@ -41,7 +41,7 @@ export const PaymentReturnPage: React.FC = () => {
         if (!isNaN(amt) && amt > 0) {
           setIsTopUp(true);
           setTopUpAmount(amt);
-          updateBalance(amt, parsed.email);
+          updateBalance(amt, parsed.email || user?.email);
           return;
         }
       } catch (e) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
@@ -10,11 +10,35 @@ import { getStoredHistory } from '@/lib/storage';
 
 export const AccountPage: React.FC = () => {
   const { user, logout, refreshUser } = useAuth();
-  const { tournaments, getUserRegistrations, matches } = useTournaments();
+  const { tournaments, getUserRegistrations, matches, registerForTournament, isUserRegistered } = useTournaments();
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  // При возврате проверяем наличие незавершенной регистрации на турнир
+  useEffect(() => {
+    try {
+      const savedRegStr = localStorage.getItem('nb_pending_registration');
+      if (savedRegStr && user) {
+        const parsed = JSON.parse(savedRegStr);
+        if (parsed.tournamentId) {
+          localStorage.removeItem('nb_pending_registration');
+          if (!isUserRegistered(parsed.tournamentId, user.email)) {
+            registerForTournament(
+              parsed.tournamentId,
+              parsed.nickname || user.nickname,
+              parsed.gameAccount || '',
+              user.email,
+              parsed.phone || user.phone || ''
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error processing pending registration:', e);
+    }
+  }, [user?.email]);
 
   const userRegistrations = getUserRegistrations(user.email);
   const registeredTournaments = userRegistrations

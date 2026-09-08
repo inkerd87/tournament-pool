@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { User } from '@/lib/types';
 import { getStoredUser, saveUser } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
@@ -44,6 +44,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => getStoredUser());
   const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem('nb_admin') === 'true');
+  const lastBalanceUpdateRef = useRef<number>(0);
 
   useEffect(() => {
     saveUser(user);
@@ -53,20 +54,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const currentUser = getStoredUser() || user;
     if (!currentUser) return;
     try {
+      const cleanEmail = currentUser.email.toLowerCase().trim();
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('email', currentUser.email.toLowerCase())
+        .ilike('email', cleanEmail)
         .maybeSingle();
 
       if (!error && data) {
+        const dbBalance = Number(data.balance_rub) || 0;
+        const currentLocalUser = getStoredUser() || user;
+        const localBalance = currentLocalUser?.balanceRub || 0;
+
+        // Protect against race conditions and replication lag:
+        // if balance was updated locally in the last 25s and DB still has an older lower balance,
+        // preserve the higher balance and re-sync to Supabase!
+        let balanceToUse = dbBalance;
+        if (Date.now() - lastBalanceUpdateRef.current < 25000 && localBalance > dbBalance) {
+          balanceToUse = localBalance;
+          supabase
+            .from('users')
+            .update({ balance_rub: localBalance })
+            .ilike('email', cleanEmail);
+        }
+
         setUser((prev) => {
           const updated: User = {
             id: data.id,
             email: data.email,
             nickname: data.nickname,
             phone: (data as any).phone || currentUser.phone || '',
-            balanceRub: Number(data.balance_rub) || 0,
+            balanceRub: balanceToUse,
             createdAt: data.created_at,
           };
           saveUser(updated);
@@ -422,16 +440,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateBalance = async (delta: number, emailOverride?: string) => {
-    const targetEmail = (emailOverride || user?.email || '').trim().toLowerCase();
+    const targetEmail = (emailOverride || user?.email || getStoredUser()?.email || '').trim().toLowerCase();
     if (!targetEmail) return;
 
-    // 1. Fetch current balance directly from Supabase
+    lastBalanceUpdateRef.current = Date.now();
+
+    // 1. Fetch current balance directly from Supabase or local user
     let currentBalance = 0;
     try {
       const { data } = await supabase
         .from('users')
         .select('balance_rub')
-        .eq('email', targetEmail)
+        .ilike('email', targetEmail)
         .maybeSingle();
 
       if (data && data.balance_rub !== undefined && data.balance_rub !== null) {
@@ -439,33 +459,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         const stored = getStoredUser();
         if (stored && stored.email.toLowerCase() === targetEmail) {
-          currentBalance = stored.balanceRub;
+          currentBalance = stored.balanceRub || 0;
         } else if (user && user.email.toLowerCase() === targetEmail) {
-          currentBalance = user.balanceRub;
+          currentBalance = user.balanceRub || 0;
         }
       }
     } catch {
       const stored = getStoredUser();
       if (stored && stored.email.toLowerCase() === targetEmail) {
-        currentBalance = stored.balanceRub;
+        currentBalance = stored.balanceRub || 0;
       } else if (user && user.email.toLowerCase() === targetEmail) {
-        currentBalance = user.balanceRub;
+        currentBalance = user.balanceRub || 0;
       }
     }
 
     const newBalance = Math.max(0, currentBalance + delta);
 
-    // 2. Persist to Supabase first
+    // 2. Persist to Supabase with upsert fallback if row does not exist
     try {
-      await supabase
+      const { data: updatedRows } = await supabase
         .from('users')
         .update({ balance_rub: newBalance })
-        .eq('email', targetEmail);
+        .ilike('email', targetEmail)
+        .select();
+
+      if (!updatedRows || updatedRows.length === 0) {
+        const currentObj = user || getStoredUser();
+        await supabase
+          .from('users')
+          .upsert(
+            {
+              email: targetEmail,
+              nickname: currentObj?.nickname || 'Player',
+              phone: currentObj?.phone || '',
+              balance_rub: newBalance,
+            },
+            { onConflict: 'email' }
+          );
+      }
     } catch (e) {
       console.warn('Could not update balance in Supabase:', e);
     }
 
-    // 3. Update React state and localStorage
+    // 3. Update React state and localStorage immediately
     setUser((prev) => {
       if (prev && prev.email.toLowerCase() === targetEmail) {
         const updated = { ...prev, balanceRub: newBalance };
