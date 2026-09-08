@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { formatRub } from '@/lib/format';
-import { PAYANYWAY_SHOWCASE_URL } from '@/lib/payanyway-client';
+import { getTopUpCheckoutUrl } from '@/lib/payanyway-client';
 import { useAuth } from '@/context/AuthContext';
 
 const AMOUNTS = [10, 50, 100, 300, 500, 1000];
@@ -26,7 +26,7 @@ export const WalletTopUpForm: React.FC = () => {
         createdAt: Date.now(),
       })
     );
-    window.location.href = PAYANYWAY_SHOWCASE_URL;
+    window.location.href = getTopUpCheckoutUrl(parsedAmount);
   };
 
   return (

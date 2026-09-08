@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { ENTRY_FEE_RUB } from '@/lib/constants';
 import { formatRub } from '@/lib/format';
-import { PAYANYWAY_SHOWCASE_URL } from '@/lib/payanyway-client';
+import { getTournamentCheckoutUrl } from '@/lib/payanyway-client';
 import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
 type Props = {
@@ -103,8 +103,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
       };
       localStorage.setItem('nb_pending_registration', JSON.stringify(pendingData));
 
-      // Перенаправляем на витрину оплаты PayAnyWay для самозанятых (НКО МОНЕТА)
-      window.location.href = PAYANYWAY_SHOWCASE_URL;
+      // Перенаправляем на индивидуальную витрину игры в PayAnyWay
+      window.location.href = getTournamentCheckoutUrl(tournamentId, fee);
     }
   };
 
