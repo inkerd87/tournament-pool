@@ -101,7 +101,7 @@ export const LaunchAnnouncementModal: React.FC = () => {
             <div className="text-xs">
               <p className="font-bold text-white">Моментальная оплата взноса</p>
               <p className="mt-0.5 text-zinc-400">
-                Оплата участия и пополнение баланса доступны через СБП, банковские карты РФ и FreeKassa без задержек.
+                Оплата участия и пополнение баланса доступны через СБП и банковские карты РФ (PayAnyWay) без задержек.
               </p>
             </div>
           </div>

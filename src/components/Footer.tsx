@@ -41,21 +41,6 @@ export const Footer: React.FC = () => {
               Администратор
             </Link>
           </div>
-          <div className="mt-4">
-            <a
-              href="https://freekassa.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Приём платежей FreeKassa"
-              className="inline-block transition-transform hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <img
-                src="/freekassa-banner.svg"
-                alt="FreeKassa - Приём платежей"
-                className="h-9 w-auto drop-shadow-md"
-              />
-            </a>
-          </div>
         </div>
 
         <div className="border-t border-white/5 pt-4 sm:border-t-0 sm:pt-0 max-w-xs space-y-1.5 text-xs text-zinc-500 sm:text-right">

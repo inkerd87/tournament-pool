@@ -141,7 +141,7 @@ export const PaymentReturnPage: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500">Статус:</span>
-              <span className="font-semibold text-cyan-400">Зачислено (FreeKassa / СБП / Карты)</span>
+              <span className="font-semibold text-cyan-400">Зачислено (PayAnyWay / СБП)</span>
             </div>
           </div>
 
@@ -188,7 +188,7 @@ export const PaymentReturnPage: React.FC = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">Статус:</span>
-            <span className="font-semibold text-cyan-400">Оплачено (FreeKassa / СБП / Карты)</span>
+            <span className="font-semibold text-cyan-400">Оплачено (PayAnyWay / СБП)</span>
           </div>
         </div>
 
