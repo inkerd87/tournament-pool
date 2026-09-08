@@ -14,3 +14,12 @@
     Header set Expires "0"
   </FilesMatch>
 </IfModule>
+
+# PHP Handler for Apache / CGI
+AddType application/x-httpd-php .php
+<FilesMatch "\.php$">
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+</FilesMatch>
+

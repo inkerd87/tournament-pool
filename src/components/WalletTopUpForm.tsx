@@ -6,10 +6,9 @@ import { useAuth } from '@/context/AuthContext';
 const AMOUNTS = [100, 300, 500, 1000];
 
 export const WalletTopUpForm: React.FC = () => {
-  const { user, updateBalance } = useAuth();
+  const { user } = useAuth();
   const [customAmount, setCustomAmount] = useState<string>('100');
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
-  const [confirmedPaidAmount, setConfirmedPaidAmount] = useState<string>('100');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isCrediting, setIsCrediting] = useState(false);
 
@@ -26,7 +25,6 @@ export const WalletTopUpForm: React.FC = () => {
         if (age < 2 * 60 * 60 * 1000 && parsed.amount > 0) {
           const amt = Number(parsed.amount);
           setPendingAmount(amt);
-          setConfirmedPaidAmount(String(amt));
         } else {
           localStorage.removeItem('nb_pending_topup');
         }
@@ -54,7 +52,6 @@ export const WalletTopUpForm: React.FC = () => {
     );
 
     setPendingAmount(parsedAmount);
-    setConfirmedPaidAmount(String(parsedAmount));
 
     // Открываем витрину PayAnyWay в новой вкладке, чтобы игрок не терял страницу NightByte
     const opened = window.open(PAYANYWAY_SHOWCASE_URL, '_blank');
@@ -64,26 +61,27 @@ export const WalletTopUpForm: React.FC = () => {
     }
   };
 
-  const handleConfirmPayment = async () => {
-    const finalAmount = Math.max(1, Number(confirmedPaidAmount) || pendingAmount || 0);
-    if (!finalAmount || isCrediting) return;
-    setIsCrediting(true);
-
-    try {
-      await updateBalance(finalAmount, user?.email);
-      localStorage.removeItem('nb_pending_topup');
-      setPendingAmount(null);
-      setSuccessMessage(`Баланс успешно пополнен на ${formatRub(finalAmount)}!`);
-    } catch (e) {
-      console.error('Error crediting balance:', e);
-    } finally {
-      setIsCrediting(false);
-    }
-  };
-
   const handleCancelPending = () => {
     localStorage.removeItem('nb_pending_topup');
     setPendingAmount(null);
+  };
+
+  const handleCheckBalance = async () => {
+    setIsCrediting(true);
+    try {
+      const prevBal = user?.balanceRub || 0;
+      await refreshUser();
+      const current = getStoredUser();
+      if (current && current.balanceRub > prevBal) {
+        localStorage.removeItem('nb_pending_topup');
+        setPendingAmount(null);
+        setSuccessMessage(`Баланс успешно обновлен: ${formatRub(current.balanceRub)}`);
+      }
+    } catch (e) {
+      console.error('Error refreshing balance:', e);
+    } finally {
+      setIsCrediting(false);
+    }
   };
 
   return (
@@ -118,48 +116,29 @@ export const WalletTopUpForm: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-300">
               <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
-              Ожидается оплата
+              Ожидание оплаты
             </span>
-            <span className="font-mono text-xs font-extrabold text-emerald-400">
-              {formatRub(Number(confirmedPaidAmount) || pendingAmount)}
+            <span className="font-mono text-xs font-extrabold text-cyan-300">
+              {formatRub(pendingAmount)}
             </span>
           </div>
 
-          <p className="text-xs text-zinc-300 leading-relaxed">
-            Страница оплаты PayAnyWay открыта. Если вы указали другую сумму на платёжной странице — введите фактически оплаченную сумму:
-          </p>
-
-          <div className="rounded-xl border border-white/10 bg-black/40 p-3 space-y-1.5 focus-within:border-emerald-500/50 transition">
-            <div className="flex justify-between items-center text-[11px]">
-              <span className="text-zinc-400 font-medium">Фактически оплаченная сумма:</span>
-              <span className="text-[10px] text-zinc-500 font-mono">по чеку / переводу</span>
-            </div>
-            <div className="relative flex items-center">
-              <input
-                type="number"
-                min="1"
-                max="50000"
-                step="1"
-                value={confirmedPaidAmount}
-                onChange={(e) => setConfirmedPaidAmount(e.target.value)}
-                className="w-full bg-transparent font-mono text-base font-bold text-emerald-400 outline-none placeholder:text-zinc-600"
-                placeholder={String(pendingAmount)}
-              />
-              <span className="text-xs font-bold text-emerald-400 select-none font-mono pl-1">
-                ₽
-              </span>
-            </div>
+          <div className="rounded-xl border border-white/5 bg-black/40 p-3 space-y-1.5 text-xs text-zinc-300">
+            <p className="leading-relaxed">
+              Платёжная страница PayAnyWay открыта в новой вкладке. После завершения перевода картой или через СБП банк подтвердит платёж.
+            </p>
+            <p className="text-[11px] text-zinc-400">
+              Средства зачисляются автоматически после получения уведомления от платёжного шлюза.
+            </p>
           </div>
 
           <button
             type="button"
-            onClick={handleConfirmPayment}
-            disabled={isCrediting || !Number(confirmedPaidAmount)}
-            className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 disabled:opacity-50 text-black py-3 px-4 font-black text-xs sm:text-sm transition shadow-lg shadow-emerald-500/20 text-center"
+            onClick={handleCheckBalance}
+            disabled={isCrediting}
+            className="w-full rounded-xl bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 disabled:opacity-50 text-black py-2.5 px-4 font-bold text-xs sm:text-sm transition shadow-lg shadow-cyan-500/20 text-center flex items-center justify-center gap-2"
           >
-            {isCrediting
-              ? 'Зачисление...'
-              : `✓ Зачислить ${formatRub(Number(confirmedPaidAmount) || pendingAmount)} на баланс`}
+            {isCrediting ? 'Проверка...' : '🔄 Проверить статус зачисления'}
           </button>
 
           <div className="flex items-center justify-between text-[11px] pt-1">
