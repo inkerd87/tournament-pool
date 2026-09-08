@@ -225,9 +225,12 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       )
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Supabase Realtime connected for tournaments/registrations/matches');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.warn('Realtime channel warning:', err);
+          console.log('✅ Supabase Realtime connected');
+        } else if (status === 'CHANNEL_ERROR' && err) {
+          const errMsg = String((err as any)?.message || err);
+          if (!errMsg.includes('heartbeat timeout')) {
+            console.warn('Realtime channel notice:', err);
+          }
         }
       });
 

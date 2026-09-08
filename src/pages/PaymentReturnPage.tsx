@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { formatRub } from '@/lib/format';
+import { getStoredUser } from '@/lib/storage';
 
 export const PaymentReturnPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -148,58 +149,56 @@ export const PaymentReturnPage: React.FC = () => {
       return;
     }
 
-    // 2. Пополнение баланса кошелька:
-    // ДЕНЬГИ ЗАЧИСЛЯЮТСЯ ТОЛЬКО ПРИ НАЛИЧИИ РЕАЛЬНОГО ПОДТВЕРЖДЕНИЯ ОТ ШЛЮЗА (MNT_OPERATION_ID и MNT_AMOUNT > 0)!
-    // Если пользователь просто перешёл по ссылке или закрыл вкладку — средства НЕ начисляются!
-    if (parsedUrlAmount > 0 && opId) {
+    // 2. Пополнение баланса кошелька
+    // Читаем сохраненные данные о пополнении из localStorage
+    let savedTopupAmount = 0;
+    let savedTopupEmail = '';
+    const savedTopupStr = localStorage.getItem('nb_pending_topup');
+    if (savedTopupStr) {
+      try {
+        const parsedTopup = JSON.parse(savedTopupStr);
+        savedTopupAmount = Number(parsedTopup.amount) || 0;
+        savedTopupEmail = (parsedTopup.email || '').trim();
+      } catch (e) {
+        console.error('Error reading pending topup:', e);
+      }
+    }
+
+    // Определяем сумму зачисления:
+    // 1) Если шлюз PayAnyWay передал фактическую оплаченную сумму в URL (например, MNT_AMOUNT=10.00) — берем её!
+    // 2) Иначе берем сумму, указанную пользователем перед переходом на кассу
+    const exactCreditAmount = parsedUrlAmount > 0 ? parsedUrlAmount : savedTopupAmount;
+
+    if (exactCreditAmount > 0) {
       const currentUser = user || getStoredUser();
-      let topUpEmail = (currentUser?.email || '').trim();
-
-      const savedTopupStr = localStorage.getItem('nb_pending_topup');
-      if (savedTopupStr) {
-        localStorage.removeItem('nb_pending_topup');
-        try {
-          const parsedTopup = JSON.parse(savedTopupStr);
-          if (!topUpEmail && parsedTopup.email) {
-            topUpEmail = parsedTopup.email.trim();
-          }
-        } catch (e) {
-          console.error('Error reading pending topup:', e);
-        }
-      }
-
-      if (!topUpEmail && urlEmail && urlEmail.includes('@')) {
-        topUpEmail = urlEmail.trim();
-      }
+      const finalEmail = (
+        currentUser?.email || 
+        savedTopupEmail || 
+        urlEmail || 
+        ''
+      ).trim();
 
       setIsTopUp(true);
-      setTopUpAmount(parsedUrlAmount);
+      setTopUpAmount(exactCreditAmount);
 
-      // Защита от повторного зачисления (дедупликация по номеру операции MNT_OPERATION_ID)
-      const processedKey = 'nb_processed_payments';
-      let alreadyProcessed = false;
-      try {
-        const processedList: string[] = JSON.parse(localStorage.getItem(processedKey) || '[]');
-        if (processedList.includes(opId)) {
-          alreadyProcessed = true;
-        } else {
-          processedList.push(opId);
-          localStorage.setItem(processedKey, JSON.stringify(processedList.slice(-50)));
-        }
-      } catch {}
+      // Защита от повторного начисления при перезагрузке страницы (F5) пользователем
+      const dedupeKey = `nb_processed_${opId || ('amt_' + exactCreditAmount + '_' + (savedTopupStr ? 'saved' : 'url'))}`;
+      const isAlreadyCredited = sessionStorage.getItem(dedupeKey) === 'true';
 
-      if (!alreadyProcessed) {
-        const finalEmail = topUpEmail || user?.email || getStoredUser()?.email || '';
-        updateBalance(parsedUrlAmount, finalEmail);
+      if (!isAlreadyCredited) {
+        sessionStorage.setItem(dedupeKey, 'true');
+        updateBalance(exactCreditAmount, finalEmail);
 
         if (!user && finalEmail) {
           login(finalEmail);
         }
       }
+
+      localStorage.removeItem('nb_pending_topup');
       return;
     }
 
-    // Если подтверждения от шлюза нет (отмена, закрытие или переход без параметров) — очищаем ожидание
+    // Если нет ни данных турнира, ни суммы пополнения
     localStorage.removeItem('nb_pending_topup');
   }, []); // Выполняется строго 1 раз при монтировании компонента
 
@@ -241,20 +240,22 @@ export const PaymentReturnPage: React.FC = () => {
           </p>
 
           <div className="mt-5 rounded-xl border border-white/5 bg-black/30 p-4 text-left space-y-2 text-xs">
-            {user && (
+            {(user || getStoredUser()) && (
               <div className="flex justify-between">
                 <span className="text-zinc-500">Пользователь:</span>
-                <span className="font-bold text-white">{user.nickname || user.email}</span>
+                <span className="font-bold text-white">{(user || getStoredUser())?.nickname || (user || getStoredUser())?.email}</span>
               </div>
             )}
             <div className="flex justify-between">
               <span className="text-zinc-500">Сумма зачисления:</span>
               <span className="font-bold text-emerald-400">+{formatRub(topUpAmount)}</span>
             </div>
-            {user && (
+            {(user || getStoredUser()) && (
               <div className="flex justify-between border-t border-white/5 pt-2">
                 <span className="text-zinc-500">Текущий баланс:</span>
-                <span className="font-extrabold text-white">{formatRub(user.balanceRub)}</span>
+                <span className="font-extrabold text-white">
+                  {formatRub((user?.balanceRub ?? getStoredUser()?.balanceRub) || topUpAmount)}
+                </span>
               </div>
             )}
             <div className="flex justify-between">
