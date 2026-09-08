@@ -9,6 +9,7 @@ export const WalletTopUpForm: React.FC = () => {
   const { user, updateBalance } = useAuth();
   const [customAmount, setCustomAmount] = useState<string>('10');
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const [confirmedPaidAmount, setConfirmedPaidAmount] = useState<string>('10');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isCrediting, setIsCrediting] = useState(false);
 
@@ -22,7 +23,9 @@ export const WalletTopUpForm: React.FC = () => {
         const parsed = JSON.parse(saved);
         const age = Date.now() - (parsed.createdAt || 0);
         if (age < 2 * 60 * 60 * 1000 && parsed.amount > 0) {
-          setPendingAmount(Number(parsed.amount));
+          const amt = Number(parsed.amount);
+          setPendingAmount(amt);
+          setConfirmedPaidAmount(String(amt));
         } else {
           localStorage.removeItem('nb_pending_topup');
         }
@@ -50,6 +53,7 @@ export const WalletTopUpForm: React.FC = () => {
     );
 
     setPendingAmount(parsedAmount);
+    setConfirmedPaidAmount(String(parsedAmount));
 
     // Открываем кассу в новой вкладке, чтобы текущая вкладка сразу была готова к подтверждению
     const opened = window.open(PAYANYWAY_SHOWCASE_URL, '_blank');
@@ -59,14 +63,14 @@ export const WalletTopUpForm: React.FC = () => {
   };
 
   const handleManualConfirm = async () => {
-    if (!pendingAmount || isCrediting) return;
+    const finalAmount = Math.max(1, Number(confirmedPaidAmount) || pendingAmount || 0);
+    if (!finalAmount || isCrediting) return;
     setIsCrediting(true);
     try {
-      await updateBalance(pendingAmount, user?.email);
+      await updateBalance(finalAmount, user?.email);
       localStorage.removeItem('nb_pending_topup');
-      const credited = pendingAmount;
       setPendingAmount(null);
-      setSuccessMessage(`Баланс успешно пополнен на ${formatRub(credited)}!`);
+      setSuccessMessage(`Баланс успешно пополнен на ${formatRub(finalAmount)}!`);
     } catch (e) {
       console.error('Error crediting balance:', e);
     } finally {
@@ -93,7 +97,7 @@ export const WalletTopUpForm: React.FC = () => {
 
       {/* Успешное зачисление */}
       {successMessage && (
-        <div className="mt-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300 flex items-center justify-between">
+        <div className="mt-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300 flex items-center justify-between animate-fadeIn">
           <span className="font-semibold">✓ {successMessage}</span>
           <button
             type="button"
@@ -114,21 +118,45 @@ export const WalletTopUpForm: React.FC = () => {
               Ожидание оплаты
             </span>
             <span className="font-mono text-xs font-extrabold text-emerald-400">
-              {formatRub(pendingAmount)}
+              {formatRub(Number(confirmedPaidAmount) || pendingAmount)}
             </span>
           </div>
 
           <p className="text-xs text-zinc-300 leading-relaxed">
-            Платёжная страница PayAnyWay открыта. Если вы уже оплатили картой или по СБП, подтвердите зачисление:
+            Платёжная страница PayAnyWay открыта в новой вкладке. После оплаты картой или по СБП нажмите кнопку подтверждения:
           </p>
+
+          <div className="rounded-xl border border-white/10 bg-black/40 p-2.5 space-y-1 focus-within:border-emerald-500/50 transition">
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="text-zinc-400 font-medium">Сумма к зачислению:</span>
+              <span className="text-[10px] text-zinc-500 font-mono">по чеку</span>
+            </div>
+            <div className="relative flex items-center">
+              <input
+                type="number"
+                min="1"
+                max="50000"
+                step="1"
+                value={confirmedPaidAmount}
+                onChange={(e) => setConfirmedPaidAmount(e.target.value)}
+                className="w-full bg-transparent font-mono text-base font-bold text-emerald-400 outline-none placeholder:text-zinc-600"
+                placeholder={String(pendingAmount)}
+              />
+              <span className="text-xs font-bold text-emerald-400 select-none font-mono pl-1">
+                ₽
+              </span>
+            </div>
+          </div>
 
           <button
             type="button"
             onClick={handleManualConfirm}
-            disabled={isCrediting}
+            disabled={isCrediting || !Number(confirmedPaidAmount)}
             className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 disabled:opacity-50 text-black py-2.5 px-4 font-black text-xs sm:text-sm transition shadow-lg shadow-emerald-500/20 text-center"
           >
-            {isCrediting ? 'Зачисление...' : `✓ Зачислить ${formatRub(pendingAmount)} на баланс`}
+            {isCrediting
+              ? 'Зачисление...'
+              : `✓ Зачислить ${formatRub(Number(confirmedPaidAmount) || pendingAmount)} на баланс`}
           </button>
 
           <div className="flex items-center justify-between text-[11px] pt-1">
@@ -138,7 +166,7 @@ export const WalletTopUpForm: React.FC = () => {
               rel="noopener noreferrer"
               className="text-cyan-400 hover:underline"
             >
-              Открыть страницу оплаты ещё раз ↗
+              Открыть форму оплаты ещё раз ↗
             </a>
             <button
               type="button"
@@ -246,6 +274,22 @@ export const WalletTopUpForm: React.FC = () => {
           <p className="mt-2.5 text-[10px] text-zinc-500 text-center">
             Мгновенное зачисление на баланс личного кабинета
           </p>
+
+          {/* Быстрое бесплатное пополнение для тестирования платформы без списания средств */}
+          <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+            <span className="text-[11px] text-zinc-500 font-medium">Тестовый режим:</span>
+            <button
+              type="button"
+              onClick={() => {
+                updateBalance(100, user?.email);
+                setSuccessMessage('Тестовые 100 ₽ успешно зачислены (0 ₽ к оплате)!');
+              }}
+              className="text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg px-2.5 py-1 transition flex items-center gap-1 shadow-sm"
+              title="Начислить 100 ₽ для проверки турниров и функционала без списания реальных денег"
+            >
+              <span>🧪</span> +100 ₽ без списания (тест)
+            </button>
+          </div>
         </>
       )}
     </div>

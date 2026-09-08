@@ -44,151 +44,161 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Fetch from Supabase PostgreSQL
   const refreshData = useCallback(async () => {
     try {
-      // 1. Fetch registrations first so we can accurately count registered players
-      const { data: dbRegs, error: rErr } = await supabase
-        .from('registrations')
-        .select('*');
+      const createTimeout = (ms = 2500) =>
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase fetch timeout')), ms));
 
+      // 1. Fetch registrations with 2.5s timeout
       let currentRegs: Registration[] = [];
-      if (!rErr && dbRegs) {
-        currentRegs = dbRegs.map(r => ({
-          id: r.id,
-          tournamentId: r.tournament_id,
-          nickname: r.nickname,
-          gameAccount: r.game_account,
-          email: r.email,
-          paidAt: r.paid_at,
-        }));
-        setRegistrations(currentRegs);
+      try {
+        const regsPromise = supabase.from('registrations').select('*');
+        const { data: dbRegs, error: rErr } = (await Promise.race([regsPromise, createTimeout()])) as any;
+        if (!rErr && dbRegs) {
+          currentRegs = dbRegs.map((r: any) => ({
+            id: r.id,
+            tournamentId: r.tournament_id,
+            nickname: r.nickname,
+            gameAccount: r.game_account,
+            email: r.email,
+            paidAt: r.paid_at,
+          }));
+          setRegistrations(currentRegs);
+        }
+      } catch (e) {
+        console.warn('Registrations fetch notice (using cache):', e);
       }
 
-      // 2. Fetch tournaments
-      const { data: dbTournaments, error: tErr } = await supabase
-        .from('tournaments')
-        .select('*')
-        .order('starts_at', { ascending: true });
+      // 2. Fetch tournaments with 2.5s timeout
+      try {
+        const tourneysPromise = supabase.from('tournaments').select('*').order('starts_at', { ascending: true });
+        const { data: dbTournaments, error: tErr } = (await Promise.race([tourneysPromise, createTimeout()])) as any;
 
-      if (!tErr && dbTournaments && dbTournaments.length > 0) {
-        const mapped: Tournament[] = dbTournaments
-          .filter(t => t.game !== ('valorant' as any) && t.id !== 'valorant-skirmish-001')
-          .map(t => {
-            const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
-            const isSoon = t.game === 'warzone' || t.game === 'fortnite';
-            const isPubgPremium = t.id === 'pubg-premium-001' || t.is_premium || (t.game === 'pubg' && t.title?.toLowerCase().includes('premium'));
-            
-            let entryFeeRub = 100;
-            let prizePoolRub = 2200;
-            let maxPlayers = t.max_players || 100;
-            let prizes = { 1: 1000, 2: 700, 3: 500 };
+        if (!tErr && dbTournaments && dbTournaments.length > 0) {
+          const mapped: Tournament[] = dbTournaments
+            .filter(t => t.game !== ('valorant' as any) && t.id !== 'valorant-skirmish-001')
+            .map(t => {
+              const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
+              const isSoon = t.game === 'warzone' || t.game === 'fortnite';
+              const isPubgPremium = t.id === 'pubg-premium-001' || t.is_premium || (t.game === 'pubg' && t.title?.toLowerCase().includes('premium'));
+              
+              let entryFeeRub = 100;
+              let prizePoolRub = 2200;
+              let maxPlayers = t.max_players || 100;
+              let prizes = { 1: 1000, 2: 700, 3: 500 };
 
-            if (isCsOrDota) {
-              entryFeeRub = 1500;
-              prizePoolRub = 12000;
-              maxPlayers = 10;
-              prizes = { 1: 12000, 2: 0, 3: 0 };
-            } else if (isPubgPremium) {
-              entryFeeRub = 1000;
-              prizePoolRub = 28000;
-              maxPlayers = 100;
-              prizes = { 1: 15000, 2: 8000, 3: 5000 };
+              if (isCsOrDota) {
+                entryFeeRub = 1500;
+                prizePoolRub = 12000;
+                maxPlayers = 10;
+                prizes = { 1: 12000, 2: 0, 3: 0 };
+              } else if (isPubgPremium) {
+                entryFeeRub = 1000;
+                prizePoolRub = 28000;
+                maxPlayers = 100;
+                prizes = { 1: 15000, 2: 8000, 3: 5000 };
+              }
+
+              const status = isSoon ? 'soon' : (t.status as any);
+
+              return {
+                id: t.id,
+                title: isCsOrDota
+                  ? (t.game === 'cs2' ? 'CS2 5v5 Cash Clash #1' : 'Dota 2 5v5 Battle Cup')
+                  : (isPubgPremium ? 'PUBG Solo Premium Showdown' : t.title),
+                game: t.game,
+                maxPlayers,
+                registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length || t.registered_count || 0,
+                startsAt: t.starts_at,
+                status,
+                format: isCsOrDota
+                  ? (t.game === 'cs2' ? '5v5, BO1 — Призовой фонд 12 000 ₽' : '5v5, Captains Mode — Призовой фонд 12 000 ₽')
+                  : (isPubgPremium ? 'Solo, 1 катка (Премиум фонд 28 000 ₽)' : t.format),
+                description: isCsOrDota
+                  ? 'Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.'
+                  : (isPubgPremium
+                      ? 'Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.'
+                      : t.description),
+                entryFeeRub,
+                prizePoolRub,
+                prizes,
+                winnerPerPlayerRub: isCsOrDota ? 2400 : undefined,
+                isPremium: isPubgPremium,
+              };
+            });
+
+          const defaultExtra: Tournament[] = [
+            {
+              id: "pubg-premium-001",
+              title: "PUBG Solo Premium Showdown",
+              game: "pubg",
+              maxPlayers: 100,
+              registeredCount: currentRegs.filter(r => r.tournamentId === "pubg-premium-001").length,
+              startsAt: "2026-09-07T21:00:00+03:00",
+              status: "recruiting",
+              format: "Solo, 1 катка (Премиум фонд 28 000 ₽)",
+              description: "Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.",
+              entryFeeRub: 1000,
+              prizePoolRub: 28000,
+              prizes: { 1: 15000, 2: 8000, 3: 5000 },
+              isPremium: true,
+            },
+            {
+              id: "warzone-solo-001",
+              title: "Warzone Battle Royale",
+              game: "warzone",
+              maxPlayers: 100,
+              registeredCount: currentRegs.filter(r => r.tournamentId === "warzone-solo-001").length,
+              startsAt: "2026-09-10T19:00:00+03:00",
+              status: "soon",
+              format: "Solo Resurgence, 1 катка",
+              description: "Турнир по Call of Duty: Warzone откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
+              entryFeeRub: 100,
+            },
+            {
+              id: "fortnite-solo-001",
+              title: "Fortnite Zero Build Cup",
+              game: "fortnite",
+              maxPlayers: 100,
+              registeredCount: currentRegs.filter(r => r.tournamentId === "fortnite-solo-001").length,
+              startsAt: "2026-09-11T19:00:00+03:00",
+              status: "soon",
+              format: "Solo Zero Build, 1 катка",
+              description: "Турнир по Fortnite откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
+              entryFeeRub: 100,
+            },
+          ];
+
+          defaultExtra.forEach(extra => {
+            if (!mapped.some(t => t.id === extra.id)) {
+              mapped.push(extra);
             }
-
-            const status = isSoon ? 'soon' : (t.status as any);
-
-            return {
-              id: t.id,
-              title: isCsOrDota
-                ? (t.game === 'cs2' ? 'CS2 5v5 Cash Clash #1' : 'Dota 2 5v5 Battle Cup')
-                : (isPubgPremium ? 'PUBG Solo Premium Showdown' : t.title),
-              game: t.game,
-              maxPlayers,
-              registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length || t.registered_count || 0,
-              startsAt: t.starts_at,
-              status,
-              format: isCsOrDota
-                ? (t.game === 'cs2' ? '5v5, BO1 — Призовой фонд 12 000 ₽' : '5v5, Captains Mode — Призовой фонд 12 000 ₽')
-                : (isPubgPremium ? 'Solo, 1 катка (Премиум фонд 28 000 ₽)' : t.format),
-              description: isCsOrDota
-                ? 'Командный матч 5 на 5 (2 команды по 5 игроков). Взнос 1 500 ₽ с игрока. Награда за 1 место: 12 000 ₽ (по 2 400 ₽ на каждого игрока команды)! Проигравшие получают 0 ₽.'
-                : (isPubgPremium
-                    ? 'Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.'
-                    : t.description),
-              entryFeeRub,
-              prizePoolRub,
-              prizes,
-              winnerPerPlayerRub: isCsOrDota ? 2400 : undefined,
-              isPremium: isPubgPremium,
-            };
           });
 
-        const defaultExtra: Tournament[] = [
-          {
-            id: "pubg-premium-001",
-            title: "PUBG Solo Premium Showdown",
-            game: "pubg",
-            maxPlayers: 100,
-            registeredCount: currentRegs.filter(r => r.tournamentId === "pubg-premium-001").length,
-            startsAt: "2026-09-07T21:00:00+03:00",
-            status: "recruiting",
-            format: "Solo, 1 катка (Премиум фонд 28 000 ₽)",
-            description: "Премиум одиночный матч на 100 игроков: 1 катка — топ-3 выживших делят наградной фонд 28 000 ₽ (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽). Орг. сбор 1 000 ₽.",
-            entryFeeRub: 1000,
-            prizePoolRub: 28000,
-            prizes: { 1: 15000, 2: 8000, 3: 5000 },
-            isPremium: true,
-          },
-          {
-            id: "warzone-solo-001",
-            title: "Warzone Battle Royale",
-            game: "warzone",
-            maxPlayers: 100,
-            registeredCount: currentRegs.filter(r => r.tournamentId === "warzone-solo-001").length,
-            startsAt: "2026-09-10T19:00:00+03:00",
-            status: "soon",
-            format: "Solo Resurgence, 1 катка",
-            description: "Турнир по Call of Duty: Warzone откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
-            entryFeeRub: 100,
-          },
-          {
-            id: "fortnite-solo-001",
-            title: "Fortnite Zero Build Cup",
-            game: "fortnite",
-            maxPlayers: 100,
-            registeredCount: currentRegs.filter(r => r.tournamentId === "fortnite-solo-001").length,
-            startsAt: "2026-09-11T19:00:00+03:00",
-            status: "soon",
-            format: "Solo Zero Build, 1 катка",
-            description: "Турнир по Fortnite откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
-            entryFeeRub: 100,
-          },
-        ];
-
-        defaultExtra.forEach(extra => {
-          if (!mapped.some(t => t.id === extra.id)) {
-            mapped.push(extra);
-          }
-        });
-
-        setTournaments(mapped);
+          setTournaments(mapped);
+        }
+      } catch (e) {
+        console.warn('Tournaments fetch notice (using cache):', e);
       }
 
-      // 3. Fetch matches
-      const { data: dbMatches, error: mErr } = await supabase
-        .from('matches')
-        .select('*');
+      // 3. Fetch matches with 2.5s timeout
+      try {
+        const matchesPromise = supabase.from('matches').select('*');
+        const { data: dbMatches, error: mErr } = (await Promise.race([matchesPromise, createTimeout()])) as any;
 
-      if (!mErr && dbMatches) {
-        const matchMap: Record<string, TournamentMatchAccess> = {};
-        dbMatches.forEach(m => {
-          matchMap[m.tournament_id] = {
-            tournamentId: m.tournament_id,
-            roomId: m.room_id,
-            password: m.password,
-            joinUrl: m.join_url,
-            updatedAt: m.updated_at,
-          };
-        });
-        setMatches(matchMap);
+        if (!mErr && dbMatches) {
+          const matchMap: Record<string, TournamentMatchAccess> = {};
+          dbMatches.forEach((m: any) => {
+            matchMap[m.tournament_id] = {
+              tournamentId: m.tournament_id,
+              roomId: m.room_id,
+              password: m.password,
+              joinUrl: m.join_url,
+              updatedAt: m.updated_at,
+            };
+          });
+          setMatches(matchMap);
+        }
+      } catch (e) {
+        console.warn('Matches fetch notice (using cache):', e);
       }
     } catch (e) {
       console.warn('Supabase fetch notice (using cache):', e);
@@ -234,24 +244,8 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
       });
 
-    // 2. Continuous fallback polling (every 4 seconds) to guarantee 100% data freshness
-    // even if WebSockets are paused, reconnecting or throttled by mobile browsers
-    const interval = setInterval(() => {
-      refreshData();
-    }, 4000);
-
-    // 3. Instant sync when user focuses or returns to the window
-    const handleFocus = () => {
-      refreshData();
-    };
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleFocus);
-
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleFocus);
     };
   }, [refreshData]);
 
@@ -308,15 +302,17 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       };
       if (phone) regPayload.phone = phone;
 
-      await supabase.from('registrations').insert(regPayload);
-
-      await supabase
+      // Non-blocking background sync to Supabase
+      supabase.from('registrations').insert(regPayload).then(() => {}).catch(() => {});
+      supabase
         .from('tournaments')
         .update({
           registered_count: newCount,
           status: newStatus,
         })
-        .eq('id', tournamentId);
+        .eq('id', tournamentId)
+        .then(() => {})
+        .catch(() => {});
     } catch (e) {
       console.warn('Could not sync registration to Supabase, saved locally:', e);
     }
@@ -339,13 +335,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
 
     try {
-      await supabase.from('matches').upsert({
+      supabase.from('matches').upsert({
         tournament_id: tournamentId,
         room_id: roomId,
         password: password,
         join_url: joinUrl,
         updated_at: matchObj.updatedAt,
-      });
+      }).then(() => {}).catch(() => {});
     } catch (e) {
       console.warn('Could not sync match to Supabase:', e);
     }

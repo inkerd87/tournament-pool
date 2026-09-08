@@ -13,30 +13,9 @@ export const AccountPage: React.FC = () => {
   const { tournaments, getUserRegistrations, matches, registerForTournament, isUserRegistered } = useTournaments();
   const [topUpSuccess, setTopUpSuccess] = useState<number | null>(null);
 
-  // При возврате проверяем наличие незавершенного пополнения или регистрации
+  // При возврате проверяем наличие незавершенной регистрации на турнир
   useEffect(() => {
     if (!user) return;
-
-    // 1. Проверяем незавершённое пополнение баланса
-    const pendingTopupStr = localStorage.getItem('nb_pending_topup');
-    if (pendingTopupStr) {
-      try {
-        const parsedTopup = JSON.parse(pendingTopupStr);
-        const amt = Number(parsedTopup.amount) || 0;
-        const age = Date.now() - (parsedTopup.createdAt || 0);
-
-        // Если пополнение инициировано менее 2 часов назад
-        if (amt > 0 && age < 2 * 60 * 60 * 1000) {
-          localStorage.removeItem('nb_pending_topup');
-          updateBalance(amt, user.email);
-          setTopUpSuccess(amt);
-        } else {
-          localStorage.removeItem('nb_pending_topup');
-        }
-      } catch (e) {
-        console.error('Error processing pending topup on account page:', e);
-      }
-    }
 
     // 2. При возврате проверяем наличие незавершенной регистрации на турнир
     try {
