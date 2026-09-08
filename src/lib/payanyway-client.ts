@@ -12,24 +12,21 @@ export const PAYANYWAY_TOURNAMENT_URLS: Record<string, string> = {
   // CS2 5v5 — Взнос 1 500 ₽
   'cs2-weekly-001': 'https://self.payanyway.ru/17886374434960',
   // Dota 2 5v5 — Взнос 1 500 ₽
-  'dota2-open-001': 'https://self.payanyway.ru/17886374434960',
+  'dota2-open-001': 'https://self.payanyway.ru/17888974621592',
   // PUBG Solo Showdown — Взнос 100 ₽
-  'pubg-solo-001': 'https://self.payanyway.ru/17886374434960',
+  'pubg-solo-001': 'https://self.payanyway.ru/1788897516042',
   // PUBG Solo Premium Showdown — Взнос 1 000 ₽
-  'pubg-premium-001': 'https://self.payanyway.ru/17886374434960',
+  'pubg-premium-001': 'https://self.payanyway.ru/17888975706826',
   // Warzone — Взнос 100 ₽
-  'warzone-solo-001': 'https://self.payanyway.ru/17886374434960',
+  'warzone-solo-001': 'https://self.payanyway.ru/17888976332932',
   // Fortnite — Взнос 100 ₽
-  'fortnite-solo-001': 'https://self.payanyway.ru/17886374434960',
+  'fortnite-solo-001': 'https://self.payanyway.ru/17888977002211',
 };
 
 // 2. Ссылки на фиксированные пакеты пополнения баланса в личном кабинете
 export const PAYANYWAY_TOPUP_URLS: Record<number, string> = {
-  10: 'https://self.payanyway.ru/17886374434960', // 10 ₽ (текущая готовая форма)
-  100: 'https://self.payanyway.ru/17886374434960',
-  300: 'https://self.payanyway.ru/17886374434960',
-  500: 'https://self.payanyway.ru/17886374434960',
-  1000: 'https://self.payanyway.ru/17886374434960',
+  100: 'https://self.payanyway.ru/1788897516042',
+  1000: 'https://self.payanyway.ru/17888975706826',
   1500: 'https://self.payanyway.ru/17886374434960',
 };
 
@@ -50,7 +47,16 @@ export function getTournamentCheckoutUrl(tournamentId: string, feeRub?: number):
  * Получить URL оплаты для пополнения кошелька на определенную сумму
  */
 export function getTopUpCheckoutUrl(amountRub: number): string {
-  return PAYANYWAY_TOPUP_URLS[amountRub] || PAYANYWAY_DEFAULT_URL;
+  if (PAYANYWAY_TOPUP_URLS[amountRub]) {
+    return PAYANYWAY_TOPUP_URLS[amountRub];
+  }
+  if (amountRub < 500) {
+    return PAYANYWAY_TOPUP_URLS[100];
+  }
+  if (amountRub >= 1500) {
+    return PAYANYWAY_TOPUP_URLS[1500];
+  }
+  return PAYANYWAY_TOPUP_URLS[1000];
 }
 
 export function getPayAnyWayCheckoutUrl(): string {

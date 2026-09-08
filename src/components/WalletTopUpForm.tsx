@@ -3,17 +3,17 @@ import { formatRub } from '@/lib/format';
 import { getTopUpCheckoutUrl } from '@/lib/payanyway-client';
 import { useAuth } from '@/context/AuthContext';
 
-const AMOUNTS = [10, 50, 100, 300, 500, 1000];
+const AMOUNTS = [100, 1000, 1500];
 
 export const WalletTopUpForm: React.FC = () => {
   const { user } = useAuth();
-  const [customAmount, setCustomAmount] = useState<string>('10');
+  const [customAmount, setCustomAmount] = useState<string>('100');
 
-  const parsedAmount = Math.max(10, Number(customAmount) || 10);
+  const parsedAmount = Math.max(100, Number(customAmount) || 100);
 
   const handleStep = (delta: number) => {
     const current = Math.max(0, Number(customAmount) || 0);
-    const next = Math.max(10, Math.min(50000, current + delta));
+    const next = Math.max(100, Math.min(50000, current + delta));
     setCustomAmount(String(next));
   };
 
@@ -42,13 +42,13 @@ export const WalletTopUpForm: React.FC = () => {
       </p>
 
       {/* Быстрый выбор суммы */}
-      <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+      <div className="mt-4 grid grid-cols-3 gap-2">
         {AMOUNTS.map((amt) => (
           <button
             key={amt}
             type="button"
             onClick={() => setCustomAmount(String(amt))}
-            className={`rounded-lg border py-2 px-1 text-center text-xs font-semibold transition ${
+            className={`rounded-lg border py-2.5 px-2 text-center text-xs font-bold transition ${
               customAmount === String(amt)
                 ? 'border-cyan-500 bg-cyan-500/20 text-cyan-300 shadow-sm shadow-cyan-500/20'
                 : 'border-white/10 bg-black/20 text-zinc-300 hover:border-white/20'
@@ -64,9 +64,9 @@ export const WalletTopUpForm: React.FC = () => {
         <div className="relative flex items-center rounded-xl border border-white/10 bg-black/40 px-3.5 py-1.5 focus-within:border-cyan-500/60 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all shadow-inner">
           <input
             type="number"
-            min="10"
+            min="100"
             max="50000"
-            step="10"
+            step="100"
             value={customAmount}
             onChange={(e) => setCustomAmount(e.target.value)}
             className="w-full bg-transparent font-mono text-base sm:text-sm font-bold text-white outline-none placeholder:text-zinc-600"
@@ -82,10 +82,10 @@ export const WalletTopUpForm: React.FC = () => {
             <div className="flex flex-col rounded-lg border border-white/10 bg-white/5 overflow-hidden shadow-sm">
               <button
                 type="button"
-                onClick={() => handleStep(10)}
+                onClick={() => handleStep(100)}
                 className="group flex h-4 w-6 items-center justify-center bg-black/30 hover:bg-cyan-500/25 active:bg-cyan-500/40 text-zinc-400 hover:text-cyan-300 transition-colors"
-                title="Увеличить на 10 ₽"
-                aria-label="Увеличить на 10 ₽"
+                title="Увеличить на 100 ₽"
+                aria-label="Увеличить на 100 ₽"
               >
                 <svg
                   className="w-2.5 h-2.5 transition-transform group-hover:-translate-y-0.5"
@@ -102,11 +102,11 @@ export const WalletTopUpForm: React.FC = () => {
               <div className="h-px w-full bg-white/10" />
               <button
                 type="button"
-                onClick={() => handleStep(-10)}
-                disabled={Number(customAmount) <= 10}
+                onClick={() => handleStep(-100)}
+                disabled={Number(customAmount) <= 100}
                 className="group flex h-4 w-6 items-center justify-center bg-black/30 hover:bg-cyan-500/25 active:bg-cyan-500/40 text-zinc-400 hover:text-cyan-300 disabled:opacity-20 disabled:pointer-events-none transition-colors"
-                title="Уменьшить на 10 ₽"
-                aria-label="Уменьшить на 10 ₽"
+                title="Уменьшить на 100 ₽"
+                aria-label="Уменьшить на 100 ₽"
               >
                 <svg
                   className="w-2.5 h-2.5 transition-transform group-hover:translate-y-0.5"
