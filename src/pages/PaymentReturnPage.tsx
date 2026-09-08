@@ -21,6 +21,38 @@ export const PaymentReturnPage: React.FC = () => {
   // Защита от повторного выполнения и зацикливания
   const hasProcessed = useRef<boolean>(false);
 
+  // Helper to extract query parameters from React Router searchParams, window.location.search, and hash
+  const getParam = (paramName: string): string | null => {
+    let val = searchParams.get(paramName);
+    if (val) return val;
+
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      val = urlParams.get(paramName);
+      if (val) return val;
+
+      if (window.location.hash.includes('?')) {
+        const hashQuery = window.location.hash.split('?')[1];
+        if (hashQuery) {
+          const hashParams = new URLSearchParams(hashQuery);
+          val = hashParams.get(paramName);
+          if (val) return val;
+        }
+      }
+    }
+    return null;
+  };
+
+  const getFirstParam = (...paramNames: string[]): string | null => {
+    for (const name of paramNames) {
+      const v = getParam(name);
+      if (v !== null && v !== undefined && v.trim() !== '') {
+        return v.trim();
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (hasProcessed.current) return;
     hasProcessed.current = true;
@@ -31,51 +63,76 @@ export const PaymentReturnPage: React.FC = () => {
       return;
     }
 
-    // 1. Проверяем наличие ожидающего пополнения баланса
-    const savedTopupStr = localStorage.getItem('nb_pending_topup');
-    if (savedTopupStr) {
-      localStorage.removeItem('nb_pending_topup');
-      try {
-        const parsed = JSON.parse(savedTopupStr);
-        const amt = Number(parsed.amount);
-        if (!isNaN(amt) && amt > 0) {
-          setIsTopUp(true);
-          setTopUpAmount(amt);
-          updateBalance(amt, parsed.email || user?.email);
-          return;
-        }
-      } catch (e) {
-        console.error('Error reading pending topup:', e);
-      }
-    }
+    // Извлекаем фактическую сумму оплаты из параметров возврата PayAnyWay / Moneta
+    const rawMntAmount = getFirstParam(
+      'MNT_AMOUNT',
+      'mnt_amount',
+      'amount',
+      'AMOUNT',
+      'sum',
+      'SUM',
+      'OutSum',
+      'out_sum',
+      'payment_amount',
+      'pa_amount'
+    );
 
-    // 2. Проверяем регистрацию на турнир
-    let tId = searchParams.get('tId');
-    let nick = searchParams.get('nick');
-    let acc = searchParams.get('acc');
-    let email = searchParams.get('email');
-    let phone = searchParams.get('phone') || '';
+    const parsedUrlAmount = rawMntAmount
+      ? parseFloat(rawMntAmount.replace(',', '.').trim())
+      : 0;
+
+    // Извлекаем email плательщика из параметров возврата PayAnyWay
+    const urlEmail = getFirstParam(
+      'MNT_SUBSCRIBER_ID',
+      'mnt_subscriber_id',
+      'email',
+      'EMAIL',
+      'MNT_USER',
+      'mnt_user',
+      'payer_email',
+      'client_email',
+      'MNT_CUSTOM1'
+    ) || '';
+
+    // Извлекаем ID операции для защиты от повторного зачисления при обновлении страницы
+    const opId = getFirstParam(
+      'MNT_OPERATION_ID',
+      'mnt_operation_id',
+      'MNT_TRANSACTION_ID',
+      'mnt_transaction_id',
+      'operation_id',
+      'transaction_id'
+    );
+
+    // 1. Проверяем регистрацию на турнир
+    let tId = getFirstParam('tId', 'tid', 'tournamentId');
+    let nick = getFirstParam('nick', 'nickname');
+    let acc = getFirstParam('acc', 'gameAccount');
+    let email = getFirstParam('email') || urlEmail;
+    let phone = getFirstParam('phone') || '';
     let password = '';
 
     const savedRegStr = localStorage.getItem('nb_pending_registration');
     if (savedRegStr) {
-      localStorage.removeItem('nb_pending_registration');
       try {
-        const parsed = JSON.parse(savedRegStr);
-        tId = tId || parsed.tournamentId;
-        nick = nick || parsed.nickname;
-        acc = acc || parsed.gameAccount;
-        email = email || parsed.email;
-        phone = phone || parsed.phone || '';
-        password = parsed.password || '';
+        const parsedReg = JSON.parse(savedRegStr);
+        tId = tId || parsedReg.tournamentId;
+        nick = nick || parsedReg.nickname;
+        acc = acc || parsedReg.gameAccount;
+        email = email || parsedReg.email;
+        phone = phone || parsedReg.phone || '';
+        password = parsedReg.password || '';
       } catch (e) {
         console.error('Error reading pending registration:', e);
       }
     }
 
     if (tId && nick && email) {
+      localStorage.removeItem('nb_pending_registration');
+      localStorage.removeItem('nb_pending_topup');
+
       setPlayerNickname(nick);
-      const targetTourney = tournaments.find(t => t.id === tId);
+      const targetTourney = tournaments.find((t) => t.id === tId);
       if (targetTourney) {
         setRegisteredTournamentTitle(targetTourney.title);
         setPaidAmount(targetTourney.entryFeeRub);
@@ -88,6 +145,64 @@ export const PaymentReturnPage: React.FC = () => {
       if (!user || user.email.toLowerCase() !== email.toLowerCase()) {
         login(email, password, nick, phone);
       }
+      return;
+    }
+
+    // 2. Пополнение баланса кошелька:
+    // ПРИОРИТЕТ: Фактическая сумма, переданная платежным шлюзом PayAnyWay (MNT_AMOUNT).
+    // Если пользователь изменил сумму на платёжной странице, засчитывается именно она!
+    let exactAmount = 0;
+    if (!isNaN(parsedUrlAmount) && parsedUrlAmount > 0) {
+      exactAmount = parsedUrlAmount;
+    }
+
+    let topUpEmail = (urlEmail || user?.email || '').trim();
+
+    const savedTopupStr = localStorage.getItem('nb_pending_topup');
+    if (savedTopupStr) {
+      localStorage.removeItem('nb_pending_topup');
+      try {
+        const parsedTopup = JSON.parse(savedTopupStr);
+        // Если из URL сумму не передали, берем из ожидающего платежа
+        if (exactAmount <= 0 && Number(parsedTopup.amount) > 0) {
+          exactAmount = Number(parsedTopup.amount);
+        }
+        if (!topUpEmail && parsedTopup.email) {
+          topUpEmail = parsedTopup.email.trim();
+        }
+      } catch (e) {
+        console.error('Error reading pending topup:', e);
+      }
+    }
+
+    if (exactAmount > 0) {
+      setIsTopUp(true);
+      setTopUpAmount(exactAmount);
+
+      // Защита от дублирования при обновлении страницы (F5)
+      const processedKey = 'nb_processed_payments';
+      let alreadyProcessed = false;
+      if (opId) {
+        try {
+          const processedList: string[] = JSON.parse(localStorage.getItem(processedKey) || '[]');
+          if (processedList.includes(opId)) {
+            alreadyProcessed = true;
+          } else {
+            processedList.push(opId);
+            localStorage.setItem(processedKey, JSON.stringify(processedList.slice(-50)));
+          }
+        } catch {}
+      }
+
+      if (!alreadyProcessed) {
+        const finalEmail = topUpEmail || user?.email || '';
+        updateBalance(exactAmount, finalEmail);
+
+        if (!user && finalEmail) {
+          login(finalEmail);
+        }
+      }
+      return;
     }
   }, []); // Выполняется строго 1 раз при монтировании компонента
 
