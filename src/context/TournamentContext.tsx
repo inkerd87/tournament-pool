@@ -15,6 +15,8 @@ interface TournamentContextType {
   registrations: Registration[];
   matches: Record<string, TournamentMatchAccess>;
   registerForTournament: (tournamentId: string, nickname: string, gameAccount: string, email: string, phone?: string) => Promise<boolean> | boolean;
+  deleteRegistration: (registrationId: string) => Promise<void>;
+  clearTournamentRegistrations: (tournamentId?: string) => Promise<void>;
   updateMatch: (tournamentId: string, roomId: string, password: string, joinUrl?: string) => Promise<void> | void;
   getUserRegistrations: (email: string) => Registration[];
   isUserRegistered: (tournamentId: string, email: string) => boolean;
@@ -110,7 +112,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 game: t.game,
                 maxPlayers,
                 minPlayers,
-                registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length || t.registered_count || 0,
+                registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length,
                 startsAt: t.starts_at,
                 status,
                 format: isCsOrDota
@@ -327,6 +329,97 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return true;
   };
 
+  const deleteRegistration = async (registrationId: string) => {
+    const regToDelete = registrations.find(r => r.id === registrationId);
+    if (!regToDelete) return;
+
+    const tId = regToDelete.tournamentId;
+    const remainingRegs = registrations.filter(r => r.id !== registrationId);
+    setRegistrations(remainingRegs);
+    saveRegistrations(remainingRegs);
+
+    const remainingCount = remainingRegs.filter(r => r.tournamentId === tId).length;
+    const targetTournament = tournaments.find(t => t.id === tId);
+    const newStatus = targetTournament && targetTournament.status !== 'soon'
+      ? (remainingCount >= targetTournament.maxPlayers ? 'full' : 'recruiting')
+      : targetTournament?.status || 'recruiting';
+
+    setTournaments(prev =>
+      prev.map(t => {
+        if (t.id === tId) {
+          return {
+            ...t,
+            registeredCount: remainingCount,
+            status: newStatus as any,
+          };
+        }
+        return t;
+      })
+    );
+
+    try {
+      await supabase.from('registrations').delete().eq('id', registrationId);
+      await supabase
+        .from('tournaments')
+        .update({
+          registered_count: remainingCount,
+          status: newStatus,
+        })
+        .eq('id', tId);
+    } catch (e) {
+      console.warn('Could not sync deletion to Supabase:', e);
+    }
+  };
+
+  const clearTournamentRegistrations = async (tournamentId?: string) => {
+    let remainingRegs: Registration[];
+    if (tournamentId) {
+      remainingRegs = registrations.filter(r => r.tournamentId !== tournamentId);
+    } else {
+      remainingRegs = [];
+    }
+
+    setRegistrations(remainingRegs);
+    saveRegistrations(remainingRegs);
+
+    setTournaments(prev =>
+      prev.map(t => {
+        if (!tournamentId || t.id === tournamentId) {
+          const newStatus = t.status === 'soon' ? 'soon' : 'recruiting';
+          return {
+            ...t,
+            registeredCount: 0,
+            status: newStatus as any,
+          };
+        }
+        return t;
+      })
+    );
+
+    try {
+      if (tournamentId) {
+        await supabase.from('registrations').delete().eq('tournament_id', tournamentId);
+        await supabase
+          .from('tournaments')
+          .update({
+            registered_count: 0,
+            status: 'recruiting',
+          })
+          .eq('id', tournamentId);
+      } else {
+        await supabase.from('registrations').delete().neq('id', 'keep_none');
+        await supabase
+          .from('tournaments')
+          .update({
+            registered_count: 0,
+            status: 'recruiting',
+          });
+      }
+    } catch (e) {
+      console.warn('Could not clear registrations from Supabase:', e);
+    }
+  };
+
   const updateMatch = async (tournamentId: string, roomId: string, password: string, joinUrl?: string) => {
     const matchObj: TournamentMatchAccess = {
       tournamentId,
@@ -362,13 +455,29 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return registrations.some(r => r.tournamentId === tournamentId && r.email.toLowerCase() === email.toLowerCase());
   };
 
+  const computedTournaments = React.useMemo(() => {
+    return tournaments.map(t => {
+      const regCount = registrations.filter(r => r.tournamentId === t.id).length;
+      const status = t.status === 'soon'
+        ? 'soon'
+        : (regCount >= t.maxPlayers ? 'full' : (t.status === 'full' ? 'recruiting' : t.status));
+      return {
+        ...t,
+        registeredCount: regCount,
+        status: status as any,
+      };
+    });
+  }, [tournaments, registrations]);
+
   return (
     <TournamentContext.Provider
       value={{
-        tournaments,
+        tournaments: computedTournaments,
         registrations,
         matches,
         registerForTournament,
+        deleteRegistration,
+        clearTournamentRegistrations,
         updateMatch,
         getUserRegistrations,
         isUserRegistered,
