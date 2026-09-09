@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { HomePage } from '@/pages/HomePage';
@@ -15,6 +15,15 @@ import { PaymentReturnPage } from '@/pages/PaymentReturnPage';
 import { LaunchAnnouncementModal } from '@/components/LaunchAnnouncementModal';
 
 export const App: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Отправка хита в Яндекс.Метрику при смене страницы внутри SPA
+    if (typeof (window as any).ym === 'function') {
+      (window as any).ym(112434134, 'hit', window.location.href);
+    }
+  }, [location.pathname, location.search]);
+
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#07090d] text-zinc-100 selection:bg-cyan-500/30 selection:text-white">
       <div className="fixed inset-0 pointer-events-none page-grid z-0" />
