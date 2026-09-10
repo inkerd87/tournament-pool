@@ -15,7 +15,7 @@ type Props = {
 
 export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entryFeeRub }) => {
   const navigate = useNavigate();
-  const { user, login, updateBalance } = useAuth();
+  const { user, login, updateBalance, updatePhone } = useAuth();
   const { registerForTournament } = useTournaments();
 
   const fee = entryFeeRub ?? ENTRY_FEE_RUB;
@@ -54,8 +54,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
       return;
     }
 
-    if (!isValidPhone(phone)) {
-      setMessage({ type: 'err', text: 'Укажите корректный номер телефона (не менее 10 цифр, без букв).' });
+    if (!phone.trim() || !isValidPhone(phone)) {
+      setMessage({ type: 'err', text: 'Номер телефона обязателен для связи и призовых выплат через СБП (не менее 10 цифр).' });
       return;
     }
 
@@ -76,6 +76,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
 
     if (!user) {
       await login(email.trim(), password.trim(), nickname.trim(), phone.trim());
+    } else if (!user.phone || user.phone !== phone.trim()) {
+      await updatePhone(phone.trim());
     }
 
     if (payMethod === 'balance') {
@@ -159,7 +161,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-              Номер телефона *
+              Номер телефона <span className="text-rose-400 font-extrabold">* (обязательно)</span>
             </label>
             <input
               type="tel"
@@ -169,7 +171,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
               value={phone}
               onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
             />
-            <span className="text-[10px] text-zinc-500 mt-0.5 block">Только цифры, без букв</span>
+            <span className="text-[10px] text-zinc-500 mt-0.5 block">Для связи и выплат призовых через СБП</span>
           </div>
 
           <div>

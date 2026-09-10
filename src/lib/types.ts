@@ -35,7 +35,7 @@ export type Registration = {
   nickname: string;
   gameAccount: string;
   email: string;
-  phone?: string;
+  phone: string;
   paidAt: string;
 };
 

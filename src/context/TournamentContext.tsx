@@ -14,7 +14,7 @@ interface TournamentContextType {
   tournaments: Tournament[];
   registrations: Registration[];
   matches: Record<string, TournamentMatchAccess>;
-  registerForTournament: (tournamentId: string, nickname: string, gameAccount: string, email: string, phone?: string) => Promise<boolean> | boolean;
+  registerForTournament: (tournamentId: string, nickname: string, gameAccount: string, email: string, phone: string) => Promise<boolean> | boolean;
   deleteRegistration: (registrationId: string) => Promise<void>;
   clearTournamentRegistrations: (tournamentId?: string) => Promise<void>;
   updateMatch: (tournamentId: string, roomId: string, password: string, joinUrl?: string) => Promise<void> | void;
@@ -61,6 +61,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             nickname: r.nickname,
             gameAccount: r.game_account,
             email: r.email,
+            phone: r.phone || '',
             paidAt: r.paid_at,
           }));
           setRegistrations(currentRegs);
@@ -263,8 +264,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     nickname: string,
     gameAccount: string,
     email: string,
-    phone?: string
+    phone: string
   ) => {
+    const cleanPhone = (phone || '').trim();
+    if (!cleanPhone) {
+      console.warn('Phone is strictly required for tournament registration');
+      return false;
+    }
+
     if (registrations.some(r => r.tournamentId === tournamentId && r.email.toLowerCase() === email.toLowerCase())) {
       return false;
     }
@@ -275,7 +282,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       nickname,
       gameAccount,
       email,
-      phone,
+      phone: cleanPhone,
       paidAt: new Date().toISOString(),
     };
 
@@ -307,9 +314,9 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         nickname,
         game_account: gameAccount,
         email,
+        phone: cleanPhone,
         paid_at: newReg.paidAt,
       };
-      if (phone) regPayload.phone = phone;
 
       // Non-blocking background sync to Supabase
       supabase.from('registrations').insert(regPayload).then(() => {}).catch(() => {});

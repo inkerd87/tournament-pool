@@ -36,6 +36,7 @@ interface AuthContextType {
   logout: () => void;
   updateBalance: (delta: number, emailOverride?: string) => Promise<void>;
   setBalance: (exactAmount: number) => Promise<void>;
+  updatePhone: (newPhone: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
 }
 
@@ -523,6 +524,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updatePhone = async (newPhone: string): Promise<boolean> => {
+    const cleanPhone = newPhone.trim();
+    if (!user || !cleanPhone) return false;
+
+    const updatedUser: User = {
+      ...user,
+      phone: cleanPhone,
+    };
+    setUser(updatedUser);
+    saveUser(updatedUser);
+
+    const authMap = getStoredAuthMap();
+    if (authMap[user.email.toLowerCase()]) {
+      authMap[user.email.toLowerCase()].phone = cleanPhone;
+      saveStoredAuthMap(authMap);
+    }
+
+    try {
+      await supabase
+        .from('users')
+        .update({ phone: cleanPhone })
+        .eq('email', user.email.toLowerCase());
+      return true;
+    } catch (e) {
+      console.warn('Could not sync phone to Supabase:', e);
+      return true;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -535,6 +565,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         updateBalance,
         setBalance,
+        updatePhone,
         refreshUser,
       }}
     >
