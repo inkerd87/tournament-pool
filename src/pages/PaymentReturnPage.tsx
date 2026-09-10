@@ -14,6 +14,7 @@ export const PaymentReturnPage: React.FC = () => {
   const isFailed = status === 'fail';
 
   const [registeredTournamentTitle, setRegisteredTournamentTitle] = useState<string>('');
+  const [registeredTournamentId, setRegisteredTournamentId] = useState<string>('');
   const [playerNickname, setPlayerNickname] = useState<string>('');
   const [isTopUp, setIsTopUp] = useState<boolean>(false);
   const [topUpAmount, setTopUpAmount] = useState<number>(100);
@@ -112,6 +113,8 @@ export const PaymentReturnPage: React.FC = () => {
     let email = getFirstParam('email') || urlEmail;
     let phone = getFirstParam('phone') || '';
     let password = '';
+    let pendingTitle = '';
+    let pendingFee = 0;
 
     const savedRegStr = localStorage.getItem('nb_pending_registration');
     if (savedRegStr) {
@@ -123,6 +126,8 @@ export const PaymentReturnPage: React.FC = () => {
         email = email || parsedReg.email;
         phone = phone || parsedReg.phone || '';
         password = parsedReg.password || '';
+        pendingTitle = parsedReg.tournamentTitle || '';
+        pendingFee = Number(parsedReg.amount) || 0;
       } catch (e) {
         console.error('Error reading pending registration:', e);
       }
@@ -132,12 +137,15 @@ export const PaymentReturnPage: React.FC = () => {
       localStorage.removeItem('nb_pending_registration');
       localStorage.removeItem('nb_pending_topup');
 
+      setRegisteredTournamentId(tId);
       setPlayerNickname(nick);
+
       const targetTourney = tournaments.find((t) => t.id === tId);
-      if (targetTourney) {
-        setRegisteredTournamentTitle(targetTourney.title);
-        setPaidAmount(targetTourney.entryFeeRub);
-      }
+      const computedTitle = targetTourney?.title || pendingTitle || tId.replace(/-/g, ' ').toUpperCase();
+      const computedFee = targetTourney?.entryFeeRub || pendingFee || parsedUrlAmount || 100;
+
+      setRegisteredTournamentTitle(computedTitle);
+      setPaidAmount(computedFee);
 
       if (!isUserRegistered(tId, email)) {
         registerForTournament(tId, nick, acc || '', email, phone);
@@ -201,6 +209,17 @@ export const PaymentReturnPage: React.FC = () => {
     // Если нет ни данных турнира, ни суммы пополнения
     localStorage.removeItem('nb_pending_topup');
   }, []); // Выполняется строго 1 раз при монтировании компонента
+
+  // Обновляем название турнира и взнос, если список турниров догрузился позже
+  useEffect(() => {
+    if (registeredTournamentId && tournaments.length > 0) {
+      const targetTourney = tournaments.find((t) => t.id === registeredTournamentId);
+      if (targetTourney) {
+        setRegisteredTournamentTitle(targetTourney.title);
+        setPaidAmount(targetTourney.entryFeeRub);
+      }
+    }
+  }, [registeredTournamentId, tournaments]);
 
   if (isFailed) {
     return (
@@ -282,7 +301,7 @@ export const PaymentReturnPage: React.FC = () => {
   }
 
   // Экран успешной регистрации на турнир
-  if (registeredTournamentTitle) {
+  if (registeredTournamentId || registeredTournamentTitle) {
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center sm:px-6">
         <div className="surface-card p-8 border-emerald-500/30">
@@ -320,6 +339,11 @@ export const PaymentReturnPage: React.FC = () => {
             <Link to="/account" className="btn-primary">
               Перейти в личный кабинет
             </Link>
+            {registeredTournamentId && (
+              <Link to={`/tournaments/${registeredTournamentId}`} className="btn-secondary">
+                Перейти на страницу турнира
+              </Link>
+            )}
             <Link to="/tournaments" className="btn-secondary">
               Все турниры
             </Link>

@@ -48,12 +48,23 @@ export const AccountPage: React.FC = () => {
   const userRegistrations = getUserRegistrations(user.email);
   const registeredTournaments = userRegistrations
     .map((reg) => {
-      const tournament = tournaments.find((t) => t.id === reg.tournamentId);
-      if (!tournament) return null;
+      const tournament = tournaments.find((t) => t.id === reg.tournamentId) || {
+        id: reg.tournamentId,
+        title: reg.tournamentId.replace(/-/g, ' ').toUpperCase(),
+        game: (reg.tournamentId.split('-')[0] || 'cs2') as any,
+        maxPlayers: 100,
+        minPlayers: 10,
+        registeredCount: 1,
+        startsAt: reg.paidAt || new Date().toISOString(),
+        status: 'recruiting' as const,
+        format: 'Матч турнира',
+        description: 'Регистрация подтверждена',
+        entryFeeRub: 100,
+        prizePoolRub: 0,
+      };
       const match = matches[reg.tournamentId] || null;
       return { tournament, match };
-    })
-    .filter((item): item is NonNullable<typeof item> => item !== null);
+    });
 
   const history = getStoredHistory(user.id);
 

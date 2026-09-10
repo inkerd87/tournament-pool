@@ -64,7 +64,26 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             phone: r.phone || '',
             paidAt: r.paid_at,
           }));
-          setRegistrations(currentRegs);
+
+          setRegistrations(prev => {
+            // Merge db registrations with any recent local registrations that haven't synced yet
+            const merged = [...currentRegs];
+            const now = Date.now();
+            prev.forEach(localReg => {
+              const isRecent = localReg.paidAt
+                ? (now - new Date(localReg.paidAt).getTime() < 24 * 60 * 60 * 1000)
+                : false;
+              const existsInDb = merged.some(
+                r => r.id === localReg.id ||
+                     (r.tournamentId === localReg.tournamentId && r.email.toLowerCase() === localReg.email.toLowerCase())
+              );
+              if (!existsInDb && (isRecent || localReg.id.startsWith('reg_'))) {
+                merged.push(localReg);
+              }
+            });
+            saveRegistrations(merged);
+            return merged;
+          });
         }
       } catch (e) {
         console.warn('Registrations fetch notice (using cache):', e);
@@ -306,7 +325,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       })
     );
 
-    // Save to PostgreSQL via Supabase
+    // Save to PostgreSQL via Supabase with fallback if phone column doesn't exist yet
     try {
       const regPayload: Record<string, any> = {
         id: newReg.id,
@@ -318,17 +337,38 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         paid_at: newReg.paidAt,
       };
 
-      // Non-blocking background sync to Supabase
-      supabase.from('registrations').insert(regPayload).then(() => {}).catch(() => {});
-      supabase
-        .from('tournaments')
-        .update({
-          registered_count: newCount,
-          status: newStatus,
-        })
-        .eq('id', tournamentId)
-        .then(() => {})
-        .catch(() => {});
+      const syncRegistration = async () => {
+        try {
+          const { error: insErr } = await supabase.from('registrations').insert(regPayload);
+          if (insErr) {
+            console.warn('First insert attempt with phone failed:', insErr);
+            // If phone column does not exist in schema (PGRST204 or error text), retry without phone
+            if (insErr.message?.toLowerCase().includes('phone') || (insErr as any).code === 'PGRST204') {
+              const { phone: _, ...fallbackPayload } = regPayload;
+              const { error: retryErr } = await supabase.from('registrations').insert(fallbackPayload);
+              if (retryErr) {
+                console.error('Fallback registration insert without phone failed:', retryErr);
+              } else {
+                console.log('✅ Registered successfully in Supabase (fallback without phone)');
+              }
+            }
+          } else {
+            console.log('✅ Registered successfully in Supabase with phone');
+          }
+
+          await supabase
+            .from('tournaments')
+            .update({
+              registered_count: newCount,
+              status: newStatus,
+            })
+            .eq('id', tournamentId);
+        } catch (syncErr) {
+          console.warn('Supabase sync notice:', syncErr);
+        }
+      };
+
+      syncRegistration();
     } catch (e) {
       console.warn('Could not sync registration to Supabase, saved locally:', e);
     }

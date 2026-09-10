@@ -16,7 +16,7 @@ type Props = {
 export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entryFeeRub }) => {
   const navigate = useNavigate();
   const { user, login, updateBalance, updatePhone } = useAuth();
-  const { registerForTournament } = useTournaments();
+  const { registerForTournament, tournaments } = useTournaments();
 
   const fee = entryFeeRub ?? ENTRY_FEE_RUB;
 
@@ -88,13 +88,12 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
       updateBalance(-fee);
       registerForTournament(tournamentId, nickname.trim(), gameAccount.trim(), email.trim(), phone.trim());
       setMessage({ type: 'ok', text: 'Успешно! Вы зарегистрированы на турнир.' });
-      setTimeout(() => {
-        navigate('/account');
-      }, 1000);
     } else {
+      const currentTourney = tournaments.find(t => t.id === tournamentId);
       // Сохраняем временные данные регистрации на случай возврата
       const pendingData = {
         tournamentId,
+        tournamentTitle: currentTourney?.title || '',
         nickname: nickname.trim(),
         gameAccount: gameAccount.trim(),
         email: email.trim(),

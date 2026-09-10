@@ -127,17 +127,36 @@ export const TournamentDetailPage: React.FC = () => {
           </div>
 
           {isRegistered && (
-            <div className="surface-card p-5 sm:p-6 border-emerald-500/30 bg-emerald-950/10">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                ✓ Вы зарегистрированы на этот турнир
-              </span>
-              {matchAccess ? (
-                <MatchAccessPanel match={matchAccess} tournamentTitle={tournament.title} />
-              ) : (
-                <p className="mt-2 text-xs text-zinc-300">
-                  Данные комнаты (Room ID и пароль) будут опубликованы здесь перед стартом матча.
-                </p>
-              )}
+            <div className="surface-card p-5 sm:p-6 border-emerald-500/40 bg-gradient-to-r from-emerald-950/30 via-[#0b131a] to-[#07090d]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 text-xl text-emerald-400 font-black">
+                    ✓
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Вы успешно зарегистрированы на турнир!</h3>
+                    <p className="text-xs text-zinc-300 mt-0.5">
+                      Оплата подтверждена, слот забронирован. Турнир доступен в разделе «Мои турниры».
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link to="/account" className="btn-primary text-xs py-2 px-4 whitespace-nowrap">
+                    В личный кабинет →
+                  </Link>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-white/5">
+                {matchAccess ? (
+                  <MatchAccessPanel match={matchAccess} tournamentTitle={tournament.title} />
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-zinc-400">
+                    <span className="text-cyan-400">ℹ</span>
+                    <span>Данные комнаты (Room ID и пароль) будут опубликованы здесь и в вашем личном кабинете перед началом матча.</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
