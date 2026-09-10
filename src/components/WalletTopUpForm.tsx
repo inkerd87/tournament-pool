@@ -3,30 +3,46 @@ import { formatRub } from '@/lib/format';
 import { getTopUpCheckoutUrl } from '@/lib/payanyway-client';
 import { useAuth } from '@/context/AuthContext';
 
-const AMOUNTS = [100, 1000, 1500];
+interface TopUpTier {
+  amount: number;
+  badge: string;
+  games: string;
+  isPopular?: boolean;
+}
+
+const TOPUP_TIERS: TopUpTier[] = [
+  {
+    amount: 100,
+    badge: 'Одиночные матчи',
+    games: 'PUBG Solo, Warzone, Fortnite',
+  },
+  {
+    amount: 1000,
+    badge: 'Премиум матч',
+    games: 'PUBG Solo Premium (фонд 28 000 ₽)',
+    isPopular: true,
+  },
+  {
+    amount: 1500,
+    badge: 'Командные матчи 5v5',
+    games: 'CS2 5v5, Dota 2 5v5 (фонд 12 000 ₽)',
+  },
+];
 
 export const WalletTopUpForm: React.FC = () => {
   const { user } = useAuth();
-  const [customAmount, setCustomAmount] = useState<string>('100');
-
-  const parsedAmount = Math.max(100, Number(customAmount) || 100);
-
-  const handleStep = (delta: number) => {
-    const current = Math.max(0, Number(customAmount) || 0);
-    const next = Math.max(100, Math.min(50000, current + delta));
-    setCustomAmount(String(next));
-  };
+  const [selectedAmount, setSelectedAmount] = useState<number>(100);
 
   const handleTopUp = () => {
     localStorage.setItem(
       'nb_pending_topup',
       JSON.stringify({
-        amount: parsedAmount,
+        amount: selectedAmount,
         email: user?.email || '',
         createdAt: Date.now(),
       })
     );
-    window.location.href = getTopUpCheckoutUrl(parsedAmount);
+    window.location.href = getTopUpCheckoutUrl(selectedAmount);
   };
 
   return (
@@ -41,101 +57,79 @@ export const WalletTopUpForm: React.FC = () => {
         Через СБП или банковскую карту (PayAnyWay / НКО «МОНЕТА»). Без комиссии.
       </p>
 
-      {/* Быстрый выбор суммы */}
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {AMOUNTS.map((amt) => (
-          <button
-            key={amt}
-            type="button"
-            onClick={() => setCustomAmount(String(amt))}
-            className={`rounded-lg border py-2.5 px-2 text-center text-xs font-bold transition ${
-              customAmount === String(amt)
-                ? 'border-cyan-500 bg-cyan-500/20 text-cyan-300 shadow-sm shadow-cyan-500/20'
-                : 'border-white/10 bg-black/20 text-zinc-300 hover:border-white/20'
-            }`}
-          >
-            {formatRub(amt)}
-          </button>
-        ))}
+      {/* Список доступных фиксированных сумм */}
+      <div className="mt-4 space-y-2">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+          Выберите доступную сумму:
+        </p>
+
+        <div className="space-y-2">
+          {TOPUP_TIERS.map((tier) => {
+            const isSelected = selectedAmount === tier.amount;
+            return (
+              <button
+                key={tier.amount}
+                type="button"
+                onClick={() => setSelectedAmount(tier.amount)}
+                className={`w-full flex items-center justify-between rounded-xl border p-3 text-left transition-all ${
+                  isSelected
+                    ? 'border-cyan-500 bg-cyan-950/30 text-white shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/50'
+                    : 'border-white/10 bg-black/30 text-zinc-300 hover:border-white/20 hover:bg-black/50'
+                }`}
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-base font-extrabold text-white">
+                      {formatRub(tier.amount)}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        tier.isPopular
+                          ? 'border border-amber-500/40 bg-amber-500/20 text-amber-300'
+                          : 'border border-white/10 bg-white/5 text-zinc-400'
+                      }`}
+                    >
+                      {tier.badge}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400">{tier.games}</p>
+                </div>
+
+                <div className="pl-3">
+                  <div
+                    className={`flex h-5 w-5 items-center justify-center rounded-full border transition-all ${
+                      isSelected
+                        ? 'border-cyan-400 bg-cyan-400 text-black'
+                        : 'border-zinc-600 bg-transparent'
+                    }`}
+                  >
+                    {isSelected && (
+                      <svg className="h-3 w-3 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Поле ввода и кнопка */}
-      <div className="mt-3.5 space-y-2.5">
-        <div className="relative flex items-center rounded-xl border border-white/10 bg-black/40 px-3.5 py-1.5 focus-within:border-cyan-500/60 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all shadow-inner">
-          <input
-            type="number"
-            min="100"
-            max="50000"
-            step="100"
-            value={customAmount}
-            onChange={(e) => setCustomAmount(e.target.value)}
-            className="w-full bg-transparent font-mono text-base sm:text-sm font-bold text-white outline-none placeholder:text-zinc-600"
-            placeholder="Своя сумма"
-          />
-
-          <div className="flex items-center gap-2 pl-2">
-            <span className="text-xs font-bold text-zinc-400 select-none font-mono">
-              ₽
-            </span>
-
-            {/* Стрелки-степпер */}
-            <div className="flex flex-col rounded-lg border border-white/10 bg-white/5 overflow-hidden shadow-sm">
-              <button
-                type="button"
-                onClick={() => handleStep(100)}
-                className="group flex h-4 w-6 items-center justify-center bg-black/30 hover:bg-cyan-500/25 active:bg-cyan-500/40 text-zinc-400 hover:text-cyan-300 transition-colors"
-                title="Увеличить на 100 ₽"
-                aria-label="Увеличить на 100 ₽"
-              >
-                <svg
-                  className="w-2.5 h-2.5 transition-transform group-hover:-translate-y-0.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="18 15 12 9 6 15" />
-                </svg>
-              </button>
-              <div className="h-px w-full bg-white/10" />
-              <button
-                type="button"
-                onClick={() => handleStep(-100)}
-                disabled={Number(customAmount) <= 100}
-                className="group flex h-4 w-6 items-center justify-center bg-black/30 hover:bg-cyan-500/25 active:bg-cyan-500/40 text-zinc-400 hover:text-cyan-300 disabled:opacity-20 disabled:pointer-events-none transition-colors"
-                title="Уменьшить на 100 ₽"
-                aria-label="Уменьшить на 100 ₽"
-              >
-                <svg
-                  className="w-2.5 h-2.5 transition-transform group-hover:translate-y-0.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
+      {/* Кнопка пополнения на выбранную сумму */}
+      <div className="mt-4 space-y-2.5">
         <button
           type="button"
           onClick={handleTopUp}
           className="btn-primary w-full text-xs sm:text-sm py-3 px-4 font-bold shadow-lg shadow-cyan-500/20 transition text-center"
         >
-          Пополнить {formatRub(parsedAmount)}
+          Пополнить кошелек на {formatRub(selectedAmount)}
         </button>
-      </div>
 
-      <p className="mt-2.5 text-[10px] text-zinc-500 text-center">
-        Мгновенное зачисление на баланс личного кабинета
-      </p>
+        <p className="text-[10px] text-zinc-500 text-center leading-relaxed">
+          🔒 В соответствии с правилами платформы пополнение осуществляется только фиксированными номиналами (100, 1 000, 1 500 ₽).
+        </p>
+      </div>
     </div>
   );
 };

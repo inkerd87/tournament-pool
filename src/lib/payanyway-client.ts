@@ -24,6 +24,9 @@ export const PAYANYWAY_TOURNAMENT_URLS: Record<string, string> = {
 };
 
 // 2. Ссылки на фиксированные пакеты пополнения баланса в личном кабинете
+export const ALLOWED_TOPUP_AMOUNTS = [100, 1000, 1500] as const;
+export type AllowedTopUpAmount = (typeof ALLOWED_TOPUP_AMOUNTS)[number];
+
 export const PAYANYWAY_TOPUP_URLS: Record<number, string> = {
   100: 'https://self.payanyway.ru/1788897516042',
   1000: 'https://self.payanyway.ru/17888975706826',
@@ -45,18 +48,13 @@ export function getTournamentCheckoutUrl(tournamentId: string, feeRub?: number):
 
 /**
  * Получить URL оплаты для пополнения кошелька на определенную сумму
+ * Доступны только фиксированные номиналы: 100 ₽, 1 000 ₽, 1 500 ₽
  */
 export function getTopUpCheckoutUrl(amountRub: number): string {
   if (PAYANYWAY_TOPUP_URLS[amountRub]) {
     return PAYANYWAY_TOPUP_URLS[amountRub];
   }
-  if (amountRub < 500) {
-    return PAYANYWAY_TOPUP_URLS[100];
-  }
-  if (amountRub >= 1500) {
-    return PAYANYWAY_TOPUP_URLS[1500];
-  }
-  return PAYANYWAY_TOPUP_URLS[1000];
+  return PAYANYWAY_TOPUP_URLS[100];
 }
 
 export function getPayAnyWayCheckoutUrl(): string {
