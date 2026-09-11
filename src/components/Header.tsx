@@ -169,7 +169,7 @@ export const Header: React.FC = () => {
               onClick={closeMenu}
               className="btn-primary w-full py-2.5 text-center text-xs font-bold"
             >
-              Выбрать турнир и участвовать
+              Выбрать турнир и участвоватьт
             </Link>
           </div>
         </div>
