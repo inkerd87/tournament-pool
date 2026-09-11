@@ -7,7 +7,7 @@ export const MatchHistoryList: React.FC<{ matches: MatchHistoryEntry[] }> = ({ m
   if (matches.length === 0) {
     return (
       <div className="surface-card p-8 text-center text-sm text-zinc-500">
-        У вас пока нет завершённых матчей.
+        У вас пока нет завершённых матчсей.
       </div>
     );
   }
