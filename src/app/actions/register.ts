@@ -47,7 +47,7 @@ export async function submitRegistration(input: RegisterInput) {
     const paymentUrl = buildPaymentUrl({
       amountRub: ENTRY_FEE_RUB,
       invId: prepared.invoiceId,
-      description: `Взнос за турнир: ${prepared.tournamentTitle}`,
+      description: `Организационные услуги: ${prepared.tournamentTitle}`,
       pendingId: prepared.pendingId,
     });
 
@@ -74,7 +74,7 @@ export async function submitRegistration(input: RegisterInput) {
   }
 }
 
-/** Оплата взноса с баланса (после пополнения через Robokassa). */
+/** Оплата организационных услуг с баланса. */
 export async function submitRegistrationFromBalance(input: RegisterInput) {
   const session = await getSession();
   if (!session) {

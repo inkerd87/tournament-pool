@@ -37,6 +37,7 @@ interface AuthContextType {
   updateBalance: (delta: number, emailOverride?: string) => Promise<void>;
   setBalance: (exactAmount: number) => Promise<void>;
   updatePhone: (newPhone: string) => Promise<boolean>;
+  updateNickname: (newNick: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
 }
 
@@ -553,6 +554,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateNickname = async (newNick: string): Promise<boolean> => {
+    const cleanNick = newNick.trim();
+    if (!user || !cleanNick) return false;
+
+    const updatedUser: User = {
+      ...user,
+      nickname: cleanNick,
+    };
+    setUser(updatedUser);
+    saveUser(updatedUser);
+
+    const authMap = getStoredAuthMap();
+    if (authMap[user.email.toLowerCase()]) {
+      authMap[user.email.toLowerCase()].nickname = cleanNick;
+      saveStoredAuthMap(authMap);
+    }
+
+    try {
+      await supabase
+        .from('users')
+        .update({ nickname: cleanNick })
+        .eq('email', user.email.toLowerCase());
+      return true;
+    } catch (e) {
+      console.warn('Could not sync nickname to Supabase:', e);
+      return true;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -566,6 +596,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateBalance,
         setBalance,
         updatePhone,
+        updateNickname,
         refreshUser,
       }}
     >

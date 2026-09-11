@@ -11,18 +11,31 @@ export const HowItWorksPage: React.FC = () => {
 
       <div className="mt-12 space-y-12">
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-cyan-300">1. Регистрация и взносы</h2>
+          <h2 className="text-xl font-bold text-cyan-300">1. Оплата услуг по организации соревнований</h2>
           <p className="leading-relaxed text-zinc-300">
             На платформе NightByte проводятся соревнования по дисциплинам CS2, Dota 2, PUBG, Warzone и Fortnite.
-            Так как форматы матчей и число игроков разные, размер организационного взноса также различается в зависимости от выбранного турнира.
+            Участие в турнире предусматривает оплату организационных услуг: судейство матчей, предоставление игровой платформы, модерация лобби и автоматизированный подбор равных оппонентов.
           </p>
           <p className="leading-relaxed text-zinc-300">
-            Например, в командных битвах 5 на 5 (CS2 и Dota 2) взнос составляет 1 500 ₽ с игрока, а в одиночных королевских битвах PUBG — 100 ₽ в стандартном турнире или 1 000 ₽ в Премиум-матче с наградным фондом 28 000 ₽. Актуальный размер взноса и регламент всегда указаны в карточке каждого турнира. Оплатить участие можно банковской картой РФ, через СБП или напрямую с баланса личного кабинета.
+            Тариф за организационные услуги составляет 100 ₽, 1 000 ₽ или 1 500 ₽ в зависимости от регламента выбранного соревнования. Данный платёж является оплатой услуг организатора и <strong>категорически не является ставкой, пари или взносом в общий котёл</strong>. Оплатить услуги можно банковской картой РФ, через СБП или с баланса личного кабинета.
+          </p>
+        </section>
+
+        <section className="space-y-4 rounded-2xl border border-amber-500/30 bg-amber-950/15 p-5 sm:p-6">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">⚠️</span>
+            <h2 className="text-lg sm:text-xl font-bold text-amber-300">2. Правило идентификации: совпадение никнейма</h2>
+          </div>
+          <p className="leading-relaxed text-zinc-300 text-sm">
+            При регистрации на сайте и входе в игровой матч действует строгое правило: <strong>ваш игровой никнейм в клиенте игры (CS2, PUBG, Dota 2, Warzone, Fortnite) обязан в точности совпадать с ником, указанным при регистрации на платформе</strong>.
+          </p>
+          <p className="leading-relaxed text-zinc-400 text-xs sm:text-sm">
+            Судейская коллегия перед запуском матча сверяет ники участников в лобби с регистрационным списком платформы. Это необходимо для исключения подмены игроков (ringers), фиксации официальных спортивных итогов и корректного перечисления наград. При несовпадении никнеймов игрок не допускается к участию в матче.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-cyan-300">2. Получение доступа к лобби</h2>
+          <h2 className="text-xl font-bold text-cyan-300">3. Получение доступа к лобби</h2>
           <p className="leading-relaxed text-zinc-300">
             После подтверждения участия и набора группы в вашем личном кабинете на странице турнира появятся
             данные для входа в приватную игру: <strong>Room ID</strong> и <strong>Пароль</strong>.
@@ -30,21 +43,21 @@ export const HowItWorksPage: React.FC = () => {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-cyan-300">3. Призовой фонд и награды</h2>
+          <h2 className="text-xl font-bold text-cyan-300">4. Призовой фонд и награды организатора</h2>
           <p className="leading-relaxed text-zinc-300">
-            Победителей соревнований ждут приятные денежные призы. Призовой фонд формируется индивидуально под формат каждого турнира:
+            Победителей соревнований ждут фиксированные денежные награды. Призовой фонд учреждается организатором турнира <strong>исключительно из собственных средств</strong> за спортивные достижения и <strong>не зависит от количества участников или собранных орг. платежей</strong>:
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-white/10 bg-white/5 p-5">
               <h3 className="font-bold text-white text-base">Командные матчи 5v5 (CS2, Dota 2)</h3>
               <p className="mt-2 text-xs text-zinc-300 leading-relaxed">
-                Две команды по 5 игроков сражаются за победу. Команда-победитель забирает приз <strong className="text-amber-300 font-bold">12 000 ₽</strong> (по 2 400 ₽ на каждого игрока команды).
+                Две команды по 5 игроков сражаются за победу. Фиксированное вознаграждение победившей команде составляет <strong className="text-amber-300 font-bold">12 000 ₽</strong> (по 2 400 ₽ каждому игроку команды).
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/5 p-5">
               <h3 className="font-bold text-white text-base">Королевские битвы (PUBG, Warzone, Fortnite)</h3>
               <p className="mt-2 text-xs text-zinc-300 leading-relaxed">
-                Одиночные высадки и турниры на выживание. В PUBG доступны стандартные матчи (взнос 100 ₽, фонд 2 200 ₽) и Премиум-турниры (взнос 1 000 ₽, наградной фонд 28 000 ₽: 1-е место — 15 000 ₽, 2-е место — 8 000 ₽, 3-е место — 5 000 ₽).
+                Одиночные соревнования на выбывание. Фиксированный призовой фонд от организатора: 2 200 ₽ в стандартных турнирах и 28 000 ₽ в Премиум-матчах (1-е место — 15 000 ₽, 2-е место — 8 000 ₽, 3-е место — 5 000 ₽).
               </p>
             </div>
           </div>
@@ -61,7 +74,7 @@ export const HowItWorksPage: React.FC = () => {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-cyan-300">4. Честная игра</h2>
+          <h2 className="text-xl font-bold text-cyan-300">5. Честная игра</h2>
           <p className="leading-relaxed text-zinc-300">
             Использование любых сторонних программ (читов, скриптов, макросов) строго запрещено и карается
             пожизненной блокировкой аккаунта без возврата средств.
@@ -69,19 +82,19 @@ export const HowItWorksPage: React.FC = () => {
         </section>
 
         <section className="space-y-4 rounded-2xl border border-cyan-500/20 bg-cyan-950/20 p-6">
-          <h2 className="text-xl font-bold text-cyan-300">5. Спортивный статус (Skill-Based)</h2>
+          <h2 className="text-xl font-bold text-cyan-300">6. Спортивный статус (Skill-Based) и разделение понятий</h2>
           <p className="leading-relaxed text-zinc-300 text-sm">
             Все турниры на платформе NightByte являются официальными киберспортивными соревнованиями, в которых результат зависит исключительно от навыков, реакции, стратегии и подготовки участников.
           </p>
           <p className="leading-relaxed text-zinc-400 text-sm">
-            Организационный взнос — это фиксированная плата за организационные услуги и доступ к инфраструктуре матча, а не ставка на исход. Платформа категорически не проводит азартные игры, пари или лотереи: призовой фонд формируется организатором за достижение лучших спортивных результатов.
+            Оплата организационных услуг — это фиксированная плата за услуги организатора по судейству, модерации и предоставлению платформы (ст. 779 ГК РФ), а не ставка на исход. Призовой фонд формируется организатором за достижение лучших спортивных результатов (ст. 1055, 1057 ГК РФ) и не формируется из «общего котла». Платформа категорически не проводит азартные игры, тотализаторы, пари или лотереи.
           </p>
         </section>
 
         <section className="space-y-4 rounded-2xl border border-amber-500/25 bg-amber-950/15 p-6">
           <div className="flex items-center gap-2">
             <span className="text-amber-400 font-extrabold text-lg">🔞</span>
-            <h2 className="text-xl font-bold text-amber-300">6. Возрастное ограничение (Строго 18+)</h2>
+            <h2 className="text-xl font-bold text-amber-300">7. Возрастное ограничение (Строго 18+)</h2>
           </div>
           <p className="leading-relaxed text-zinc-300 text-sm">
             К участию во всех турнирах платформы NightByte допускаются исключительно лица, достигшие возраста <strong className="text-white">18 лет</strong> и обладающие полной дееспособностью.

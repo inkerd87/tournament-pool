@@ -34,32 +34,25 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
   return (
     <div className={`surface-card p-6 ${tournament.isPremium ? 'border-amber-500/40 bg-gradient-to-b from-[#181512] to-[#12161f] shadow-lg shadow-amber-500/10' : ''}`}>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-white">Наградной фонд</h2>
+        <h2 className="text-lg font-bold text-white">Вознаграждение победителям</h2>
         {tournament.isPremium && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-400/20 px-2.5 py-0.5 text-xs font-extrabold text-amber-300">
             ⭐ Премиум
           </span>
         )}
       </div>
-      <p className="mt-1 text-sm leading-relaxed text-zinc-400">
-        {tournament.winnerPerPlayerRub ? (
-          <>
-            Взнос за участие — <strong className="text-white">{formatRub(entryFee)}</strong> с игрока. Награда победившей команде:{' '}
-            <strong className="text-amber-300 font-bold">{formatRub(prizePool)}</strong> (по{' '}
-            <strong className="text-cyan-300">{formatRub(tournament.winnerPerPlayerRub)}</strong> на каждого игрока команды).
-          </>
-        ) : tournament.isPremium ? (
-          <>
-            Организационный сбор за участие — <strong className="text-white">{formatRub(entryFee)}</strong>. Премиум наградной фонд <strong className="text-amber-300 font-bold">{formatRub(prizePool)}</strong> распределяется среди топ-3 выживших игроков: 1-е место — <strong className="text-white">15 000 ₽</strong>, 2-е место — <strong className="text-white">8 000 ₽</strong>, 3-е место — <strong className="text-white">5 000 ₽</strong>.
-          </>
-        ) : (
-          <>
-            Организационный сбор за участие — {formatRub(entryFee)}. Победителей ждут приятные денежные призы за лучшие результаты.
-          </>
-        )}
-      </p>
 
-      <ul className="mt-6 space-y-2">
+      <div className="mt-2.5 rounded-xl border border-white/5 bg-black/30 p-3.5 space-y-1.5 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-400">Призовой фонд организатора:</span>
+          <span className="text-base font-extrabold text-amber-300 font-mono">{formatRub(prizePool)}</span>
+        </div>
+        <p className="text-[11px] text-zinc-400 leading-relaxed">
+          Фиксированная сумма учреждена организатором соревнований за спортивные достижения и <strong>не зависит от количества участников</strong> или сбора платежей.
+        </p>
+      </div>
+
+      <ul className="mt-5 space-y-2">
         {([1, 2, 3] as const).map((place) => {
           const prizeAmt = prizes[place] ?? 0;
           if (tournament.winnerPerPlayerRub && place === 3) return null; // Не показываем 3 место для 5v5 матча двух команд
@@ -92,38 +85,35 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
         })}
       </ul>
 
-      <dl className="mt-6 grid gap-3 border-t border-white/10 pt-4 text-sm">
-        <div className="flex justify-between">
-          <dt className="text-zinc-500">Взнос с игрока</dt>
-          <dd className="font-mono font-medium text-white">
-            {formatRub(entryFee)}
-          </dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-zinc-500">
-            {tournament.winnerPerPlayerRub ? 'Призовой фонд (1 место)' : 'Общий наградной фонд'}
-          </dt>
-          <dd className="font-mono font-semibold text-amber-300">
-            {formatRub(prizePool)}
-          </dd>
-        </div>
+      {/* Отдельный блок: Оплата организационных услуг */}
+      <div className="mt-5 rounded-xl border border-cyan-500/20 bg-cyan-950/15 p-3.5 space-y-1.5 text-xs text-zinc-300">
         <div className="flex justify-between items-center">
-          <dt className="text-zinc-500">Набрано участников</dt>
+          <span className="font-semibold text-white">Организационные услуги:</span>
+          <span className="font-mono font-bold text-cyan-300">{formatRub(entryFee)}</span>
+        </div>
+        <p className="text-[11px] text-zinc-400 leading-snug">
+          Оплата услуг по организации турнира (работа судейской коллегии, серверная платформа, модерация лобби, подбор оппонентов по уровню). Не является ставкой или взносом в общий котёл.
+        </p>
+      </div>
+
+      <dl className="mt-4 grid gap-2.5 border-t border-white/10 pt-3.5 text-xs sm:text-sm">
+        <div className="flex justify-between items-center">
+          <dt className="text-zinc-400">Участников в сетке</dt>
           <dd className="font-mono text-zinc-300 flex items-center gap-1.5">
             <span>{tournament.registeredCount} / {tournament.maxPlayers}</span>
             {tournament.minPlayers && (
               <span className="inline-flex items-center rounded border border-red-900/60 bg-red-950/70 px-1.5 py-0.5 text-[10px] font-bold text-red-400 font-sans">
-                мин. {tournament.minPlayers}
+                старт от {tournament.minPlayers}
               </span>
             )}
           </dd>
         </div>
       </dl>
 
-      <div className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-3 text-xs text-zinc-300 flex items-start gap-2.5">
+      <div className="mt-3.5 rounded-xl border border-white/10 bg-black/40 p-3 text-xs text-zinc-300 flex items-start gap-2.5">
         <span className="text-base leading-none">⏱</span>
         <div className="leading-snug">
-          <span className="font-bold text-cyan-300">Выплата призовых:</span> перевод на карту РФ или СБП осуществляется в срок <strong className="text-white">до 24 часов (до суток)</strong> после фиксации результатов матча.
+          <span className="font-bold text-cyan-300">Выплата наград:</span> перечисление победителям через СБП или на карту РФ в срок <strong className="text-white">до 24 часов (до суток)</strong> после судейской фиксации результатов.
         </div>
       </div>
     </div>

@@ -164,7 +164,7 @@ export default async function AccountPage({ searchParams }: Props) {
                     +{formatRub(stats.totalPrizeRub)}
                   </p>
                   <p className="text-xs text-zinc-600">
-                    Взносов: {formatRub(stats.totalFeesRub)}
+                    Орг. услуг: {formatRub(stats.totalFeesRub)}
                   </p>
                 </div>
               </div>

@@ -9,17 +9,17 @@ export const PAYANYWAY_ACCOUNT_ID = '500000022686';
 
 // 1. Ссылки на витрины / товары для конкретных турниров
 export const PAYANYWAY_TOURNAMENT_URLS: Record<string, string> = {
-  // CS2 5v5 — Взнос 1 500 ₽
+  // CS2 5v5 — Орг. услуги 1 500 ₽
   'cs2-weekly-001': 'https://self.payanyway.ru/17886374434960',
-  // Dota 2 5v5 — Взнос 1 500 ₽
+  // Dota 2 5v5 — Орг. услуги 1 500 ₽
   'dota2-open-001': 'https://self.payanyway.ru/17888974621592',
-  // PUBG Solo Showdown — Взнос 100 ₽
+  // PUBG Solo Showdown — Орг. услуги 100 ₽
   'pubg-solo-001': 'https://self.payanyway.ru/1788897516042',
-  // PUBG Solo Premium Showdown — Взнос 1 000 ₽
+  // PUBG Solo Premium Showdown — Орг. услуги 1 000 ₽
   'pubg-premium-001': 'https://self.payanyway.ru/17888975706826',
-  // Warzone — Взнос 100 ₽
+  // Warzone — Орг. услуги 100 ₽
   'warzone-solo-001': 'https://self.payanyway.ru/17888976332932',
-  // Fortnite — Взнос 100 ₽
+  // Fortnite — Орг. услуги 100 ₽
   'fortnite-solo-001': 'https://self.payanyway.ru/17888977002211',
 };
 

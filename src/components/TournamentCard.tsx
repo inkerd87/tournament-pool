@@ -187,7 +187,7 @@ export const TournamentCard: React.FC<{
 
       <div className="relative mt-5 flex items-center justify-between border-t border-white/5 pt-3.5">
         <div>
-          <p className="text-[10px] uppercase font-semibold tracking-wider text-zinc-500">Наградной фонд</p>
+          <p className="text-[10px] uppercase font-semibold tracking-wider text-zinc-500">Призовой фонд</p>
           <p className="text-lg font-extrabold text-amber-300">
             {isSoon ? 'Анонс скоро' : formatRub(prizePool)}
           </p>
@@ -199,12 +199,12 @@ export const TournamentCard: React.FC<{
           </div>
         ) : isPremium ? (
           <div className="flex items-center gap-1 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-300 px-3.5 py-1.5 text-xs font-extrabold text-black shadow-md shadow-amber-400/20 group-hover:from-amber-300 group-hover:to-yellow-200 transition">
-            <span>⭐ Участие {formatRub(entryFee)}</span>
+            <span>⭐ Орг. услуги {formatRub(entryFee)}</span>
             <span>→</span>
           </div>
         ) : (
           <div className="flex items-center gap-1 rounded-lg bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-300 group-hover:bg-cyan-500 group-hover:text-black transition">
-            <span>Участие {formatRub(entryFee)}</span>
+            <span>Орг. услуги {formatRub(entryFee)}</span>
             <span>→</span>
           </div>
         )}

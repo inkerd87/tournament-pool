@@ -52,7 +52,7 @@ export const TournamentDetailPage: React.FC = () => {
                 </span>
               </div>
               <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
-                Переключайтесь между обычным турниром (взнос 100 ₽) и премиум-матчем с призовым фондом 28 000 ₽.
+                Переключайтесь между обычным соревнованием (орг. услуги 100 ₽) и премиум-матчем (орг. услуги 1 000 ₽, призовой фонд от организатора 28 000 ₽).
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@ export const TournamentDetailPage: React.FC = () => {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              🎮 Обычный (100 ₽)
+              🎮 Орг. тариф (100 ₽)
             </Link>
             <Link
               to="/tournaments/pubg-premium-001"
@@ -76,7 +76,7 @@ export const TournamentDetailPage: React.FC = () => {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <span>⭐ Премиум (1 000 ₽)</span>
+              <span>⭐ Премиум тариф (1 000 ₽)</span>
             </Link>
           </div>
         </div>

@@ -19,7 +19,7 @@ export default async function TournamentsPage() {
             Турниры
           </h1>
           <p className="mt-2 text-zinc-500">
-            Взнос 100 ₽ · призы топ-3 · набор до лимита игроков
+            Орг. сбор от 100 ₽ · Награды топ-3 от организатора · Набор до лимита мест
           </p>
         </div>
       </div>

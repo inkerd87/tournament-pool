@@ -138,6 +138,9 @@ export const LoginPage: React.FC = () => {
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
               />
+              <span className="text-[10px] text-amber-300/90 mt-1 block">
+                ⚠️ Указывайте ваш точный никнейм в игре (CS2, PUBG, Dota 2). Ник в игре обязан строго совпадать с ником регистрации для судейской проверки и допуска к матчу.
+              </span>
             </div>
           )}
 

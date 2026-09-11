@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: `%s · ${SITE_NAME}`,
   },
   description:
-    "Платформа турниров: взнос 100 ₽ с игрока, призы за 1–3 место.",
+    "Платформа соревнований по киберспорту: организация турниров от 100 ₽, фиксированные денежные награды победителям.",
 };
 
 export default function RootLayout({

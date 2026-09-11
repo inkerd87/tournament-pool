@@ -86,8 +86,8 @@ export const TournamentsPage: React.FC = () => {
             </div>
             <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
               {pubgMode === 'premium'
-                ? 'Премиум PUBG: орг. сбор 1 000 ₽ · призовой фонд 28 000 ₽ (1-е: 15 000 ₽, 2-е: 8 000 ₽, 3-е: 5 000 ₽)'
-                : 'Обычный PUBG: орг. сбор 100 ₽ · призовой фонд 2 200 ₽ (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽)'}
+                ? 'Премиум PUBG: орг. услуги 1 000 ₽ (судейство, лобби, платформа) · призовой фонд от организатора 28 000 ₽'
+                : 'Обычный PUBG: орг. услуги 100 ₽ (судейство, платформа, подбор оппонентов) · призовой фонд от организатора 2 200 ₽'}
             </p>
           </div>
         </div>
@@ -103,7 +103,7 @@ export const TournamentsPage: React.FC = () => {
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <span>🎮 Обычный (100 ₽)</span>
+            <span>🎮 Орг. тариф 100 ₽</span>
           </button>
           <button
             type="button"
@@ -114,7 +114,7 @@ export const TournamentsPage: React.FC = () => {
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <span>⭐ Премиум (1 000 ₽)</span>
+            <span>⭐ Премиум тариф 1 000 ₽</span>
           </button>
         </div>
       </div>

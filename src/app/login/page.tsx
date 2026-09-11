@@ -27,7 +27,7 @@ export default async function LoginPage() {
             </span>
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-zinc-500">
-            Следите за взносами, призами и K/D по прошлым турнирам — всё в одном
+            Следите за матчами, наградами и K/D по турнирам — всё в одном
             кабинете.
           </p>
           <ul className="mt-10 space-y-3 text-sm text-zinc-400">

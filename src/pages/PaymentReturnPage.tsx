@@ -284,7 +284,7 @@ export const PaymentReturnPage: React.FC = () => {
           </div>
 
           <p className="mt-4 text-xs text-zinc-500">
-            Теперь вы можете оплачивать участие в турнирах моментально в один клик.
+            Теперь вы можете оплачивать организационные услуги турниров моментально в один клик.
           </p>
 
           <div className="mt-8 flex flex-col gap-3">
@@ -310,7 +310,7 @@ export const PaymentReturnPage: React.FC = () => {
           </div>
           <h1 className="mt-4 text-2xl font-extrabold text-white">Оплата прошла успешно!</h1>
           <p className="mt-2 text-sm text-zinc-300">
-            Вы успешно оплатили участие и зарегистрированы на турнир
+            Вы успешно оплатили организационные услуги и зарегистрированы на турнир
             {registeredTournamentTitle ? ` «${registeredTournamentTitle}»` : ''}!
           </p>
 
@@ -322,7 +322,7 @@ export const PaymentReturnPage: React.FC = () => {
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-zinc-500">Сумма взноса:</span>
+              <span className="text-zinc-500">Организационные услуги:</span>
               <span className="font-bold text-emerald-400">{formatRub(paidAmount)}</span>
             </div>
             <div className="flex justify-between">

@@ -26,11 +26,10 @@ export default async function HomePage() {
             <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
               {formatRub(ENTRY_FEE_RUB)}
             </span>{" "}
-            взнос
+            орг. сбор
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-zinc-400">
-            Взнос за участие всего {formatRub(ENTRY_FEE_RUB)}. Призовой фонд {formatRub(TOTAL_PRIZES_RUB)}:{" "}
-            {formatRub(PRIZE_BY_PLACE[1])} / {formatRub(PRIZE_BY_PLACE[2])} / {formatRub(PRIZE_BY_PLACE[3])} за топ-3 места.
+            Оплата организационных услуг платформы от {formatRub(ENTRY_FEE_RUB)}. Фиксированный призовой фонд от организатора {formatRub(TOTAL_PRIZES_RUB)} за спортивные достижения (топ-3 места).
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link href="/tournaments" className="btn-primary px-6 py-3">
@@ -64,16 +63,16 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:grid-cols-3 sm:px-6">
           {[
             {
-              title: "1. Взнос",
-              text: `Каждый игрок вносит ${formatRub(ENTRY_FEE_RUB)} за участие в турнире.`,
+              title: "1. Организация",
+              text: `Оплата услуг по организации турнира (судейство, лобби, подбор соперников) ${formatRub(ENTRY_FEE_RUB)}.`,
             },
             {
               title: "2. Игра",
-              text: "Сетка и лобби публикуются после набора. Формат зависит от дисциплины.",
+              text: "Сетка и лобби публикуются после набора. Формат зависит от дисциплины. Никнейм в игре должен совпадать с регистрацией.",
             },
             {
-              title: "3. Призы",
-              text: `Только 1–3 места: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])}.`,
+              title: "3. Награды",
+              text: `Фиксированные денежные призы от организатора: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])}.`,
             },
           ].map((step) => (
             <div

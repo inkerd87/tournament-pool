@@ -10,7 +10,7 @@ import { MatchHistoryList } from '@/components/MatchHistoryList';
 import { getStoredHistory } from '@/lib/storage';
 
 export const AccountPage: React.FC = () => {
-  const { user, logout, refreshUser, updatePhone } = useAuth();
+  const { user, logout, refreshUser, updatePhone, updateNickname } = useAuth();
   const { tournaments, getUserRegistrations, matches } = useTournaments();
 
   const [isEditingPhone, setIsEditingPhone] = useState(!user?.phone);
@@ -18,6 +18,12 @@ export const AccountPage: React.FC = () => {
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [phoneSuccess, setPhoneSuccess] = useState(false);
   const [isSavingPhone, setIsSavingPhone] = useState(false);
+
+  const [isEditingNick, setIsEditingNick] = useState(false);
+  const [nickInput, setNickInput] = useState(user?.nickname || '');
+  const [nickError, setNickError] = useState<string | null>(null);
+  const [nickSuccess, setNickSuccess] = useState(false);
+  const [isSavingNick, setIsSavingNick] = useState(false);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -42,6 +48,28 @@ export const AccountPage: React.FC = () => {
       setPhoneError('Ошибка при сохранении номера телефона.');
     } finally {
       setIsSavingPhone(false);
+    }
+  };
+
+  const handleSaveNick = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNickError(null);
+    const clean = nickInput.trim();
+    if (!clean || clean.length < 3) {
+      setNickError('Никнейм должен содержать не менее 3 символов.');
+      return;
+    }
+
+    setIsSavingNick(true);
+    try {
+      await updateNickname(clean);
+      setIsEditingNick(false);
+      setNickSuccess(true);
+      setTimeout(() => setNickSuccess(false), 3000);
+    } catch {
+      setNickError('Ошибка при обновлении никнейма.');
+    } finally {
+      setIsSavingNick(false);
     }
   };
 
@@ -158,6 +186,76 @@ export const AccountPage: React.FC = () => {
         </div>
       )}
 
+      {/* Обязательное правило: соответствие ника в игре */}
+      <div className="mt-4 rounded-2xl border border-cyan-500/30 bg-cyan-950/20 p-4 sm:p-5 text-xs text-zinc-300 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-400 text-sm">🎮</span>
+              <h3 className="font-bold text-white text-sm">
+                Никнейм в игре: <span className="text-cyan-300 font-mono underline">{user.nickname}</span>
+              </h3>
+            </div>
+            <p className="text-zinc-400 leading-relaxed max-w-2xl">
+              Ваш никнейм на сайте <strong>обязан строго совпадать</strong> с никнеймом в игре (CS2, Dota 2, PUBG, Warzone, Fortnite). Судьи верифицируют игроков в лобби перед стартом матча. Несовпадение ников влечет отстранение без возврата оплаты.
+            </p>
+          </div>
+          {!isEditingNick && (
+            <button
+              type="button"
+              onClick={() => {
+                setNickInput(user.nickname || '');
+                setIsEditingNick(true);
+              }}
+              className="self-start sm:self-center shrink-0 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-2 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 transition"
+            >
+              Сменить никнейм
+            </button>
+          )}
+        </div>
+
+        {isEditingNick && (
+          <form onSubmit={handleSaveNick} className="pt-2 border-t border-white/10 space-y-2">
+            <p className="text-xs text-zinc-300">
+              Введите ваш точный внутриигровой ник:
+            </p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <input
+                type="text"
+                required
+                className="input-field text-sm font-mono max-w-xs"
+                placeholder="Точный ник в игре"
+                value={nickInput}
+                onChange={(e) => setNickInput(e.target.value)}
+              />
+              <button
+                type="submit"
+                disabled={isSavingNick}
+                className="btn-primary text-xs py-2.5 px-4 font-bold"
+              >
+                {isSavingNick ? 'Сохранение...' : 'Сохранить никнейм'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditingNick(false)}
+                className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white"
+              >
+                Отмена
+              </button>
+            </div>
+            {nickError && (
+              <p className="text-xs text-rose-400 font-semibold">{nickError}</p>
+            )}
+          </form>
+        )}
+
+        {nickSuccess && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/30 p-2.5 text-xs font-bold text-emerald-400">
+            ✓ Никнейм успешно обновлён!
+          </div>
+        )}
+      </div>
+
       <div className="mt-6 sm:mt-8 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6">
           <div className="surface-card p-5 sm:p-6">
@@ -174,7 +272,7 @@ export const AccountPage: React.FC = () => {
             </div>
 
             <p className="mt-2 text-3xl font-black text-white">{formatRub(user.balanceRub)}</p>
-            <p className="mt-1 text-xs text-zinc-400">Для мгновенной оплаты участия без комиссии</p>
+            <p className="mt-1 text-xs text-zinc-400">Для мгновенной оплаты орг. услуг без комиссии</p>
           </div>
 
           <WalletTopUpForm />

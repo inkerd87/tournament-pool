@@ -99,9 +99,9 @@ export const LaunchAnnouncementModal: React.FC = () => {
               💳
             </div>
             <div className="text-xs">
-              <p className="font-bold text-white">Моментальная оплата взноса</p>
+              <p className="font-bold text-white">Моментальная оплата участия</p>
               <p className="mt-0.5 text-zinc-400">
-                Оплата участия и пополнение баланса доступны через СБП и банковские карты РФ (PayAnyWay) без задержек.
+                Оплата орг. услуг и пополнение баланса доступны через СБП и банковские карты РФ (PayAnyWay) без задержек.
               </p>
             </div>
           </div>

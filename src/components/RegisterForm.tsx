@@ -15,7 +15,7 @@ type Props = {
 
 export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entryFeeRub }) => {
   const navigate = useNavigate();
-  const { user, login, updateBalance, updatePhone } = useAuth();
+  const { user, login, updateBalance, updatePhone, updateNickname } = useAuth();
   const { registerForTournament, tournaments } = useTournaments();
 
   const fee = entryFeeRub ?? ENTRY_FEE_RUB;
@@ -76,8 +76,13 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
 
     if (!user) {
       await login(email.trim(), password.trim(), nickname.trim(), phone.trim());
-    } else if (!user.phone || user.phone !== phone.trim()) {
-      await updatePhone(phone.trim());
+    } else {
+      if (user.nickname !== nickname.trim()) {
+        await updateNickname(nickname.trim());
+      }
+      if (!user.phone || user.phone !== phone.trim()) {
+        await updatePhone(phone.trim());
+      }
     }
 
     if (payMethod === 'balance') {
@@ -118,9 +123,15 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
         </span>
       </div>
 
-      <p className="mt-1 text-xs sm:text-sm text-zinc-400">
-        Организационный сбор: <strong className="text-white font-bold">{formatRub(fee)}</strong>
-      </p>
+      <div className="mt-2 rounded-xl border border-white/5 bg-white/[0.02] p-3 text-xs space-y-1 text-zinc-300">
+        <div className="flex justify-between items-center text-xs sm:text-sm font-semibold">
+          <span className="text-zinc-300">Оплата организационных услуг:</span>
+          <span className="text-white font-bold font-mono">{formatRub(fee)}</span>
+        </div>
+        <p className="text-[11px] text-zinc-400 leading-snug">
+          Включает судейство, модерацию матча, предоставление платформы и подбор равных соперников. Не является ставкой или взносом в призовой фонд.
+        </p>
+      </div>
 
       {user && (
         <div className="mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3.5 py-2 text-xs text-cyan-300">
@@ -130,17 +141,30 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-            Никнейм в игре *
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              Игровой никнейм *
+            </label>
+            {user?.nickname && (
+              <span className="text-[10px] text-cyan-400 font-medium">
+                Ник в профиле: {user.nickname}
+              </span>
+            )}
+          </div>
           <input
             type="text"
             required
-            className="input-field text-base sm:text-sm py-2.5"
+            className="input-field text-base sm:text-sm py-2.5 mt-1"
             placeholder="Например: CyberNinja"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
           />
+          <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] text-amber-200">
+            <span className="text-amber-400 shrink-0 mt-0.5">⚠️</span>
+            <span className="leading-tight">
+              <strong>Обязательное условие:</strong> ваш никнейм в игре (CS2, PUBG, Dota 2) обязан <strong>строго совпадать с ником при регистрации</strong> на сайте! Судьи сверяют участников в лобби перед стартом матча. Несовпадение ников приведёт к отказу в допуске к турниру.
+            </span>
+          </div>
         </div>
 
         <div>
