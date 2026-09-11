@@ -13,18 +13,18 @@ interface TopUpTier {
 const TOPUP_TIERS: TopUpTier[] = [
   {
     amount: 100,
-    badge: 'Одиночные матчи',
+    badge: 'Одиночные соревнования',
     games: 'PUBG Solo, Warzone, Fortnite',
   },
   {
     amount: 1000,
-    badge: 'Премиум матч',
+    badge: 'Премиум соревнования',
     games: 'PUBG Solo Premium (фонд 28 000 ₽)',
     isPopular: true,
   },
   {
     amount: 1500,
-    badge: 'Командные матчи 5v5',
+    badge: 'Командные соревнования 5v5',
     games: 'CS2 5v5, Dota 2 5v5 (фонд 12 000 ₽)',
   },
 ];

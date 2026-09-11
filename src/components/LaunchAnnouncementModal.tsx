@@ -75,7 +75,7 @@ export const LaunchAnnouncementModal: React.FC = () => {
 
         {/* Описание */}
         <p className="mt-2.5 text-xs sm:text-sm text-zinc-300 leading-relaxed">
-          Официальное открытие сетки соревнований и первые матчи по{' '}
+          Официальное открытие сетки соревнований и первые соревнования по{' '}
           <strong className="text-white">CS2, Dota 2, PUBG, Warzone и Fortnite</strong> пройдут уже{' '}
           <strong className="text-cyan-300 font-semibold">12 сентября 2026 года</strong>.
         </p>
@@ -113,7 +113,7 @@ export const LaunchAnnouncementModal: React.FC = () => {
             <div className="text-xs">
               <p className="font-bold text-white">Комнаты и пароли</p>
               <p className="mt-0.5 text-zinc-400">
-                Room ID и пароли для подключения к матчу станут доступны в личном кабинете зарегистрированных участников перед началом матча.
+                Room ID и пароли для подключения к игре станут доступны в личном кабинете зарегистрированных участников перед началом соревнований.
               </p>
             </div>
           </div>

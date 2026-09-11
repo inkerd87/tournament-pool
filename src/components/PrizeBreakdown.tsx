@@ -55,7 +55,7 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
       <ul className="mt-5 space-y-2">
         {([1, 2, 3] as const).map((place) => {
           const prizeAmt = prizes[place] ?? 0;
-          if (tournament.winnerPerPlayerRub && place === 3) return null; // Не показываем 3 место для 5v5 матча двух команд
+          if (tournament.winnerPerPlayerRub && place === 3) return null; // Не показываем 3 место для 5v5 соревнований двух команд
 
           return (
             <li

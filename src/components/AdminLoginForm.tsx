@@ -19,7 +19,7 @@ export const AdminLoginForm: React.FC = () => {
     <div className="mx-auto max-w-md surface-card p-8 shadow-2xl">
       <h1 className="text-2xl font-extrabold text-white">Вход в панель управления</h1>
       <p className="mt-2 text-sm text-zinc-500">
-        Управление соревнованиями и выдача доступов к матчам.
+        Управление соревнованиями и выдача доступов к играм.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">

@@ -71,7 +71,7 @@ function createWarzoneLobby(params: {
     password: randomPassword(6),
     instructions: [
       "Запустите Call of Duty: Warzone",
-      "Перейдите в Private Match (Закрытый матч) → Join",
+      "Перейдите в Private Match (Закрытая игра) → Join",
       "Введите код лобби (Room ID) и пароль",
       "Играйте с Activision ID, указанного при регистрации",
     ],

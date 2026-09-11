@@ -83,7 +83,7 @@ export default async function TournamentDetailPage({ params, searchParams }: Pro
 
       {isRegistered && !matchAccess && (
         <p className="mt-6 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-          Вы оплатили участие. Данные матча (Room ID и пароль) появятся здесь, как
+          Вы оплатили участие. Данные для входа (Room ID и пароль) появятся здесь, как
           только администратор их опубликует.
         </p>
       )}

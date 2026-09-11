@@ -46,13 +46,13 @@ export const TournamentDetailPage: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm font-extrabold text-white">Режим: Премиум матч</span>
+                <span className="text-xs sm:text-sm font-extrabold text-white">Режим: Премиум соревнования</span>
                 <span className="rounded-full bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
                   {tournament.isPremium ? 'Включен Премиум' : 'Включен Обычный'}
                 </span>
               </div>
               <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
-                Переключайтесь между обычным соревнованием (орг. услуги 100 ₽) и премиум-матчем (орг. услуги 1 000 ₽, наградной фонд от организатора 28 000 ₽).
+                Переключайтесь между обычным соревнованием (орг. услуги 100 ₽) и премиум-соревнованиями (орг. услуги 1 000 ₽, наградной фонд от организатора 28 000 ₽).
               </p>
             </div>
           </div>
@@ -88,7 +88,7 @@ export const TournamentDetailPage: React.FC = () => {
             <GameBadge game={tournament.game} />
             {tournament.isPremium && (
               <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-300 shadow-sm shadow-amber-500/20">
-                ⭐ Премиум матч
+                ⭐ Премиум
               </span>
             )}
             <span className="text-xs text-zinc-400">{statusLabel(tournament.status)}</span>
@@ -153,7 +153,7 @@ export const TournamentDetailPage: React.FC = () => {
                 ) : (
                   <div className="flex items-center gap-2 text-xs text-zinc-400">
                     <span className="text-cyan-400">ℹ</span>
-                    <span>Данные комнаты (Room ID и пароль) будут опубликованы здесь и в вашем личном кабинете перед началом матча.</span>
+                    <span>Данные комнаты (Room ID и пароль) будут опубликованы здесь и в вашем личном кабинете перед началом соревнований.</span>
                   </div>
                 )}
               </div>

@@ -50,7 +50,7 @@ export const RegisteredTournamentsList: React.FC<Props> = ({ items }) => {
             <MatchAccessPanel match={match} tournamentTitle={tournament.title} />
           ) : (
             <p className="mt-4 text-xs text-amber-200/80 bg-amber-500/10 border border-amber-500/20 p-3 rounded-lg">
-              ⏳ Оплата подтверждена. Данные комнаты (Room ID и пароль) появятся здесь перед началом матча.
+              ⏳ Оплата подтверждена. Данные комнаты (Room ID и пароль) появятся здесь перед началом соревнований.
             </p>
           )}
         </div>

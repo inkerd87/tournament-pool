@@ -28,7 +28,7 @@ export const TournamentsPage: React.FC = () => {
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Список соревнований</h1>
         <p className="mt-1 text-xs sm:text-sm text-zinc-400">
-          Разные форматы соревнований · Честное судейство · Приятные призы победителям · Выплаты до суток
+          Разные форматы соревнований · Честное судейство · Денежное вознаграждение победителям · Выплаты до суток
         </p>
       </div>
 
@@ -71,7 +71,7 @@ export const TournamentsPage: React.FC = () => {
         })}
       </div>
 
-      {/* Ползунок / Переключатель: Премиум матч (пока что только PUBG) */}
+      {/* Ползунок / Переключатель: Премиум соревнования (пока что только PUBG) */}
       <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-[#12161f] to-amber-500/5 p-3.5 sm:p-4 shadow-lg shadow-amber-500/5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-black font-extrabold text-base shadow-md shadow-amber-500/20">
@@ -79,7 +79,7 @@ export const TournamentsPage: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-extrabold text-white">Режим: Премиум матч</span>
+              <span className="text-xs sm:text-sm font-extrabold text-white">Режим: Премиум соревнования</span>
               <span className="rounded-full bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
                 Пока что только PUBG
               </span>

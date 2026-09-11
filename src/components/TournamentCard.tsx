@@ -93,7 +93,7 @@ export const TournamentCard: React.FC<{
                     ? 'bg-cyan-400 text-black shadow-sm font-extrabold'
                     : 'text-zinc-400 hover:text-white'
                 }`}
-                title="Обычный матч (100 ₽)"
+                title="Обычные соревнования (100 ₽)"
               >
                 100 ₽
               </button>
@@ -110,7 +110,7 @@ export const TournamentCard: React.FC<{
                     ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-black shadow-sm shadow-amber-400/30 font-extrabold'
                     : 'text-zinc-400 hover:text-white'
                 }`}
-                title="Премиум матч (1 000 ₽)"
+                title="Премиум соревнования (1 000 ₽)"
               >
                 <span>⭐ 1 000 ₽</span>
               </button>

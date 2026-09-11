@@ -25,7 +25,7 @@ export default async function AdminPage() {
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white">Админка матчей</h1>
+          <h1 className="text-3xl font-extrabold text-white">Админка соревнований</h1>
           <p className="mt-2 text-sm text-zinc-500">
             Один раз введите Room ID и пароль — все оплатившие игроки увидят их на
             странице соревнования и в кабинете.

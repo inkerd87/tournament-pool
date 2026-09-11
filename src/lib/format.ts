@@ -36,8 +36,8 @@ export function statusLabel(
   const map = {
     recruiting: "Набор игроков",
     full: "Мест нет",
-    live: "Идёт матч",
-    finished: "Завершён",
+    live: "Идут соревнования",
+    finished: "Завершено",
     soon: "Скоро",
   };
   return map[status] || "Скоро";

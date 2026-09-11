@@ -332,7 +332,7 @@ export const PaymentReturnPage: React.FC = () => {
           </div>
 
           <p className="mt-4 text-xs text-zinc-500">
-            Все данные матча, комната и пароль станут доступны в вашем личном кабинете.
+            Все данные для входа, комната и пароль станут доступны в вашем личном кабинете.
           </p>
 
           <div className="mt-8 flex flex-col gap-3">

@@ -85,7 +85,7 @@ export const AccountPage: React.FC = () => {
         registeredCount: 1,
         startsAt: reg.paidAt || new Date().toISOString(),
         status: 'recruiting' as const,
-        format: 'Матч',
+        format: 'Соревнование',
         description: 'Регистрация подтверждена',
         entryFeeRub: 100,
         prizePoolRub: 0,
@@ -197,7 +197,7 @@ export const AccountPage: React.FC = () => {
               </h3>
             </div>
             <p className="text-zinc-400 leading-relaxed max-w-2xl">
-              Ваш никнейм на сайте <strong>обязан строго совпадать</strong> с никнеймом в игре (CS2, Dota 2, PUBG, Warzone, Fortnite). Судьи верифицируют игроков в лобби перед стартом матча. Несовпадение ников влечет отстранение без возврата оплаты.
+              Ваш никнейм на сайте <strong>обязан строго совпадать</strong> с никнеймом в игре (CS2, Dota 2, PUBG, Warzone, Fortnite). Судьи верифицируют игроков в лобби перед стартом соревнований. Несовпадение ников влечет отстранение без возврата оплаты.
             </p>
           </div>
           {!isEditingNick && (
@@ -287,7 +287,7 @@ export const AccountPage: React.FC = () => {
           </div>
 
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">История матчей</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">История соревнований</h2>
             <MatchHistoryList matches={history} />
           </div>
         </div>

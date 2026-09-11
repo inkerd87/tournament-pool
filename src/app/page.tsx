@@ -72,7 +72,7 @@ export default async function HomePage() {
             },
             {
               title: "3. Награды",
-              text: `Фиксированные денежные призы от организатора: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])}.`,
+              text: `Фиксированное денежное вознаграждение от организатора: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])}.`,
             },
           ].map((step) => (
             <div

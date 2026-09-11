@@ -122,7 +122,7 @@ export default async function AccountPage({ searchParams }: Props) {
                   { label: "Побед", value: stats.wins },
                   { label: "Топ-3", value: stats.podiums },
                   { label: "Win rate", value: `${stats.winRatePercent}%` },
-                  { label: "Матчей", value: stats.matchesPlayed },
+                  { label: "Соревнований", value: stats.matchesPlayed },
                 ].map((item) => (
                   <div
                     key={item.label}
@@ -177,7 +177,7 @@ export default async function AccountPage({ searchParams }: Props) {
           <div>
             <h2 className="text-xl font-extrabold text-white">Мои соревнования</h2>
             <p className="mt-1 text-sm text-zinc-500">
-              Оплаченные участия и данные для входа в матч
+              Оплаченные участия и данные для входа в игру
             </p>
           </div>
           <div className="mt-6">
@@ -187,7 +187,7 @@ export default async function AccountPage({ searchParams }: Props) {
 
         <section className="mt-12">
           <div>
-            <h2 className="text-xl font-extrabold text-white">История матчей</h2>
+            <h2 className="text-xl font-extrabold text-white">История соревнований</h2>
             <p className="mt-1 text-sm text-zinc-500">Соревнования, K/D и выплаты</p>
           </div>
           <div className="mt-6">

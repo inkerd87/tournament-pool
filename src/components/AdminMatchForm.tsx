@@ -64,7 +64,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
 
       <div className="flex items-center justify-between pt-2">
         <button type="submit" className="btn-primary text-xs px-4 py-2">
-          {saved ? '✓ Сохранено!' : 'Опубликовать данные матча'}
+          {saved ? '✓ Сохранено!' : 'Опубликовать данные для входа'}
         </button>
         {initialMatch && (
           <span className="text-xs text-emerald-400">✓ Данные выданы участникам</span>

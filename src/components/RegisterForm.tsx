@@ -129,7 +129,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           <span className="text-white font-bold font-mono">{formatRub(fee)}</span>
         </div>
         <p className="text-[11px] text-zinc-400 leading-snug">
-          Включает судейство, модерацию матча, предоставление платформы и подбор равных соперников. Не является ставкой или взносом в наградной фонд.
+          Включает судейство, модерацию соревнований, предоставление платформы и подбор равных соперников. Не является ставкой или взносом в наградной фонд.
         </p>
       </div>
 
@@ -162,7 +162,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] text-amber-200">
             <span className="text-amber-400 shrink-0 mt-0.5">⚠️</span>
             <span className="leading-tight">
-              <strong>Обязательное условие:</strong> ваш никнейм в игре (CS2, PUBG, Dota 2) обязан <strong>строго совпадать с ником при регистрации</strong> на сайте! Судьи сверяют участников в лобби перед стартом матча. Несовпадение ников приведёт к отказу в допуске к соревнованию.
+              <strong>Обязательное условие:</strong> ваш никнейм в игре (CS2, PUBG, Dota 2) обязан <strong>строго совпадать с ником при регистрации</strong> на сайте! Судьи сверяют участников в лобби перед стартом соревнований. Несовпадение ников приведёт к отказу в допуске к соревнованию.
             </span>
           </div>
         </div>
