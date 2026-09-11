@@ -35,7 +35,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
   if (!canRegister) {
     return (
       <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-5 text-xs sm:text-sm text-amber-100">
-        Регистрация закрыта — все места заняты или турнир скоро откроется.
+        Регистрация закрыта — все места заняты или соревнование скоро откроется.
       </div>
     );
   }
@@ -65,7 +65,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
     }
 
     if (!isAdult) {
-      setMessage({ type: 'err', text: 'Участие в турнирах разрешено только лицам, достигшим 18 лет (18+).' });
+      setMessage({ type: 'err', text: 'Участие в соревнованиях разрешено только лицам, достигшим 18 лет (18+).' });
       return;
     }
 
@@ -92,7 +92,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
       }
       updateBalance(-fee);
       registerForTournament(tournamentId, nickname.trim(), gameAccount.trim(), email.trim(), phone.trim());
-      setMessage({ type: 'ok', text: 'Успешно! Вы зарегистрированы на турнир.' });
+      setMessage({ type: 'ok', text: 'Успешно! Вы зарегистрированы на соревнование.' });
     } else {
       const currentTourney = tournaments.find(t => t.id === tournamentId);
       // Сохраняем временные данные регистрации на случай возврата
@@ -117,7 +117,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
   return (
     <div className="surface-card p-5 sm:p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-base sm:text-lg font-bold text-white">Регистрация на турнир</h2>
+        <h2 className="text-base sm:text-lg font-bold text-white">Регистрация на соревнование</h2>
         <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-300">
           🔞 18+
         </span>
@@ -162,7 +162,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] text-amber-200">
             <span className="text-amber-400 shrink-0 mt-0.5">⚠️</span>
             <span className="leading-tight">
-              <strong>Обязательное условие:</strong> ваш никнейм в игре (CS2, PUBG, Dota 2) обязан <strong>строго совпадать с ником при регистрации</strong> на сайте! Судьи сверяют участников в лобби перед стартом матча. Несовпадение ников приведёт к отказу в допуске к турниру.
+              <strong>Обязательное условие:</strong> ваш никнейм в игре (CS2, PUBG, Dota 2) обязан <strong>строго совпадать с ником при регистрации</strong> на сайте! Судьи сверяют участников в лобби перед стартом матча. Несовпадение ников приведёт к отказу в допуске к соревнованию.
             </span>
           </div>
         </div>

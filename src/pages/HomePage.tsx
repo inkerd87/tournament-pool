@@ -29,11 +29,11 @@ export const HomePage: React.FC = () => {
             <div className="lg:col-span-7">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300 mb-4">
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                Ежедневные киберспортивные турниры
+                Ежедневные киберспортивные соревнования
               </span>
 
               <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
-                Киберспортивные турниры{' '}
+                Киберспортивные соревнования{' '}
                 <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
                   NightByte
                 </span>
@@ -45,7 +45,7 @@ export const HomePage: React.FC = () => {
 
               <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Link to="/tournaments" className="btn-primary w-full sm:w-auto py-3 px-6 text-center text-sm font-bold shadow-lg shadow-cyan-500/20">
-                  Смотреть турниры
+                  Смотреть соревнования
                 </Link>
                 <Link to="/how-it-works" className="btn-secondary w-full sm:w-auto py-3 px-6 text-center text-sm font-semibold">
                   Регламент соревнований
@@ -110,7 +110,7 @@ export const HomePage: React.FC = () => {
             <p className="mt-1 text-xs sm:text-sm text-zinc-500">Выберите игру и зарегистрируйтесь</p>
           </div>
           <Link to="/tournaments" className="link-accent text-sm font-semibold">
-            Все турниры →
+            Все соревнования →
           </Link>
         </div>
 
@@ -127,12 +127,12 @@ export const HomePage: React.FC = () => {
             {
               step: "01",
               title: "Организация",
-              text: "Выберите дисциплину и подходящий формат. Оплата услуг по организации турнира (судейство, платформа, подбор оппонентов) банковской картой РФ или через СБП.",
+              text: "Выберите дисциплину и подходящий формат. Оплата услуг по организации соревнований (судейство, платформа, подбор оппонентов) банковской картой РФ или через СБП.",
             },
             {
               step: "02",
               title: "Доступ в комнату",
-              text: "Сетка турнира и данные для подключения к лобби (Room ID и пароль) отображаются в личном кабинете после набора участников.",
+              text: "Сетка соревнований и данные для подключения к лобби (Room ID и пароль) отображаются в личном кабинете после набора участников.",
             },
             {
               step: "03",

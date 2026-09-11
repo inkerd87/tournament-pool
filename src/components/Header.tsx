@@ -5,7 +5,7 @@ import { formatRub } from '@/lib/format';
 import { useAuth } from '@/context/AuthContext';
 
 const links = [
-  { href: '/tournaments', label: 'Турниры' },
+  { href: '/tournaments', label: 'Соревнования' },
   { href: '/how-it-works', label: 'Как это работает' },
 ];
 
@@ -128,7 +128,7 @@ export const Header: React.FC = () => {
               location.pathname === '/tournaments' ? 'bg-cyan-500/15 text-cyan-300' : 'text-zinc-300 hover:bg-white/5'
             }`}
           >
-            🏆 Все турниры
+            🏆 Все соревнования
           </Link>
           <Link
             to="/how-it-works"
@@ -169,7 +169,7 @@ export const Header: React.FC = () => {
               onClick={closeMenu}
               className="btn-primary w-full py-2.5 text-center text-xs font-bold"
             >
-              Выбрать турнир и участвовать
+              Выбрать соревнование
             </Link>
           </div>
         </div>

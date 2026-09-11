@@ -19,9 +19,9 @@ export const TournamentDetailPage: React.FC = () => {
   if (!tournament) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16 text-center">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">Турнир не найден</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-white">Соревнование не найдено</h1>
         <Link to="/tournaments" className="btn-primary mt-4 inline-flex">
-          Ко всем турнирам
+          Ко всем соревнованиям
         </Link>
       </div>
     );
@@ -35,7 +35,7 @@ export const TournamentDetailPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-12 sm:px-6">
       <Link to="/tournaments" className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-white py-1">
-        ← Ко всем турнирам
+        ← Ко всем соревнованиям
       </Link>
 
       {tournament.game === 'pubg' && (
@@ -100,7 +100,7 @@ export const TournamentDetailPage: React.FC = () => {
       <div className="mt-6 sm:mt-8 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <div className="surface-card p-5 sm:p-6">
-            <h2 className="text-base sm:text-lg font-bold text-white">О турнире</h2>
+            <h2 className="text-base sm:text-lg font-bold text-white">О соревновании</h2>
             <p className="mt-2 text-xs sm:text-sm leading-relaxed text-zinc-300">{tournament.description}</p>
             
             <dl className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 border-t border-white/10 pt-4 text-xs sm:text-sm sm:grid-cols-3">
@@ -134,9 +134,9 @@ export const TournamentDetailPage: React.FC = () => {
                     ✓
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Вы успешно зарегистрированы на турнир!</h3>
+                    <h3 className="text-base font-bold text-white">Вы успешно зарегистрированы на соревнование!</h3>
                     <p className="text-xs text-zinc-300 mt-0.5">
-                      Оплата подтверждена, слот забронирован. Турнир доступен в разделе «Мои турниры».
+                      Оплата подтверждена, слот забронирован. Соревнование доступно в разделе «Мои соревнования».
                     </p>
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export const TournamentDetailPage: React.FC = () => {
               <span className="text-4xl">⏳</span>
               <h3 className="mt-3 text-lg font-bold text-white">Регистрация откроется скоро</h3>
               <p className="mt-1.5 text-xs sm:text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
-                Регламент, игровые лобби и дата старта турнира по <strong className="text-white">{game.name}</strong> будут объявлены в ближайшее время. Следите за обновлениями!
+                Регламент, игровые лобби и дата старта соревнований по <strong className="text-white">{game.name}</strong> будут объявлены в ближайшее время. Следите за обновлениями!
               </p>
             </div>
           ) : !isRegistered ? (

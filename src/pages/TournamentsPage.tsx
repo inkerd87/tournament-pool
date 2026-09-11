@@ -26,7 +26,7 @@ export const TournamentsPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-12 sm:px-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Список турниров</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Список соревнований</h1>
         <p className="mt-1 text-xs sm:text-sm text-zinc-400">
           Разные форматы соревнований · Честное судейство · Приятные призы победителям · Выплаты до суток
         </p>

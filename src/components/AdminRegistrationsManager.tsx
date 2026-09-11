@@ -39,20 +39,20 @@ export const AdminRegistrationsManager: React.FC = () => {
   };
 
   const handleClearTournament = async (tId: string, title: string) => {
-    if (!window.confirm(`Вы уверены, что хотите удалить ВСЕХ участников турнира "${title}" и сбросить счетчик на 0?`)) return;
+    if (!window.confirm(`Вы уверены, что хотите удалить ВСЕХ участников соревнования "${title}" и сбросить счетчик на 0?`)) return;
     setIsProcessing(true);
     try {
       await clearTournamentRegistrations(tId);
-      showNotice(`Все участники турнира "${title}" удалены, счетчик сброшен на 0.`);
+      showNotice(`Все участники соревнования "${title}" удалены, счетчик сброшен на 0.`);
     } catch {
-      showNotice('Ошибка при очистке участников турнира.');
+      showNotice('Ошибка при очистке участников соревнования.');
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleClearAll = async () => {
-    if (!window.confirm('ВНИМАНИЕ! Это действие удалит ВСЕ тестовые регистрации со всей платформы и сбросит счетчики всех турниров на 0. Продолжить?')) return;
+    if (!window.confirm('ВНИМАНИЕ! Это действие удалит ВСЕ тестовые регистрации со всей платформы и сбросит счетчики всех соревнований на 0. Продолжить?')) return;
     setIsProcessing(true);
     try {
       await clearTournamentRegistrations();
@@ -71,7 +71,7 @@ export const AdminRegistrationsManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-white">Управление участниками турниров</h2>
+            <h2 className="text-xl font-bold text-white">Управление участниками соревнований</h2>
             <span className="rounded-full bg-cyan-500/20 px-2.5 py-0.5 text-xs font-extrabold text-cyan-400 border border-cyan-500/30">
               {registrations.length} игроков
             </span>
@@ -122,7 +122,7 @@ export const AdminRegistrationsManager: React.FC = () => {
               : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
           }`}
         >
-          Все турниры ({registrations.length})
+          Все соревнования ({registrations.length})
         </button>
         {tournaments.map((t) => {
           const count = registrations.filter((r) => r.tournamentId === t.id).length;
@@ -147,7 +147,7 @@ export const AdminRegistrationsManager: React.FC = () => {
       {selectedTournamentId !== 'all' && (
         <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-xs">
           <div>
-            <span className="text-zinc-400">Турнир: </span>
+            <span className="text-zinc-400">Соревнование: </span>
             <strong className="text-white">
               {tournaments.find((t) => t.id === selectedTournamentId)?.title || selectedTournamentId}
             </strong>
@@ -165,7 +165,7 @@ export const AdminRegistrationsManager: React.FC = () => {
               disabled={isProcessing}
               className="rounded-md border border-red-500/30 bg-red-950/60 px-2.5 py-1 text-xs font-bold text-red-400 hover:bg-red-900/80 transition"
             >
-              Сбросить участников этого турнира
+              Сбросить участников этого соревнования
             </button>
           )}
         </div>
@@ -176,8 +176,8 @@ export const AdminRegistrationsManager: React.FC = () => {
         <div className="rounded-xl border border-dashed border-white/10 p-8 text-center">
           <p className="text-sm font-semibold text-zinc-400">
             {selectedTournamentId === 'all'
-              ? 'Нет зарегистрированных участников ни на один турнир.'
-              : 'В этом турнире нет зарегистрированных участников.'}
+              ? 'Нет зарегистрированных участников ни на одно соревнование.'
+              : 'В этом соревновании нет зарегистрированных участников.'}
           </p>
           <p className="mt-1 text-xs text-zinc-600">
             Счетчики участников отображают строго реальное количество записей (0 игроков).
@@ -188,7 +188,7 @@ export const AdminRegistrationsManager: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="border-b border-white/10 bg-white/5 text-[11px] uppercase font-bold text-zinc-400">
               <tr>
-                <th className="px-4 py-3">Турнир</th>
+                <th className="px-4 py-3">Соревнование</th>
                 <th className="px-4 py-3">Никнейм</th>
                 <th className="px-4 py-3">Игровой аккаунт</th>
                 <th className="px-4 py-3">Email</th>

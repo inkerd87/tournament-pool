@@ -17,11 +17,11 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE_NAME} — турниры CS2, Dota 2, PUBG`,
+    default: `${SITE_NAME} — соревнования по CS2, Dota 2, PUBG`,
     template: `%s · ${SITE_NAME}`,
   },
   description:
-    "Платформа соревнований по киберспорту: организация турниров от 100 ₽, фиксированные денежные награды победителям.",
+    "Платформа соревнований по киберспорту: организация соревнований от 100 ₽, фиксированные денежные награды победителям.",
 };
 
 export default function RootLayout({

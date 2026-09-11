@@ -74,7 +74,7 @@ export function TournamentLobbyPanel({ runtime }: { runtime: TournamentRuntime }
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">
-            Турнир запущен
+            Соревнование запущено
           </p>
           <h2 className="mt-2 text-2xl font-bold text-white">Лобби в игре создано</h2>
           <p className="mt-2 text-sm text-zinc-500">

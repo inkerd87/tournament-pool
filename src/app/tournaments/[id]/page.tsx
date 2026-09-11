@@ -24,7 +24,7 @@ type Props = {
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   const t = await getTournament(id);
-  return { title: t?.title ?? "Турнир" };
+  return { title: t?.title ?? "Соревнование" };
 }
 
 export default async function TournamentDetailPage({ params, searchParams }: Props) {
@@ -46,7 +46,7 @@ export default async function TournamentDetailPage({ params, searchParams }: Pro
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <Link href="/tournaments" className="link-accent text-sm font-medium opacity-80">
-        ← Все турниры
+        ← Все соревнования
       </Link>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -73,7 +73,7 @@ export default async function TournamentDetailPage({ params, searchParams }: Pro
 
       {paid === "1" && (
         <p className="mt-6 rounded-xl border border-cyan-500/25 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200">
-          Оплата прошла успешно — вы зарегистрированы на турнир.
+          Оплата прошла успешно — вы зарегистрированы на соревнование.
         </p>
       )}
 

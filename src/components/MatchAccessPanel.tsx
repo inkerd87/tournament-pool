@@ -51,7 +51,7 @@ export const MatchAccessPanel: React.FC<{ match: TournamentMatchAccess; tourname
             rel="noopener noreferrer"
             className="text-xs text-cyan-400 underline hover:text-cyan-300 text-center sm:text-right"
           >
-            Инструкция / Стрим турнира →
+            Инструкция / Стрим соревнований →
           </a>
         )}
       </div>

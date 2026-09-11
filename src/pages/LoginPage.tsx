@@ -120,7 +120,7 @@ export const LoginPage: React.FC = () => {
 
         <p className="mt-1.5 text-xs sm:text-sm text-zinc-400 leading-relaxed">
           {mode === 'login'
-            ? 'Введите Email и пароль для доступа к турнирам и матчам.'
+            ? 'Введите Email и пароль для доступа к соревнованиям и матчам.'
             : 'Зарегистрируйтесь, чтобы участвовать в соревнованиях и получать награды.'}
         </p>
 

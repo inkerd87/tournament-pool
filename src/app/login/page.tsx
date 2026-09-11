@@ -27,12 +27,12 @@ export default async function LoginPage() {
             </span>
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-zinc-500">
-            Следите за матчами, наградами и K/D по турнирам — всё в одном
+            Следите за матчами, наградами и K/D по соревнованиям — всё в одном
             кабинете.
           </p>
           <ul className="mt-10 space-y-3 text-sm text-zinc-400">
             {[
-              "Единый кошелёк на все турниры",
+              "Единый кошелёк на все соревнования",
               "История матчей с призами и статистикой",
               "Ранг аккаунта по результатам",
             ].map((item) => (
@@ -45,7 +45,7 @@ export default async function LoginPage() {
             ))}
           </ul>
           <Link href="/tournaments" className="link-accent mt-10 inline-block text-sm font-semibold">
-            Сначала выбрать турнир →
+            Сначала выбрать соревнование →
           </Link>
         </div>
 

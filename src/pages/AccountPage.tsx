@@ -85,7 +85,7 @@ export const AccountPage: React.FC = () => {
         registeredCount: 1,
         startsAt: reg.paidAt || new Date().toISOString(),
         status: 'recruiting' as const,
-        format: 'Матч турнира',
+        format: 'Матч',
         description: 'Регистрация подтверждена',
         entryFeeRub: 100,
         prizePoolRub: 0,
@@ -140,11 +140,11 @@ export const AccountPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-amber-400 text-base">⚠️</span>
             <h3 className="font-bold text-white text-sm">
-              Номер телефона обязателен для участия в турнирах и выплат наград
+              Номер телефона обязателен для участия в соревнованиях и выплат наград
             </h3>
           </div>
           <p className="text-zinc-400 leading-relaxed">
-            Пожалуйста, укажите ваш действующий номер мобильного телефона. Он используется для связи с судьями турнира и перечисления денежных наград через Систему быстрых платежей (СБП).
+            Пожалуйста, укажите ваш действующий номер мобильного телефона. Он используется для связи с судьями соревнований и перечисления денежных наград через Систему быстрых платежей (СБП).
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
@@ -281,7 +281,7 @@ export const AccountPage: React.FC = () => {
         <div className="lg:col-span-2 space-y-6 sm:space-y-8">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">
-              Мои турниры ({registeredTournaments.length})
+              Мои соревнования ({registeredTournaments.length})
             </h2>
             <RegisteredTournamentsList items={registeredTournaments} />
           </div>

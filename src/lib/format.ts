@@ -36,7 +36,7 @@ export function statusLabel(
   const map = {
     recruiting: "Набор игроков",
     full: "Мест нет",
-    live: "Идёт турнир",
+    live: "Идёт матч",
     finished: "Завершён",
     soon: "Скоро",
   };

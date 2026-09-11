@@ -2,7 +2,7 @@ import { TournamentCard } from "@/components/TournamentCard";
 import { getTournaments } from "@/lib/tournament-store";
 
 export const metadata = {
-  title: "Турниры",
+  title: "Соревнования",
 };
 
 export default async function TournamentsPage() {
@@ -16,7 +16,7 @@ export default async function TournamentsPage() {
             Каталог
           </p>
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Турниры
+            Соревнования
           </h1>
           <p className="mt-2 text-zinc-500">
             Орг. сбор от 100 ₽ · Награды топ-3 от организатора · Набор до лимита мест

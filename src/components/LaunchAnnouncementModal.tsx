@@ -66,7 +66,7 @@ export const LaunchAnnouncementModal: React.FC = () => {
 
         {/* Заголовок */}
         <h2 className="mt-4 text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-snug">
-          Турниры NightByte стартуют{' '}
+          Соревнования NightByte стартуют{' '}
           <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
             12 сентября
           </span>
@@ -75,7 +75,7 @@ export const LaunchAnnouncementModal: React.FC = () => {
 
         {/* Описание */}
         <p className="mt-2.5 text-xs sm:text-sm text-zinc-300 leading-relaxed">
-          Официальное открытие турнирной сетки и первые матчи по{' '}
+          Официальное открытие сетки соревнований и первые матчи по{' '}
           <strong className="text-white">CS2, Dota 2, PUBG, Warzone и Fortnite</strong> пройдут уже{' '}
           <strong className="text-cyan-300 font-semibold">12 сентября 2026 года</strong>.
         </p>
@@ -89,7 +89,7 @@ export const LaunchAnnouncementModal: React.FC = () => {
             <div className="text-xs">
               <p className="font-bold text-white">Ранняя регистрация открыта</p>
               <p className="mt-0.5 text-zinc-400">
-                Вы можете забронировать свой слот в сетке турнира заранее. Количество мест в каждом лобби строго ограничено.
+                Вы можете забронировать свой слот в сетке соревнований заранее. Количество мест в каждом лобби строго ограничено.
               </p>
             </div>
           </div>
@@ -113,7 +113,7 @@ export const LaunchAnnouncementModal: React.FC = () => {
             <div className="text-xs">
               <p className="font-bold text-white">Комнаты и пароли</p>
               <p className="mt-0.5 text-zinc-400">
-                Room ID и пароли для подключения к матчу станут доступны в личном кабинете зарегистрированных участников в день турнира.
+                Room ID и пароли для подключения к матчу станут доступны в личном кабинете зарегистрированных участников перед началом матча.
               </p>
             </div>
           </div>
@@ -126,7 +126,7 @@ export const LaunchAnnouncementModal: React.FC = () => {
             onClick={handleGoToTournaments}
             className="btn-primary flex-1 py-3 text-xs sm:text-sm font-bold shadow-lg shadow-cyan-500/20 text-center"
           >
-            Выбрать турнир и занять слот
+            Выбрать соревнование и занять слот
           </button>
           <button
             type="button"

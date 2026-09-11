@@ -234,7 +234,7 @@ export const PaymentReturnPage: React.FC = () => {
           </p>
           <div className="mt-8 flex flex-col gap-3">
             <Link to="/tournaments" className="btn-primary">
-              Вернуться к турнирам
+              Вернуться к соревнованиям
             </Link>
             <Link to="/account" className="btn-secondary">
               В личный кабинет
@@ -284,7 +284,7 @@ export const PaymentReturnPage: React.FC = () => {
           </div>
 
           <p className="mt-4 text-xs text-zinc-500">
-            Теперь вы можете оплачивать организационные услуги турниров моментально в один клик.
+            Теперь вы можете оплачивать организационные услуги соревнований моментально в один клик.
           </p>
 
           <div className="mt-8 flex flex-col gap-3">
@@ -292,7 +292,7 @@ export const PaymentReturnPage: React.FC = () => {
               Перейти в личный кабинет
             </Link>
             <Link to="/tournaments" className="btn-secondary">
-              Выбрать турнир
+              Выбрать соревнование
             </Link>
           </div>
         </div>
@@ -310,7 +310,7 @@ export const PaymentReturnPage: React.FC = () => {
           </div>
           <h1 className="mt-4 text-2xl font-extrabold text-white">Оплата прошла успешно!</h1>
           <p className="mt-2 text-sm text-zinc-300">
-            Вы успешно оплатили организационные услуги и зарегистрированы на турнир
+            Вы успешно оплатили организационные услуги и зарегистрированы на соревнование
             {registeredTournamentTitle ? ` «${registeredTournamentTitle}»` : ''}!
           </p>
 
@@ -341,11 +341,11 @@ export const PaymentReturnPage: React.FC = () => {
             </Link>
             {registeredTournamentId && (
               <Link to={`/tournaments/${registeredTournamentId}`} className="btn-secondary">
-                Перейти на страницу турнира
+                Перейти на страницу соревнования
               </Link>
             )}
             <Link to="/tournaments" className="btn-secondary">
-              Все турниры
+              Все соревнования
             </Link>
           </div>
         </div>
@@ -370,7 +370,7 @@ export const PaymentReturnPage: React.FC = () => {
             Перейти в личный кабинет
           </Link>
           <Link to="/tournaments" className="btn-secondary">
-            К турнирам
+            К соревнованиям
           </Link>
         </div>
       </div>

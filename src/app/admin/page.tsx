@@ -28,7 +28,7 @@ export default async function AdminPage() {
           <h1 className="text-3xl font-extrabold text-white">Админка матчей</h1>
           <p className="mt-2 text-sm text-zinc-500">
             Один раз введите Room ID и пароль — все оплатившие игроки увидят их на
-            странице турнира и в кабинете.
+            странице соревнования и в кабинете.
           </p>
         </div>
         <form action={adminLogoutAction}>

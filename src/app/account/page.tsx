@@ -79,7 +79,7 @@ export default async function AccountPage({ searchParams }: Props) {
           </div>
           <div className="flex items-center gap-2">
             <Link href="/tournaments" className="btn-primary">
-              В турнир
+              К соревнованиям
             </Link>
             <LogoutButton />
           </div>
@@ -87,7 +87,7 @@ export default async function AccountPage({ searchParams }: Props) {
 
         {topup === "1" && (
           <p className="mt-6 rounded-xl border border-cyan-500/25 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200">
-            Баланс пополнен. Средства уже доступны для регистрации на турниры.
+            Баланс пополнен. Средства уже доступны для регистрации на соревнования.
           </p>
         )}
 
@@ -153,7 +153,7 @@ export default async function AccountPage({ searchParams }: Props) {
                     {formatRub(user.balanceRub)}
                   </p>
                   <p className="mt-3 max-w-sm text-sm leading-relaxed text-zinc-500">
-                    Списывается при регистрации на турнир. Пополните через Robokassa.
+                    Списывается при регистрации на соревнование. Пополните через Robokassa.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:text-right">
@@ -175,7 +175,7 @@ export default async function AccountPage({ searchParams }: Props) {
 
         <section className="mt-12">
           <div>
-            <h2 className="text-xl font-extrabold text-white">Мои турниры</h2>
+            <h2 className="text-xl font-extrabold text-white">Мои соревнования</h2>
             <p className="mt-1 text-sm text-zinc-500">
               Оплаченные участия и данные для входа в матч
             </p>
@@ -188,7 +188,7 @@ export default async function AccountPage({ searchParams }: Props) {
         <section className="mt-12">
           <div>
             <h2 className="text-xl font-extrabold text-white">История матчей</h2>
-            <p className="mt-1 text-sm text-zinc-500">Турниры, K/D и выплаты</p>
+            <p className="mt-1 text-sm text-zinc-500">Соревнования, K/D и выплаты</p>
           </div>
           <div className="mt-6">
             <MatchHistoryList matches={matches} />

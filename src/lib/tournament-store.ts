@@ -19,7 +19,7 @@ const SEED: Omit<Tournament, "registeredCount">[] = [
     status: "recruiting",
     format: "5v5, BO1 — Наградной фонд 12 000 ₽",
     description:
-      "Командный киберспортивный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором турнира за спортивные достижения и не зависит от взносов.",
+      "Командный киберспортивный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.",
     entryFeeRub: 1500,
     prizePoolRub: 12000,
     prizes: { 1: 12000, 2: 0, 3: 0 },
@@ -35,7 +35,7 @@ const SEED: Omit<Tournament, "registeredCount">[] = [
     status: "recruiting",
     format: "5v5, Captains Mode — Наградной фонд 12 000 ₽",
     description:
-      "Командный киберспортивный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором турнира за спортивные достижения и не зависит от взносов.",
+      "Командный киберспортивный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.",
     entryFeeRub: 1500,
     prizePoolRub: 12000,
     prizes: { 1: 12000, 2: 0, 3: 0 },
@@ -80,7 +80,7 @@ const SEED: Omit<Tournament, "registeredCount">[] = [
     startsAt: "2026-09-10T19:00:00+03:00",
     status: "soon",
     format: "Solo Resurgence, 1 катка",
-    description: "Турнир по Call of Duty: Warzone откроется скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
+    description: "Соревнования по Call of Duty: Warzone откроются скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
     entryFeeRub: 100,
   },
   {
@@ -92,7 +92,7 @@ const SEED: Omit<Tournament, "registeredCount">[] = [
     startsAt: "2026-09-11T19:00:00+03:00",
     status: "soon",
     format: "Solo Zero Build, 1 катка",
-    description: "Турнир по Fortnite откроется скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
+    description: "Соревнования по Fortnite откроются скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
     entryFeeRub: 100,
   },
 ];
@@ -201,13 +201,13 @@ export async function validateRegistrationInput(
 ): Promise<ValidatedRegistration | { ok: false; error: string }> {
   const tournament = await getTournament(input.tournamentId);
   if (!tournament) {
-    return { ok: false, error: "Турнир не найден." };
+    return { ok: false, error: "Соревнование не найдено." };
   }
   if (tournament.status === "full" || tournament.status === "live") {
-    return { ok: false, error: "Регистрация на этот турнир закрыта." };
+    return { ok: false, error: "Регистрация на это соревнование закрыта." };
   }
   if (tournament.status === "finished") {
-    return { ok: false, error: "Турнир уже завершён." };
+    return { ok: false, error: "Соревнование уже завершено." };
   }
 
   const nickname = input.nickname.trim();
@@ -233,7 +233,7 @@ export async function validateRegistrationInput(
   if (duplicate) {
     return {
       ok: false,
-      error: "Этот email или игровой аккаунт уже зарегистрирован на турнир.",
+      error: "Этот email или игровой аккаунт уже зарегистрирован на соревнование.",
     };
   }
 
@@ -266,7 +266,7 @@ export async function finalizeTournamentRegistration(
 
   const { nickname, gameAccount, email, tournamentId } = validation.normalized;
   const tournament = await getTournament(tournamentId);
-  if (!tournament) return { ok: false, error: "Турнир не найден." };
+  if (!tournament) return { ok: false, error: "Соревнование не найдено." };
 
   const user = await findOrCreateUser(email, nickname);
 

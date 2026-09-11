@@ -16,9 +16,9 @@ export const RegisteredTournamentsList: React.FC<Props> = ({ items }) => {
   if (items.length === 0) {
     return (
       <div className="surface-card p-8 text-center">
-        <p className="text-zinc-500">Вы пока не зарегистрированы ни на один турнир.</p>
+        <p className="text-zinc-500">Вы пока не зарегистрированы ни на одно соревнование.</p>
         <Link to="/tournaments" className="btn-primary mt-4 inline-flex">
-          Выбрать турнир
+          Выбрать соревнование
         </Link>
       </div>
     );
@@ -42,7 +42,7 @@ export const RegisteredTournamentsList: React.FC<Props> = ({ items }) => {
               <p className="text-xs text-zinc-500">Старт: {formatDateTime(tournament.startsAt)}</p>
             </div>
             <Link to={`/tournaments/${tournament.id}`} className="link-accent text-xs font-semibold">
-              Страница турнира →
+              Страница соревнования →
             </Link>
           </div>
 

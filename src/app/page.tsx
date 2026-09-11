@@ -22,7 +22,7 @@ export default async function HomePage() {
             CS2 · Dota 2 · PUBG · Warzone · Fortnite
           </p>
           <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
-            Киберспортивные турниры —{" "}
+            Киберспортивные соревнования —{" "}
             <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
               {formatRub(ENTRY_FEE_RUB)}
             </span>{" "}
@@ -33,7 +33,7 @@ export default async function HomePage() {
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link href="/tournaments" className="btn-primary px-6 py-3">
-              Смотреть турниры
+              Смотреть соревнования
             </Link>
             <Link href="/how-it-works" className="btn-secondary px-6 py-3">
               Правила и выплаты
@@ -49,7 +49,7 @@ export default async function HomePage() {
             <p className="mt-1 text-zinc-500">Выберите игру и зарегистрируйтесь</p>
           </div>
           <Link href="/tournaments" className="link-accent text-sm font-semibold">
-            Все турниры →
+            Все соревнования →
           </Link>
         </div>
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -64,7 +64,7 @@ export default async function HomePage() {
           {[
             {
               title: "1. Организация",
-              text: `Оплата услуг по организации турнира (судейство, лобби, подбор соперников) ${formatRub(ENTRY_FEE_RUB)}.`,
+              text: `Оплата услуг по организации соревнований (судейство, лобби, подбор соперников) ${formatRub(ENTRY_FEE_RUB)}.`,
             },
             {
               title: "2. Игра",

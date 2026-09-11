@@ -12,7 +12,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-08T20:00:00+03:00",
     status: "recruiting",
     format: "5v5, BO1 — Регламент матча",
-    description: "Командный киберспортивный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором турнира за спортивные достижения и не зависит от взносов.",
+    description: "Командный киберспортивный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.",
     entryFeeRub: 1500,
     prizePoolRub: 12000,
     prizes: { 1: 12000, 2: 0, 3: 0 },
@@ -28,7 +28,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-08T21:30:00+03:00",
     status: "recruiting",
     format: "5v5, Captains Mode — Регламент матча",
-    description: "Командный киберспортивный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором турнира за спортивные достижения и не зависит от взносов.",
+    description: "Командный киберспортивный матч 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.",
     entryFeeRub: 1500,
     prizePoolRub: 12000,
     prizes: { 1: 12000, 2: 0, 3: 0 },
@@ -76,7 +76,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-10T19:00:00+03:00",
     status: "soon",
     format: "Solo Resurgence, 1 катка",
-    description: "Турнир по Call of Duty: Warzone откроется скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
+    description: "Соревнования по Call of Duty: Warzone откроются скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
     entryFeeRub: 100,
   },
   {
@@ -89,15 +89,15 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-11T19:00:00+03:00",
     status: "soon",
     format: "Solo Zero Build, 1 катка",
-    description: "Турнир по Fortnite откроется скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
+    description: "Соревнования по Fortnite откроются скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
     entryFeeRub: 100,
   },
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v12');
+  const data = localStorage.getItem('nb_tournaments_v13');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v12', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v13', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -113,7 +113,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v12', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v13', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {

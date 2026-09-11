@@ -46,7 +46,7 @@ export const AdminPage: React.FC = () => {
               : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
           }`}
         >
-          <span>👥 Участники турниров</span>
+          <span>👥 Участники соревнований</span>
           <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
             activeTab === 'registrations' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
           }`}>
@@ -78,7 +78,7 @@ export const AdminPage: React.FC = () => {
         ) : (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Активные турниры и лобби</h2>
+              <h2 className="text-xl font-bold text-white">Активные соревнования и лобби</h2>
               <span className="text-xs text-zinc-500">
                 Данные обновляются в реальном времени через Supabase Realtime
               </span>
