@@ -128,7 +128,7 @@ export const Header: React.FC = () => {
               location.pathname === '/tournaments' ? 'bg-cyan-500/15 text-cyan-300' : 'text-zinc-300 hover:bg-white/5'
             }`}
           >
-            🏆 Все турнирыс
+            🏆 Все турниры
           </Link>
           <Link
             to="/how-it-works"
