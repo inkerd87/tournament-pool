@@ -44,7 +44,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-07T19:00:00+03:00",
     status: "recruiting",
     format: "Solo, 1 соревнование",
-    description: "Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированный наградной фонд 2 200 ₽ учреждён организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.",
+    description: "Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение 2 200 ₽ учреждено организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.",
     entryFeeRub: 100,
     prizePoolRub: 2200,
     prizes: { 1: 1000, 2: 700, 3: 500 },
@@ -60,7 +60,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-07T21:00:00+03:00",
     status: "recruiting",
     format: "Solo, 1 соревнование",
-    description: "Премиум одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированный наградной фонд 28 000 ₽ учреждён организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
+    description: "Премиум одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
     entryFeeRub: 1000,
     prizePoolRub: 28000,
     prizes: { 1: 15000, 2: 8000, 3: 5000 },
@@ -76,7 +76,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-10T19:00:00+03:00",
     status: "soon",
     format: "Solo Resurgence, 1 катка",
-    description: "Соревнования по Call of Duty: Warzone откроются скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
+    description: "Соревнования по Call of Duty: Warzone откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
     entryFeeRub: 100,
   },
   {
@@ -89,15 +89,15 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     startsAt: "2026-09-11T19:00:00+03:00",
     status: "soon",
     format: "Solo Zero Build, 1 катка",
-    description: "Соревнования по Fortnite откроются скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
+    description: "Соревнования по Fortnite откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
     entryFeeRub: 100,
   },
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v14');
+  const data = localStorage.getItem('nb_tournaments_v15');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v14', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v15', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -113,7 +113,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v14', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v15', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {

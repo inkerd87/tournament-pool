@@ -19,13 +19,13 @@ const TOPUP_TIERS: TopUpTier[] = [
   {
     amount: 1000,
     badge: 'Премиум соревнования',
-    games: 'PUBG Solo Premium (фонд 28 000 ₽)',
+    games: 'PUBG Solo Premium (вознаграждение 28 000 ₽)',
     isPopular: true,
   },
   {
     amount: 1500,
     badge: 'Командные соревнования 5v5',
-    games: 'CS2 5v5, Dota 2 5v5 (фонд 12 000 ₽)',
+    games: 'CS2 5v5, Dota 2 5v5 (вознаграждение 12 000 ₽)',
   },
 ];
 

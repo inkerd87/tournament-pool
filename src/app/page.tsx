@@ -28,8 +28,8 @@ export default async function HomePage() {
             </span>{" "}
             орг. сбор
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-zinc-400">
-            Оплата организационных услуг платформы от {formatRub(ENTRY_FEE_RUB)}. Фиксированный наградной фонд от организатора {formatRub(TOTAL_PRIZES_RUB)} за спортивные достижения (топ-3 места).
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
+            Оплата организационных услуг платформы от {formatRub(ENTRY_FEE_RUB)}. Фиксированное вознаграждение от организатора {formatRub(TOTAL_PRIZES_RUB)} за спортивные достижения (топ-3 места).
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link href="/tournaments" className="btn-primary px-6 py-3">

@@ -25,7 +25,7 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
           <h2 className="text-lg">Скоро на платформе</h2>
         </div>
         <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-          Регламент, размер наградного фонда и дата открытия регистрации появятся в ближайшее время.
+          Регламент, размер вознаграждения и дата открытия регистрации появятся в ближайшее время.
         </p>
       </div>
     );
@@ -44,7 +44,7 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
 
       <div className="mt-2.5 rounded-xl border border-white/5 bg-black/30 p-3.5 space-y-1.5 text-xs">
         <div className="flex items-center justify-between">
-          <span className="text-zinc-400">Наградной фонд организатора:</span>
+          <span className="text-zinc-400">Вознаграждение от организатора:</span>
           <span className="text-base font-extrabold text-amber-300 font-mono">{formatRub(prizePool)}</span>
         </div>
         <p className="text-[11px] text-zinc-400 leading-relaxed">

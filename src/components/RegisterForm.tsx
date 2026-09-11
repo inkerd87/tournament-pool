@@ -129,7 +129,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           <span className="text-white font-bold font-mono">{formatRub(fee)}</span>
         </div>
         <p className="text-[11px] text-zinc-400 leading-snug">
-          Включает судейство, модерацию соревнований, предоставление платформы и подбор равных соперников. Не является ставкой или взносом в наградной фонд.
+          Включает судейство, модерацию соревнований, предоставление платформы и подбор равных соперников. Не является ставкой или взносом на выплату вознаграждения.
         </p>
       </div>
 
