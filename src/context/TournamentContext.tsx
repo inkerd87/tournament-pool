@@ -178,7 +178,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               startsAt: "2026-09-10T19:00:00+03:00",
               status: "soon",
               format: "Solo Resurgence, 1 катка",
-              description: "Турнир по Call of Duty: Warzone откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
+              description: "Турнир по Call of Duty: Warzone откроется скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
               entryFeeRub: 100,
             },
             {
@@ -191,7 +191,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               startsAt: "2026-09-11T19:00:00+03:00",
               status: "soon",
               format: "Solo Zero Build, 1 катка",
-              description: "Турнир по Fortnite откроется скоро. Регистрация и призовой фонд станут доступны в ближайшее время.",
+              description: "Турнир по Fortnite откроется скоро. Регистрация и наградной фонд станут доступны в ближайшее время.",
               entryFeeRub: 100,
             },
           ];

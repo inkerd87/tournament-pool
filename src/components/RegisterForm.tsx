@@ -55,7 +55,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
     }
 
     if (!phone.trim() || !isValidPhone(phone)) {
-      setMessage({ type: 'err', text: 'Номер телефона обязателен для связи и призовых выплат через СБП (не менее 10 цифр).' });
+      setMessage({ type: 'err', text: 'Номер телефона обязателен для связи и выплат наград через СБП (не менее 10 цифр).' });
       return;
     }
 
@@ -129,7 +129,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           <span className="text-white font-bold font-mono">{formatRub(fee)}</span>
         </div>
         <p className="text-[11px] text-zinc-400 leading-snug">
-          Включает судейство, модерацию матча, предоставление платформы и подбор равных соперников. Не является ставкой или взносом в призовой фонд.
+          Включает судейство, модерацию матча, предоставление платформы и подбор равных соперников. Не является ставкой или взносом в наградной фонд.
         </p>
       </div>
 
@@ -194,7 +194,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
               value={phone}
               onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
             />
-            <span className="text-[10px] text-zinc-500 mt-0.5 block">Для связи и выплат призовых через СБП</span>
+            <span className="text-[10px] text-zinc-500 mt-0.5 block">Для связи и выплат наград через СБП</span>
           </div>
 
           <div>

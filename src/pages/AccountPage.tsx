@@ -140,11 +140,11 @@ export const AccountPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-amber-400 text-base">⚠️</span>
             <h3 className="font-bold text-white text-sm">
-              Номер телефона обязателен для участия в турнирах и выплат призовых
+              Номер телефона обязателен для участия в турнирах и выплат наград
             </h3>
           </div>
           <p className="text-zinc-400 leading-relaxed">
-            Пожалуйста, укажите ваш действующий номер мобильного телефона. Он используется для связи с судьями турнира и перечисления выигрышей через Систему быстрых платежей (СБП).
+            Пожалуйста, укажите ваш действующий номер мобильного телефона. Он используется для связи с судьями турнира и перечисления денежных наград через Систему быстрых платежей (СБП).
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">

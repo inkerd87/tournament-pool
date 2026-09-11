@@ -187,7 +187,7 @@ export const TournamentCard: React.FC<{
 
       <div className="relative mt-5 flex items-center justify-between border-t border-white/5 pt-3.5">
         <div>
-          <p className="text-[10px] uppercase font-semibold tracking-wider text-zinc-500">Призовой фонд</p>
+          <p className="text-[10px] uppercase font-semibold tracking-wider text-zinc-500">Наградной фонд</p>
           <p className="text-lg font-extrabold text-amber-300">
             {isSoon ? 'Анонс скоро' : formatRub(prizePool)}
           </p>
