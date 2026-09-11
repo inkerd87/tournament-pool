@@ -128,7 +128,7 @@ export const Header: React.FC = () => {
               location.pathname === '/tournaments' ? 'bg-cyan-500/15 text-cyan-300' : 'text-zinc-300 hover:bg-white/5'
             }`}
           >
-            🏆 Все турниры
+            🏆 Все турнирыс
           </Link>
           <Link
             to="/how-it-works"
@@ -169,7 +169,7 @@ export const Header: React.FC = () => {
               onClick={closeMenu}
               className="btn-primary w-full py-2.5 text-center text-xs font-bold"
             >
-              Выбрать турнир и участвоватьт
+              Выбрать турнир и участвовать
             </Link>
           </div>
         </div>
