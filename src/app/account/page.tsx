@@ -153,7 +153,7 @@ export default async function AccountPage({ searchParams }: Props) {
                     {formatRub(user.balanceRub)}
                   </p>
                   <p className="mt-3 max-w-sm text-sm leading-relaxed text-zinc-500">
-                    Списывается при регистрации на соревнование. Пополните через Robokassa.
+                    Списывается при регистрации на соревнование. Пополните через ЮKassa.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:text-right">

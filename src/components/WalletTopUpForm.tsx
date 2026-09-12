@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { formatRub } from '@/lib/format';
-import { getTopUpCheckoutUrl } from '@/lib/payanyway-client';
+import { initiateTopUpPayment } from '@/lib/yookassa-client';
 import { useAuth } from '@/context/AuthContext';
 
 interface TopUpTier {
@@ -32,17 +32,24 @@ const TOPUP_TIERS: TopUpTier[] = [
 export const WalletTopUpForm: React.FC = () => {
   const { user } = useAuth();
   const [selectedAmount, setSelectedAmount] = useState<number>(100);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleTopUp = () => {
-    localStorage.setItem(
-      'nb_pending_topup',
-      JSON.stringify({
+  const handleTopUp = async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      await initiateTopUpPayment({
         amount: selectedAmount,
         email: user?.email || '',
-        createdAt: Date.now(),
-      })
-    );
-    window.location.href = getTopUpCheckoutUrl(selectedAmount);
+        phone: user?.phone || '',
+      });
+    } catch (err: any) {
+      console.error('YooKassa top-up error:', err);
+      setErrorMessage(err.message || 'Ошибка подключения к ЮKassa. Попробуйте еще раз.');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -50,11 +57,11 @@ export const WalletTopUpForm: React.FC = () => {
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-white">Пополнение баланса</h3>
         <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
-          СБП / МИР
+          СБП / МИР / ЮKassa
         </span>
       </div>
       <p className="mt-1 text-xs text-zinc-400">
-        Через СБП или банковскую карту (PayAnyWay / НКО «МОНЕТА»). Без комиссии.
+        Через СБП, банковскую карту (ЮKassa) или SberPay. Без комиссии.
       </p>
 
       {/* Список доступных фиксированных сумм */}
@@ -116,14 +123,26 @@ export const WalletTopUpForm: React.FC = () => {
         </div>
       </div>
 
+      {/* Ошибка если создание платежа не удалось */}
+      {errorMessage && (
+        <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
+          {errorMessage}
+        </div>
+      )}
+
       {/* Кнопка пополнения на выбранную сумму */}
       <div className="mt-4 space-y-2.5">
         <button
           type="button"
           onClick={handleTopUp}
-          className="btn-primary w-full text-xs sm:text-sm py-3 px-4 font-bold shadow-lg shadow-cyan-500/20 transition text-center"
+          disabled={isLoading}
+          className={`btn-primary w-full text-xs sm:text-sm py-3 px-4 font-bold shadow-lg shadow-cyan-500/20 transition text-center ${
+            isLoading ? 'opacity-70 cursor-wait' : ''
+          }`}
         >
-          Пополнить кошелек на {formatRub(selectedAmount)}
+          {isLoading
+            ? 'Перенаправление на ЮKassa...'
+            : `Пополнить кошелек на ${formatRub(selectedAmount)} через ЮKassa`}
         </button>
 
         <p className="text-[10px] text-zinc-500 text-center leading-relaxed">

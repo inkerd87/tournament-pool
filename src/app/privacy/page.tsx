@@ -86,22 +86,22 @@ export default function PrivacyPage() {
         <p>
           Для оплаты используется{" "}
           <a
-            href="https://robokassa.ru/"
+            href="https://yookassa.ru/"
             className="link-accent"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Robokassa
+            ЮKassa (ООО НКО «ЮМани»)
           </a>
           . Провайдеру передаются сумма, описание платежа и служебные параметры
-          счёта. Политика Robokassa:{" "}
+          счёта. Политика ЮKassa:{" "}
           <a
-            href="https://robokassa.ru/agreement"
+            href="https://yookassa.ru/privacy"
             className="link-accent"
             target="_blank"
             rel="noopener noreferrer"
           >
-            robokassa.ru/agreement
+            yookassa.ru/privacy
           </a>
           .
         </p>
@@ -142,7 +142,7 @@ export default function PrivacyPage() {
         <p>
           Сессия подписывается секретом сервера. Cookie недоступны скриптам
           страницы. Платёжные реквизиты карт обрабатываются только на стороне
-          Robokassa. Доступ администратора защищён отдельным паролем и cookie.
+          ЮKassa. Доступ администратора защищён отдельным паролем и cookie.
         </p>
       </section>
 

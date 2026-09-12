@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { ENTRY_FEE_RUB } from '@/lib/constants';
 import { formatRub } from '@/lib/format';
-import { getTournamentCheckoutUrl } from '@/lib/payanyway-client';
+import { initiateTournamentPayment } from '@/lib/yookassa-client';
 import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
 type Props = {
@@ -29,6 +29,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
   const [isAdult, setIsAdult] = useState(false);
   const [payMethod, setPayMethod] = useState<'card' | 'balance'>('card');
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const canPayFromBalance = user && user.balanceRub >= fee;
 
@@ -95,22 +96,23 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
       setMessage({ type: 'ok', text: 'Успешно! Вы зарегистрированы на соревнование.' });
     } else {
       const currentTourney = tournaments.find(t => t.id === tournamentId);
-      // Сохраняем временные данные регистрации на случай возврата
-      const pendingData = {
-        tournamentId,
-        tournamentTitle: currentTourney?.title || '',
-        nickname: nickname.trim(),
-        gameAccount: gameAccount.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        password: password.trim(),
-        amount: fee,
-        createdAt: Date.now(),
-      };
-      localStorage.setItem('nb_pending_registration', JSON.stringify(pendingData));
-
-      // Перенаправляем на индивидуальную витрину игры в PayAnyWay
-      window.location.href = getTournamentCheckoutUrl(tournamentId, fee);
+      setIsSubmitting(true);
+      try {
+        await initiateTournamentPayment({
+          tournamentId,
+          tournamentTitle: currentTourney?.title || '',
+          amount: fee,
+          email: email.trim(),
+          phone: phone.trim(),
+          nickname: nickname.trim(),
+          gameAccount: gameAccount.trim(),
+          password: password.trim(),
+        });
+      } catch (err: any) {
+        console.error('YooKassa tournament payment error:', err);
+        setMessage({ type: 'err', text: err.message || 'Ошибка подключения к ЮKassa. Попробуйте еще раз.' });
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -271,8 +273,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
                   : 'border-white/10 bg-black/20 text-zinc-400 hover:border-white/20'
               }`}
             >
-              <p className="text-xs font-bold text-white">💳 СБП / Карты РФ (PayAnyWay)</p>
-              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, Т-Банк, Сбер, МИР через НКО «МОНЕТА»</p>
+              <p className="text-xs font-bold text-white">💳 СБП / Карты РФ (ЮKassa)</p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, МИР, Сбер, Т-Банк через ЮKassa</p>
             </button>
 
             <button
@@ -307,8 +309,18 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           </div>
         )}
 
-        <button type="submit" className="btn-primary w-full py-3 text-sm font-bold shadow-lg shadow-cyan-500/20">
-          {payMethod === 'balance' ? `Оплатить ${formatRub(fee)} с баланса` : `Оплатить ${formatRub(fee)} через PayAnyWay (СБП / Карта)`}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`btn-primary w-full py-3 text-sm font-bold shadow-lg shadow-cyan-500/20 transition ${
+            isSubmitting ? 'opacity-70 cursor-wait' : ''
+          }`}
+        >
+          {isSubmitting
+            ? 'Перенаправление на ЮKassa...'
+            : payMethod === 'balance'
+            ? `Оплатить ${formatRub(fee)} с баланса`
+            : `Оплатить ${formatRub(fee)} через ЮKassa (СБП / Карта)`}
         </button>
 
         <p className="text-[11px] text-zinc-500 text-center leading-relaxed">

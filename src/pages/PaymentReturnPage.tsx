@@ -65,14 +65,15 @@ export const PaymentReturnPage: React.FC = () => {
       return;
     }
 
-    // Извлекаем фактическую сумму оплаты из параметров возврата PayAnyWay / Moneta
+    // Извлекаем фактическую сумму оплаты из параметров возврата ЮKassa / Moneta
     const rawMntAmount = getFirstParam(
-      'MNT_AMOUNT',
-      'mnt_amount',
       'amount',
       'AMOUNT',
+      'orderAmount',
       'sum',
       'SUM',
+      'MNT_AMOUNT',
+      'mnt_amount',
       'OutSum',
       'out_sum',
       'payment_amount',
@@ -83,21 +84,25 @@ export const PaymentReturnPage: React.FC = () => {
       ? parseFloat(rawMntAmount.replace(',', '.').trim())
       : 0;
 
-    // Извлекаем email плательщика из параметров возврата PayAnyWay
+    // Извлекаем email плательщика из параметров возврата
     const urlEmail = getFirstParam(
-      'MNT_SUBSCRIBER_ID',
-      'mnt_subscriber_id',
       'email',
       'EMAIL',
+      'client_email',
+      'payer_email',
+      'MNT_SUBSCRIBER_ID',
+      'mnt_subscriber_id',
       'MNT_USER',
       'mnt_user',
-      'payer_email',
-      'client_email',
       'MNT_CUSTOM1'
     ) || '';
 
     // Извлекаем ID операции для защиты от повторного зачисления при обновлении страницы
     const opId = getFirstParam(
+      'orderId',
+      'order_id',
+      'paymentId',
+      'payment_id',
       'MNT_OPERATION_ID',
       'mnt_operation_id',
       'MNT_TRANSACTION_ID',
@@ -216,7 +221,7 @@ export const PaymentReturnPage: React.FC = () => {
       const targetTourney = tournaments.find((t) => t.id === registeredTournamentId);
       if (targetTourney) {
         setRegisteredTournamentTitle(targetTourney.title);
-        setPaidAmount(targetTourney.entryFeeRub);
+        setPaidAmount(targetTourney.entryFeeRub ?? 100);
       }
     }
   }, [registeredTournamentId, tournaments]);
@@ -279,7 +284,7 @@ export const PaymentReturnPage: React.FC = () => {
             )}
             <div className="flex justify-between">
               <span className="text-zinc-500">Статус:</span>
-              <span className="font-semibold text-cyan-400">Зачислено (PayAnyWay / СБП)</span>
+              <span className="font-semibold text-cyan-400">Зачислено (ЮKassa / СБП)</span>
             </div>
           </div>
 
@@ -327,7 +332,7 @@ export const PaymentReturnPage: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500">Статус:</span>
-              <span className="font-semibold text-cyan-400">Оплачено (PayAnyWay / СБП)</span>
+              <span className="font-semibold text-cyan-400">Оплачено (ЮKassa / СБП)</span>
             </div>
           </div>
 

@@ -81,12 +81,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const balanceToUse = recentlyUpdated ? Math.max(dbBalance, localBalance) : dbBalance;
 
         if (recentlyUpdated && localBalance > dbBalance) {
-          supabase
-            .from('users')
-            .update({ balance_rub: balanceToUse })
-            .eq('email', cleanEmail)
-            .then(() => {})
-            .catch(() => {});
+          Promise.resolve(
+            supabase
+              .from('users')
+              .update({ balance_rub: balanceToUse })
+              .eq('email', cleanEmail)
+          ).catch(() => {});
         }
 
         setUser((prev) => {
@@ -477,15 +477,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 3. Сохраняем в Supabase в фоне без блокировки интерфейса
     const finalEmail = (activeUser?.email || targetEmail).toLowerCase().trim();
     if (finalEmail) {
-      supabase
-        .from('users')
-        .update({ balance_rub: newBalance })
-        .ilike('email', finalEmail)
-        .then(({ error, data }) => {
-          if (error || !data) {
-            supabase
-              .from('users')
-              .upsert(
+      Promise.resolve(
+        supabase
+          .from('users')
+          .select('id, email, nickname, phone, balance_rub')
+          .eq('email', finalEmail)
+          .maybeSingle()
+      )
+        .then(({ data }: any) => {
+          if (!data) {
+            Promise.resolve(
+              supabase.from('users').upsert(
                 {
                   email: finalEmail,
                   nickname: activeUser?.nickname || finalEmail.split('@')[0],
@@ -494,8 +496,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 },
                 { onConflict: 'email' }
               )
-              .then(() => {})
-              .catch(() => {});
+            ).catch(() => {});
           }
         })
         .catch(() => {});

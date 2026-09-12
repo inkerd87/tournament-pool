@@ -23,12 +23,22 @@
     }
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "vite.config.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "src/app",
+    "src/components/LoginForm.tsx",
+    "src/components/LogoutButton.tsx",
+    "src/lib/session.ts",
+    "src/lib/admin-session.ts",
+    "src/lib/tournament-store.ts",
+    "src/lib/user-store.ts",
+    "src/lib/payment-store.ts",
+    "src/lib/robokassa.ts",
+    ".next",
+    "next.config.ts"
+  ]
 }

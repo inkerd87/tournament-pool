@@ -96,8 +96,8 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         if (!tErr && dbTournaments && dbTournaments.length > 0) {
           const mapped: Tournament[] = dbTournaments
-            .filter(t => t.game !== ('valorant' as any) && t.id !== 'valorant-skirmish-001')
-            .map(t => {
+            .filter((t: any) => t.game !== ('valorant' as any) && t.id !== 'valorant-skirmish-001')
+            .map((t: any) => {
               const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
               const isSoon = t.game === 'warzone' || t.game === 'fortnite';
               const isPubgPremium = t.id === 'pubg-premium-001' || t.is_premium || (t.game === 'pubg' && t.title?.toLowerCase().includes('premium'));
@@ -482,13 +482,15 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
 
     try {
-      supabase.from('matches').upsert({
-        tournament_id: tournamentId,
-        room_id: roomId,
-        password: password,
-        join_url: joinUrl,
-        updated_at: matchObj.updatedAt,
-      }).then(() => {}).catch(() => {});
+      Promise.resolve(
+        supabase.from('matches').upsert({
+          tournament_id: tournamentId,
+          room_id: roomId,
+          password: password,
+          join_url: joinUrl,
+          updated_at: matchObj.updatedAt,
+        })
+      ).catch(() => {});
     } catch (e) {
       console.warn('Could not sync match to Supabase:', e);
     }

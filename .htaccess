@@ -6,7 +6,9 @@ AddType application/x-httpd-php .php
     RewriteEngine On
     RewriteBase /
 
-    # Direct access to notification scripts
+    # Direct access to notification & payment scripts
+    RewriteCond %{REQUEST_URI} ^/yookassa-notification\.php [NC,OR]
+    RewriteCond %{REQUEST_URI} ^/yookassa-create\.php [NC,OR]
     RewriteCond %{REQUEST_URI} ^/payanyway-notification\.php [NC]
     RewriteRule ^ - [L]
 
