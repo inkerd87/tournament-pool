@@ -5,7 +5,7 @@
  */
 
 // 1. ID вашего магазина в FreeKassa (число в панели управления)
-define('FK_SHOP_ID', getenv('FREEKASSA_SHOP_ID') ?: '45123');
+define('FK_SHOP_ID', getenv('FREEKASSA_SHOP_ID') ?: '75872');
 
 // 2. Секретное слово 1 (для подписи формы оплаты SCI)
 define('FK_SECRET_1', getenv('FREEKASSA_SECRET_1') ?: 'владимир');

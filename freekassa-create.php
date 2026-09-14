@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 @require_once __DIR__ . '/freekassa-config.php';
 
-$shop_id = defined('FK_SHOP_ID') ? FK_SHOP_ID : (getenv('FREEKASSA_SHOP_ID') ?: '');
+$shop_id = defined('FK_SHOP_ID') ? FK_SHOP_ID : (getenv('FREEKASSA_SHOP_ID') ?: '75872');
 $secret_1 = defined('FK_SECRET_1') ? FK_SECRET_1 : (getenv('FREEKASSA_SECRET_1') ?: 'владимир');
 
 $raw_input = file_get_contents('php://input');

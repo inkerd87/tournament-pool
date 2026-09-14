@@ -1,7 +1,18 @@
+import CryptoJS from 'crypto-js';
+
 /**
  * Интеграция с FreeKassa (FK) для платформы NightByte
  * Приём платежей через СБП, карты МИР/Visa/Mastercard, электронные кошельки и криптовалюту
+ * ID Магазина (Кассы): 75872
+ * Секретное слово 1: владимир (для подписи формы оплаты)
+ * Секретное слово 2: данила (для проверки оповещений Result URL)
+ * API Ключ: bc33c022a82f116ee612de14ea5f8e40
  */
+
+export const FREEKASSA_SHOP_ID = '75872';
+export const FREEKASSA_SECRET_1 = 'владимир';
+export const FREEKASSA_SECRET_2 = 'данила';
+export const FREEKASSA_PAYMENT_BASE_URL = 'https://pay.freekassa.ru/';
 
 export const FREEKASSA_DEFAULT_RETURN_URL = typeof window !== 'undefined'
   ? `${window.location.origin}/payment/return`
@@ -26,37 +37,79 @@ export interface FreeKassaPaymentPayload {
 
 export interface FreeKassaCreateResponse {
   success: boolean;
-  confirmationUrl?: string;
-  orderId?: string;
+  confirmationUrl: string;
+  orderId: string;
   isTestMode?: boolean;
   error?: string;
 }
 
 /**
- * Создание платёжной сессии в FreeKassa через серверный эндпоинт (freekassa-create.php)
+ * Генерация ссылки для оплаты во FreeKassa (SCI)
+ * Рассчитывает MD5 подпись прямо в браузере для мгновенного редиректа в 0 мс
+ * Формула FreeKassa SCI: md5(shopId:amount:secret1:currency:orderId)
+ */
+export function buildFreeKassaPaymentUrl(payload: FreeKassaPaymentPayload): {
+  url: string;
+  orderId: string;
+} {
+  const orderId = 'nb_' + Date.now() + '_' + Math.floor(1000 + Math.random() * 9000);
+  const amountStr = payload.amount % 1 === 0
+    ? String(payload.amount)
+    : payload.amount.toFixed(2);
+  const currency = 'RUB';
+
+  // md5(merchant_id:order_amount:secret_word:currency:order_id)
+  const signString = `${FREEKASSA_SHOP_ID}:${amountStr}:${FREEKASSA_SECRET_1}:${currency}:${orderId}`;
+  const sign = CryptoJS.MD5(signString).toString().toLowerCase();
+
+  const params = new URLSearchParams();
+  params.set('m', FREEKASSA_SHOP_ID);
+  params.set('oa', amountStr);
+  params.set('o', orderId);
+  params.set('s', sign);
+  params.set('currency', currency);
+  params.set('lang', 'ru');
+
+  if (payload.email && payload.email.trim()) {
+    params.set('em', payload.email.trim());
+  }
+  if (payload.phone && payload.phone.trim()) {
+    params.set('phone', payload.phone.trim());
+  }
+  if (payload.userId && payload.userId.trim()) {
+    params.set('us_userId', payload.userId.trim());
+  }
+  params.set('us_type', payload.type);
+  if (payload.tournamentId && payload.tournamentId.trim()) {
+    params.set('us_tournamentId', payload.tournamentId.trim());
+  }
+  if (payload.nickname && payload.nickname.trim()) {
+    params.set('us_nickname', payload.nickname.trim());
+  }
+  if (payload.gameAccount && payload.gameAccount.trim()) {
+    params.set('us_gameAccount', payload.gameAccount.trim());
+  }
+
+  return {
+    url: `${FREEKASSA_PAYMENT_BASE_URL}?${params.toString()}`,
+    orderId,
+  };
+}
+
+/**
+ * Создание платёжной сессии и подготовка к редиректу
  */
 export async function createFreeKassaPayment(
   payload: FreeKassaPaymentPayload
 ): Promise<FreeKassaCreateResponse> {
-  const bodyData = {
-    amount: payload.amount,
-    email: payload.email,
-    phone: payload.phone || '',
-    userId: payload.userId || '',
-    tournamentId: payload.tournamentId || '',
-    tournamentTitle: payload.tournamentTitle || '',
-    nickname: payload.nickname || '',
-    gameAccount: payload.gameAccount || '',
-    type: payload.type,
-    description: payload.description || '',
-    returnUrl: FREEKASSA_DEFAULT_RETURN_URL,
-  };
+  const { url, orderId } = buildFreeKassaPaymentUrl(payload);
 
-  // 1. Сохраняем состояние ожидающего платежа в localStorage
+  // 1. Сохраняем состояние ожидающего платежа в localStorage для обработки после возврата
   if (payload.type === 'registration') {
     localStorage.setItem(
       'nb_pending_registration',
       JSON.stringify({
+        orderId,
         tournamentId: payload.tournamentId,
         tournamentTitle: payload.tournamentTitle || '',
         nickname: payload.nickname || '',
@@ -73,6 +126,7 @@ export async function createFreeKassaPayment(
     localStorage.setItem(
       'nb_pending_topup',
       JSON.stringify({
+        orderId,
         amount: payload.amount,
         email: payload.email,
         phone: payload.phone || '',
@@ -82,41 +136,10 @@ export async function createFreeKassaPayment(
     );
   }
 
-  // 2. Вызов PHP обработчика генерации ссылки с подписью MD5
-  let responseData: any = null;
-
-  try {
-    const resPhp = await fetch('/freekassa-create.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bodyData),
-    });
-
-    if (resPhp.ok) {
-      responseData = await resPhp.json();
-    }
-  } catch (err) {
-    console.warn('FreeKassa PHP handler request error:', err);
-  }
-
-  // 3. Обработка ответа
-  if (responseData && responseData.success && responseData.confirmationUrl) {
-    return {
-      success: true,
-      confirmationUrl: responseData.confirmationUrl,
-      orderId: responseData.orderId,
-    };
-  }
-
-  // Демо/тестовый fallback если сервер временно недоступен
-  const demoOrderId = 'demo_fk_' + Date.now();
-  const demoReturnUrl = `${FREEKASSA_DEFAULT_RETURN_URL}?orderId=${demoOrderId}&amount=${payload.amount}&status=success&gateway=freekassa`;
-
   return {
     success: true,
-    confirmationUrl: demoReturnUrl,
-    orderId: demoOrderId,
-    isTestMode: true,
+    confirmationUrl: url,
+    orderId,
   };
 }
 

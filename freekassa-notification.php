@@ -9,7 +9,7 @@ $raw_input = file_get_contents('php://input');
 
 @require_once __DIR__ . '/freekassa-config.php';
 
-$shop_id = defined('FK_SHOP_ID') ? FK_SHOP_ID : (getenv('FREEKASSA_SHOP_ID') ?: '');
+$shop_id = defined('FK_SHOP_ID') ? FK_SHOP_ID : (getenv('FREEKASSA_SHOP_ID') ?: '75872');
 $secret_2 = defined('FK_SECRET_2') ? FK_SECRET_2 : (getenv('FREEKASSA_SECRET_2') ?: 'данила');
 
 // Логируем все входящие уведомления в freekassa.log для диагностики
@@ -25,6 +25,13 @@ $merchant_id = isset($req['MERCHANT_ID']) ? trim($req['MERCHANT_ID']) : '';
 $amount = isset($req['AMOUNT']) ? floatval($req['AMOUNT']) : 0.0;
 $order_id = isset($req['MERCHANT_ORDER_ID']) ? trim($req['MERCHANT_ORDER_ID']) : '';
 $sign = isset($req['SIGN']) ? trim($req['SIGN']) : '';
+
+// 0. Если FreeKassa пингует URL для активации/проверки магазина:
+if (empty($order_id) && empty($sign)) {
+    header("Content-Type: text/plain; charset=utf-8");
+    echo 'YES';
+    exit;
+}
 
 // 1. Проверка подписи Result URL:
 // md5(MERCHANT_ID:AMOUNT:secret_word_2:MERCHANT_ORDER_ID)
@@ -50,7 +57,8 @@ if (!empty($order_id)) {
             "[{$timestamp}] SKIP: Order ID {$order_id} already processed\n\n",
             FILE_APPEND
         );
-        die('YES');
+        echo 'YES';
+        exit;
     }
     @file_put_contents($processed_file, $order_id . "\n", FILE_APPEND);
 }
@@ -121,6 +129,28 @@ if ($amount > 0) {
                 FILE_APPEND
             );
         }
+    } else if (!empty($email)) {
+        // Создаем пользователя если его еще нет
+        $new_user_data = [
+            'nickname' => $nickname ?: 'Player',
+            'email' => strtolower($email),
+            'balance_rub' => empty($tournament_id) ? $amount : 0
+        ];
+        if (!empty($phone)) {
+            $new_user_data['phone'] = $phone;
+        }
+        $ch = curl_init($supabase_url . '/users');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($new_user_data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'apikey: ' . $api_key,
+            'Authorization: Bearer ' . $api_key,
+            'Prefer: return=minimal'
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
     }
 
     // Если это прямая оплата регистрации на соревнование
@@ -156,5 +186,6 @@ if ($amount > 0) {
 }
 
 // 5. Обязательный ответ для FreeKassa
+header("Content-Type: text/plain; charset=utf-8");
 echo 'YES';
 exit;

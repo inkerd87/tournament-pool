@@ -14,7 +14,7 @@ const SUPABASE_URL = 'https://qblybjpioynwgheqhxyo.supabase.co/rest/v1';
 const SUPABASE_KEY = 'sb_publishable_CAbgrdUXWUeP6squgk98Bg_Ul0oE6BV';
 
 // Настройки интеграции FreeKassa (FK)
-const FREEKASSA_SHOP_ID = (process.env.FREEKASSA_SHOP_ID || '45123').trim();
+const FREEKASSA_SHOP_ID = (process.env.FREEKASSA_SHOP_ID || '75872').trim();
 const FREEKASSA_SECRET_1 = (process.env.FREEKASSA_SECRET_1 || 'владимир').trim();
 const FREEKASSA_SECRET_2 = (process.env.FREEKASSA_SECRET_2 || 'данила').trim();
 const FREEKASSA_API_KEY = (process.env.FREEKASSA_API_KEY || 'bc33c022a82f116ee612de14ea5f8e40').trim();
@@ -670,9 +670,7 @@ const server = http.createServer(async (req, res) => {
   if (
     pathname === '/payanyway-notification.php' ||
     pathname === '/payanyway-notification' ||
-    pathname === '/api/payanyway-webhook' ||
-    pathname === '/freekassa-notification.php' ||
-    pathname === '/freekassa-result.php'
+    pathname === '/api/payanyway-webhook'
   ) {
     const bodyStr = await readBody(req);
     return handlePayAnyWayWebhook(req, res, parsedUrl.searchParams, bodyStr);
