@@ -113,7 +113,7 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
       <div className="mt-3.5 rounded-xl border border-white/10 bg-black/40 p-3 text-xs text-zinc-300 flex items-start gap-2.5">
         <span className="text-base leading-none">⏱</span>
         <div className="leading-snug">
-          <span className="font-bold text-cyan-300">Выплата наград:</span> перечисление победителям через СБП или на карту РФ в срок <strong className="text-white">до 24 часов (до суток)</strong> после судейской фиксации результатов.
+          <span className="font-bold text-cyan-300">Выплата вознаграждения:</span> перечисление победителям через СБП или на карту РФ в срок <strong className="text-white">до 24 часов (до суток)</strong> после судейской фиксации результатов.
         </div>
       </div>
     </div>

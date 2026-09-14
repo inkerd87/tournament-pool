@@ -121,7 +121,7 @@ export const LoginPage: React.FC = () => {
         <p className="mt-1.5 text-xs sm:text-sm text-zinc-400 leading-relaxed">
           {mode === 'login'
             ? 'Введите Email и пароль для доступа к соревнованиям.'
-            : 'Зарегистрируйтесь, чтобы участвовать в соревнованиях и получать награды.'}
+            : 'Зарегистрируйтесь, чтобы участвовать в соревнованиях и получать вознаграждение.'}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">

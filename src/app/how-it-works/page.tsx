@@ -51,7 +51,7 @@ export default function HowItWorksPage() {
         </li>
       </ol>
 
-      <h2 className="mt-12 text-xl font-bold text-white">Организационные услуги и награды</h2>
+      <h2 className="mt-12 text-xl font-bold text-white">Организационные услуги и вознаграждение</h2>
       <ol className="mt-5 list-decimal space-y-5 pl-5 leading-relaxed text-zinc-300">
         <li>
           <strong>Оплата услуг по организации (ст. 779 ГК РФ):</strong> платёж участника (100 ₽, 1 000 ₽ или 1 500 ₽) является оплатой возмездных услуг сервиса по организации соревнований, судейству и модерации. Он категорически не является ставкой или взносом на выплату вознаграждения.

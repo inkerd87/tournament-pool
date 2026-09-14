@@ -47,7 +47,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-white">История соревнований:</strong> соревнование, место,
-            статистика (убийства / смерти / ассисты), сумма наград и оплат.
+            статистика (убийства / смерти / ассисты), сумма вознаграждений и оплат.
           </li>
           <li>
             <strong className="text-white">Сессия:</strong> cookie{" "}

@@ -56,7 +56,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
     }
 
     if (!phone.trim() || !isValidPhone(phone)) {
-      setMessage({ type: 'err', text: 'Номер телефона обязателен для связи и выплат наград через СБП (не менее 10 цифр).' });
+      setMessage({ type: 'err', text: 'Номер телефона обязателен для связи и выплат вознаграждения через СБП (не менее 10 цифр).' });
       return;
     }
 
@@ -196,7 +196,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
               value={phone}
               onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
             />
-            <span className="text-[10px] text-zinc-500 mt-0.5 block">Для связи и выплат наград через СБП</span>
+            <span className="text-[10px] text-zinc-500 mt-0.5 block">Для связи и выплат вознаграждения через СБП</span>
           </div>
 
           <div>

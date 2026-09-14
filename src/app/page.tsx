@@ -71,7 +71,7 @@ export default async function HomePage() {
               text: "Сетка и лобби публикуются после набора. Формат зависит от дисциплины. Никнейм в игре должен совпадать с регистрацией.",
             },
             {
-              title: "3. Награды",
+              title: "3. Вознаграждение",
               text: `Фиксированное вознаграждение от организатора: ${formatRub(PRIZE_BY_PLACE[1])}, ${formatRub(PRIZE_BY_PLACE[2])}, ${formatRub(PRIZE_BY_PLACE[3])}.`,
             },
           ].map((step) => (

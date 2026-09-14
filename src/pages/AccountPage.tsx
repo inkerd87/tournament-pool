@@ -140,7 +140,7 @@ export const AccountPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-amber-400 text-base">⚠️</span>
             <h3 className="font-bold text-white text-sm">
-              Номер телефона обязателен для участия в соревнованиях и выплат наград
+              Номер телефона обязателен для участия в соревнованиях и выплат вознаграждения
             </h3>
           </div>
           <p className="text-zinc-400 leading-relaxed">
