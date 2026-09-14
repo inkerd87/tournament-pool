@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { ENTRY_FEE_RUB } from '@/lib/constants';
 import { formatRub } from '@/lib/format';
-import { initiateTournamentPayment } from '@/lib/yookassa-client';
+import { initiateTournamentPayment } from '@/lib/freekassa-client';
 import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
 type Props = {
@@ -45,53 +45,55 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
     e.preventDefault();
     setMessage(null);
 
-    if (!nickname.trim()) {
-      setMessage({ type: 'err', text: 'Укажите игровой никнейм.' });
+    if (!isAdult) {
+      setMessage({ type: 'err', text: 'Для участия необходимо подтвердить возраст 18+.' });
       return;
     }
 
-    if (!gameAccount.trim()) {
-      setMessage({ type: 'err', text: 'Укажите ваш игровой идентификатор (Steam, Activision, Epic Games или PUBG).' });
-      return;
-    }
-
-    if (!phone.trim() || !isValidPhone(phone)) {
-      setMessage({ type: 'err', text: 'Номер телефона обязателен для связи и выплат вознаграждения через СБП (не менее 10 цифр).' });
+    if (!nickname.trim() || !gameAccount.trim() || !email.trim() || !phone.trim()) {
+      setMessage({ type: 'err', text: 'Пожалуйста, заполните все обязательные поля.' });
       return;
     }
 
     if (!isValidEmail(email)) {
-      setMessage({ type: 'err', text: 'Укажите корректный адрес электронной почты (например, name@mail.ru).' });
+      setMessage({ type: 'err', text: 'Введите корректный email адрес.' });
       return;
     }
 
-    if (!isAdult) {
-      setMessage({ type: 'err', text: 'Участие в соревнованиях разрешено только лицам, достигшим 18 лет (18+).' });
+    if (!isValidPhone(phone)) {
+      setMessage({ type: 'err', text: 'Введите корректный номер телефона РФ (+7).' });
       return;
     }
 
-    if (!user && (!password || password.length < 6)) {
-      setMessage({ type: 'err', text: 'Пароль для личного кабинета должен быть не менее 6 символов.' });
-      return;
-    }
-
+    // Сохраняем/авторизуем пользователя
     if (!user) {
-      await login(email.trim(), password.trim(), nickname.trim(), phone.trim());
-    } else {
-      if (user.nickname !== nickname.trim()) {
-        await updateNickname(nickname.trim());
-      }
-      if (!user.phone || user.phone !== phone.trim()) {
-        await updatePhone(phone.trim());
-      }
-    }
-
-    if (payMethod === 'balance') {
-      if (!user || user.balanceRub < fee) {
-        setMessage({ type: 'err', text: `Недостаточно средств на балансе. Требуется ${formatRub(fee)}.` });
+      if (!password || password.length < 6) {
+        setMessage({ type: 'err', text: 'Пароль должен содержать минимум 6 символов.' });
         return;
       }
-      updateBalance(-fee);
+      login(email.trim(), password, nickname.trim(), phone.trim());
+    } else {
+      if (phone.trim() && user.phone !== phone.trim()) {
+        updatePhone(phone.trim());
+      }
+      if (nickname.trim() && user.nickname !== nickname.trim()) {
+        updateNickname(nickname.trim());
+      }
+    }
+
+    // Списание с баланса
+    if (payMethod === 'balance') {
+      if (!canPayFromBalance) {
+        setMessage({ type: 'err', text: 'Недостаточно средств на балансе. Пополните баланс или выберите оплату картой.' });
+        return;
+      }
+
+      const success = updateBalance(-fee);
+      if (!success) {
+        setMessage({ type: 'err', text: 'Ошибка списания средств с баланса.' });
+        return;
+      }
+
       registerForTournament(tournamentId, nickname.trim(), gameAccount.trim(), email.trim(), phone.trim());
       setMessage({ type: 'ok', text: 'Успешно! Вы зарегистрированы на соревнование.' });
     } else {
@@ -104,6 +106,7 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           amount: fee,
           email: email.trim(),
           phone: phone.trim(),
+          userId: user?.id,
           nickname: nickname.trim(),
           gameAccount: gameAccount.trim(),
           password: password.trim(),
@@ -273,8 +276,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
                   : 'border-white/10 bg-black/20 text-zinc-400 hover:border-white/20'
               }`}
             >
-              <p className="text-xs font-bold text-white">💳 СБП / Карты РФ (ЮKassa)</p>
-              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, МИР, Сбер, Т-Банк через ЮKassa</p>
+              <p className="text-xs font-bold text-white">💳 СБП / Карты / FreeKassa</p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, МИР, Карты РФ, FKWallet</p>
             </button>
 
             <button
@@ -317,10 +320,10 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           }`}
         >
           {isSubmitting
-            ? 'Перенаправление на ЮKassa...'
+            ? 'Перенаправление на FreeKassa...'
             : payMethod === 'balance'
             ? `Оплатить ${formatRub(fee)} с баланса`
-            : `Оплатить ${formatRub(fee)} через ЮKassa (СБП / Карта)`}
+            : `Оплатить ${formatRub(fee)} через FreeKassa (СБП / Карта)`}
         </button>
 
         <p className="text-[11px] text-zinc-500 text-center leading-relaxed">

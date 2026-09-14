@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatRub } from '@/lib/format';
-import { initiateTopUpPayment } from '@/lib/yookassa-client';
+import { initiateTopUpPayment } from '@/lib/freekassa-client';
 import { useAuth } from '@/context/AuthContext';
 
 interface TopUpTier {
@@ -19,21 +19,21 @@ const TOPUP_TIERS: TopUpTier[] = [
   },
   {
     amount: 1000,
-    badge: 'Премиум соревнования',
-    games: 'PUBG Solo Premium (вознаграждение 28 000 ₽)',
-    isPopular: true,
+    badge: 'Премиум Solo',
+    games: 'PUBG Solo Premium',
   },
   {
     amount: 1500,
-    badge: 'Командные соревнования 5v5',
-    games: 'CS2 5v5, Dota 2 5v5 (вознаграждение 12 000 ₽)',
+    badge: 'Командные соревнования',
+    games: 'CS2 5v5, Dota 2 Battle Cup',
+    isPopular: true,
   },
 ];
 
 export const WalletTopUpForm: React.FC = () => {
   const { user } = useAuth();
-  const [selectedAmount, setSelectedAmount] = useState<number>(100);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedAmount, setSelectedAmount] = useState<number>(1500);
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleTopUp = async () => {
@@ -45,10 +45,11 @@ export const WalletTopUpForm: React.FC = () => {
         amount: selectedAmount,
         email: user?.email || '',
         phone: user?.phone || '',
+        userId: user?.id,
       });
     } catch (err: any) {
-      console.error('YooKassa top-up error:', err);
-      setErrorMessage(err.message || 'Ошибка подключения к ЮKassa. Попробуйте еще раз.');
+      console.error('FreeKassa top-up error:', err);
+      setErrorMessage(err.message || 'Ошибка подключения к FreeKassa. Попробуйте еще раз.');
       setIsLoading(false);
     }
   };
@@ -58,11 +59,11 @@ export const WalletTopUpForm: React.FC = () => {
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-white">Предоплата услуг платформы</h3>
         <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
-          СБП / МИР / ЮKassa
+          СБП / МИР / FreeKassa
         </span>
       </div>
       <p className="mt-1 text-xs text-zinc-400">
-        Через СБП, банковскую карту РФ (ЮKassa) или SberPay. Без комиссии.
+        Через СБП, банковскую карту РФ, кошельки или криптовалюту (FreeKassa).
       </p>
 
       {/* Список доступных фиксированных сумм */}
@@ -142,8 +143,8 @@ export const WalletTopUpForm: React.FC = () => {
           }`}
         >
           {isLoading
-            ? 'Перенаправление на ЮKassa...'
-            : `Пополнить баланс на ${formatRub(selectedAmount)} через ЮKassa`}
+            ? 'Перенаправление на FreeKassa...'
+            : `Пополнить баланс на ${formatRub(selectedAmount)} через FreeKassa`}
         </button>
 
         <p className="text-[11px] text-zinc-400 text-center leading-relaxed">

@@ -13,6 +13,12 @@ const HOST = '0.0.0.0';
 const SUPABASE_URL = 'https://qblybjpioynwgheqhxyo.supabase.co/rest/v1';
 const SUPABASE_KEY = 'sb_publishable_CAbgrdUXWUeP6squgk98Bg_Ul0oE6BV';
 
+// Настройки интеграции FreeKassa (FK)
+const FREEKASSA_SHOP_ID = (process.env.FREEKASSA_SHOP_ID || '45123').trim();
+const FREEKASSA_SECRET_1 = (process.env.FREEKASSA_SECRET_1 || 'владимир').trim();
+const FREEKASSA_SECRET_2 = (process.env.FREEKASSA_SECRET_2 || 'данила').trim();
+const FREEKASSA_API_KEY = (process.env.FREEKASSA_API_KEY || 'bc33c022a82f116ee612de14ea5f8e40').trim();
+
 // Настройки интеграции ЮKassa (ООО НКО «ЮМани»)
 const YOOKASSA_SHOP_ID = (process.env.YOOKASSA_SHOP_ID || '').trim();
 const YOOKASSA_SECRET_KEY = (process.env.YOOKASSA_SECRET_KEY || '').trim();
@@ -230,6 +236,125 @@ function generateUUID() {
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
+}
+
+async function handleCreateFreeKassaPayment(req, res, bodyStr) {
+  let body = {};
+  try {
+    body = JSON.parse(bodyStr);
+  } catch {}
+
+  const amount = parseFloat(body.amount) || 100;
+  const email = (body.email || '').trim();
+  const phone = (body.phone || '').trim();
+  const tournamentId = (body.tournamentId || '').trim();
+  const tournamentTitle = (body.tournamentTitle || '').trim();
+  const nickname = (body.nickname || '').trim();
+  const gameAccount = (body.gameAccount || '').trim();
+  const userId = (body.userId || '').trim();
+  const type = body.type || 'topup';
+
+  const oa = (Math.floor(amount) === amount) ? String(amount) : amount.toFixed(2);
+  const orderId = 'nb_' + Date.now() + '_' + Math.floor(1000 + Math.random() * 9000);
+  const currency = 'RUB';
+
+  // md5(merchant_id:order_amount:secret_word:currency:order_id)
+  const sign = crypto.createHash('md5').update(`${FREEKASSA_SHOP_ID}:${oa}:${FREEKASSA_SECRET_1}:${currency}:${orderId}`).digest('hex');
+
+  const queryParams = new URLSearchParams({
+    m: FREEKASSA_SHOP_ID,
+    oa,
+    o: orderId,
+    s: sign,
+    currency,
+    em: email,
+    phone,
+    lang: 'ru',
+    us_userId: userId,
+    us_type: type,
+    us_tournamentId: tournamentId,
+    us_nickname: nickname,
+    us_gameAccount: gameAccount,
+  });
+
+  const paymentUrl = `https://pay.freekassa.ru/?${queryParams.toString()}`;
+
+  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify({
+    success: true,
+    confirmationUrl: paymentUrl,
+    orderId,
+    amount,
+    shopId: FREEKASSA_SHOP_ID,
+  }));
+}
+
+async function handleFreeKassaWebhook(req, res, bodyStr) {
+  const timestamp = new Date().toISOString();
+  let params = {};
+
+  try {
+    // FreeKassa может слать application/x-www-form-urlencoded
+    const parsed = new URLSearchParams(bodyStr);
+    for (const [k, v] of parsed.entries()) {
+      params[k] = v;
+    }
+  } catch {}
+
+  const merchantId = params.MERCHANT_ID || '';
+  const amount = parseFloat(params.AMOUNT) || 0;
+  const orderId = params.MERCHANT_ORDER_ID || '';
+  const sign = params.SIGN || '';
+
+  const expectedSign = crypto.createHash('md5').update(`${merchantId}:${params.AMOUNT}:${FREEKASSA_SECRET_2}:${orderId}`).digest('hex');
+
+  if (!sign || sign.toLowerCase() !== expectedSign.toLowerCase()) {
+    console.error(`[FreeKassa] Invalid signature. Got: ${sign}, Expected: ${expectedSign}`);
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    return res.end('wrong sign');
+  }
+
+  const email = (params.P_EMAIL || '').trim();
+  const phone = (params.P_PHONE || '').trim();
+  const userId = (params.us_userId || '').trim();
+  const type = params.us_type || 'topup';
+  const tournamentId = (params.us_tournamentId || '').trim();
+  const nickname = (params.us_nickname || 'Player').trim();
+  const gameAccount = (params.us_gameAccount || '').trim();
+
+  console.log(`[FreeKassa] Valid payment: ${amount} RUB, order: ${orderId}, email: ${email}`);
+
+  // Зачисление в Supabase
+  if (amount > 0) {
+    try {
+      if (userId) {
+        await patchSupabaseUserBalance(userId, amount);
+      } else if (email) {
+        const u = await findSupabaseUserByEmail(email);
+        if (u && u.id) {
+          if (!tournamentId || type === 'topup') {
+            await patchSupabaseUserBalance(u.id, amount);
+          }
+        }
+      }
+
+      if (tournamentId) {
+        await insertSupabaseRegistration({
+          tournament_id: tournamentId,
+          nickname,
+          game_account: gameAccount,
+          email,
+          phone,
+          paid_at: new Date().toISOString(),
+        });
+      }
+    } catch (e) {
+      console.error('[FreeKassa] Supabase sync error:', e);
+    }
+  }
+
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('YES');
 }
 
 async function handleCreateYooKassaPayment(req, res, bodyStr) {
@@ -502,6 +627,27 @@ const server = http.createServer(async (req, res) => {
       uptime: process.uptime(),
       time: new Date().toISOString(),
     }));
+  }
+
+  // FreeKassa: создание платежа
+  if (
+    pathname === '/freekassa-create.php' ||
+    pathname === '/api/freekassa/create' ||
+    pathname === '/api/create-freekassa-payment'
+  ) {
+    const bodyStr = await readBody(req);
+    return handleCreateFreeKassaPayment(req, res, bodyStr);
+  }
+
+  // FreeKassa: вебхук оповещений о платежах (Result URL)
+  if (
+    pathname === '/freekassa-notification.php' ||
+    pathname === '/freekassa-notification' ||
+    pathname === '/api/freekassa-webhook' ||
+    pathname === '/freekassa-result.php'
+  ) {
+    const bodyStr = await readBody(req);
+    return handleFreeKassaWebhook(req, res, bodyStr);
   }
 
   // YooKassa: создание платежа

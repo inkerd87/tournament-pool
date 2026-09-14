@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Блок поддерживаемых платёжных систем для модерации ЮKassa */}
+        {/* Блок поддерживаемых платёжных систем */}
         <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] text-zinc-400 mr-1">Способы оплаты:</span>
@@ -73,7 +73,7 @@ export const Footer: React.FC = () => {
               СБП
             </span>
             <span className="inline-flex items-center rounded-md border border-cyan-500/20 bg-cyan-950/30 px-2.5 py-1 font-bold text-cyan-300 text-[11px] tracking-wider">
-              ЮKassa
+              FreeKassa
             </span>
             <span className="inline-flex items-center rounded-md border border-white/10 bg-white/5 px-2.5 py-1 font-bold text-zinc-300 text-[11px] tracking-wider">
               Mastercard
@@ -84,7 +84,7 @@ export const Footer: React.FC = () => {
           </div>
 
           <p className="text-center sm:text-right text-[11px] text-zinc-500 leading-relaxed">
-            Приём платежей организован через платёжный сервис <strong className="text-zinc-400">ЮKassa</strong> (ООО НКО «ЮМани»). Безопасность гарантируется протоколами шифрования SSL/TLS и стандартом PCI DSS.
+            Приём платежей организован через платёжный сервис <strong className="text-zinc-400">FreeKassa</strong>. Безопасность гарантируется протоколами шифрования SSL/TLS и стандартом PCI DSS.
           </p>
         </div>
       </div>
