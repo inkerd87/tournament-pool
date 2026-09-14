@@ -12,7 +12,6 @@ import { PrivacyPage } from '@/pages/PrivacyPage';
 import { OfferPage } from '@/pages/OfferPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { PaymentReturnPage } from '@/pages/PaymentReturnPage';
-import { LaunchAnnouncementModal } from '@/components/LaunchAnnouncementModal';
 
 export const App: React.FC = () => {
   const location = useLocation();
@@ -49,7 +48,7 @@ export const App: React.FC = () => {
           </Routes>
         </main>
         <Footer />
-        <LaunchAnnouncementModal />
+        {/* Модальное окно анонса 12 сентября временно отключено по запросу пользователя */}
       </div>
     </div>
   );

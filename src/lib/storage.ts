@@ -4,7 +4,7 @@ import { DEFAULT_MAX_PLAYERS, ENTRY_FEE_RUB } from './constants';
 const INITIAL_TOURNAMENTS: Tournament[] = [
   {
     id: "cs2-weekly-001",
-    title: "CS2 5v5 Cash Clash #1",
+    title: "CS2 5v5 Cup #1",
     game: "cs2",
     maxPlayers: 10,
     minPlayers: 10,

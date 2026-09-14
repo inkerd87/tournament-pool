@@ -28,7 +28,7 @@ export const TournamentsPage: React.FC = () => {
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Список соревнований</h1>
         <p className="mt-1 text-xs sm:text-sm text-zinc-400">
-          Разные форматы соревнований · Честное судейство · Денежное вознаграждение победителям · Выплаты до суток
+          Разные форматы соревнований · Честное судейство · Вознаграждение победителям · Выплаты до суток
         </p>
       </div>
 
