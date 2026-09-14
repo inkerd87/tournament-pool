@@ -64,7 +64,7 @@ export default function HowItWorksPage() {
         </li>
       </ol>
 
-      <h2 className="mt-12 text-xl font-bold text-white">Кошелёк</h2>
+      <h2 className="mt-12 text-xl font-bold text-white">Баланс и предоплата услуг</h2>
       <p className="mt-4 leading-relaxed text-zinc-300">
         В личном кабинете можно пополнить баланс фиксированными пакетами и оплачивать организационные услуги в один клик без комиссии. Средства на балансе являются предоплатой услуг платформы.
       </p>

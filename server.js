@@ -249,7 +249,7 @@ async function handleCreateYooKassaPayment(req, res, bodyStr) {
   const description = body.description || (
     type === 'registration'
       ? `Оплата орг. услуг: ${tournamentTitle || tournamentId} (${amount} ₽)`
-      : `Пополнение баланса NightByte (${amount} ₽)`
+      : `Предоплата орг. услуг соревнований NightByte (${amount} ₽)`
   );
   const returnUrl = body.returnUrl || 'https://nightbyteonline.ru/payment/return';
 

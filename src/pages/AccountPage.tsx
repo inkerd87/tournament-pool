@@ -260,7 +260,7 @@ export const AccountPage: React.FC = () => {
         <div className="space-y-6">
           <div className="surface-card p-5 sm:p-6">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Баланс кошелька</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Баланс аккаунта</p>
               <button
                 type="button"
                 onClick={() => refreshUser()}

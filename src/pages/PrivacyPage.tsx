@@ -6,7 +6,7 @@ export const PrivacyPage: React.FC = () => {
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
       <h1 className="text-3xl font-extrabold text-white">Политика конфиденциальности и правовой статус</h1>
       <p className="mt-2 text-sm text-zinc-400">
-        Оператор платформы: Самозанятый / Организатор соревнований, ИНН: <strong className="text-zinc-200">910408161157</strong>.
+        Оператор платформы: <strong className="text-white font-semibold">Самозанятый Дегтярев Владимир Михайлович</strong>, ИНН: <strong className="text-zinc-200">910408161157</strong>.
       </p>
 
       <div className="mt-8 space-y-7 text-sm leading-relaxed text-zinc-300">
@@ -84,11 +84,14 @@ export const PrivacyPage: React.FC = () => {
         <section className="space-y-3">
           <h2 className="text-base font-bold text-white">5. Изменения и контакты</h2>
           <p>
+            Оператор персональных данных: <strong className="text-white">Самозанятый Дегтярев Владимир Михайлович</strong> (ИНН: <span className="font-mono text-cyan-300">910408161157</span>).
+          </p>
+          <p>
             Актуальная редакция документа всегда доступна по адресу{' '}
             <a href="https://nightbyteonline.ru/privacy" className="text-cyan-400 hover:underline">
               https://nightbyteonline.ru/privacy
             </a>
-            . По вопросам защиты данных и проведения соревнований: <strong className="text-white">inkerdany@mail.ru</strong>, тел. <strong className="text-white">+7 (978) 784-74-14</strong>.
+            . По вопросам защиты персональных данных и условий участия в соревнованиях: <strong className="text-white">inkerdany@mail.ru</strong>, тел. <strong className="text-white">+7 978 784-74-14</strong>.
           </p>
         </section>
       </div>

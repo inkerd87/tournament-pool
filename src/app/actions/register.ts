@@ -135,7 +135,7 @@ export async function startWalletTopUp(amountRub: number) {
     const paymentUrl = buildPaymentUrl({
       amountRub,
       invId: prepared.invoiceId,
-      description: `Пополнение кошелька ${SITE_NAME}`,
+      description: `Предоплата орг. услуг ${SITE_NAME}`,
       pendingId: prepared.pendingId,
     });
 

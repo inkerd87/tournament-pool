@@ -38,7 +38,7 @@ $description = isset($data['description']) && !empty($data['description'])
     ? trim($data['description'])
     : ($type === 'registration' 
         ? "Оплата орг. услуг: " . ($tournament_title ?: $tournament_id) . " ({$amount} ₽)"
-        : "Пополнение баланса NightByte ({$amount} ₽)");
+        : "Предоплата орг. услуг соревнований NightByte ({$amount} ₽)");
 
 // 3. Если заданы Shop ID и Secret Key — вызываем официальный API v3 ЮKassa
 if (!empty($yoo_shop_id) && !empty($yoo_secret_key)) {

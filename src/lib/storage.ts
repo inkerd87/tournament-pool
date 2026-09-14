@@ -9,7 +9,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     maxPlayers: 10,
     minPlayers: 10,
     registeredCount: 0,
-    startsAt: "2026-09-08T20:00:00+03:00",
+    startsAt: "2026-09-20T20:00:00+03:00",
     status: "recruiting",
     format: "5v5, BO1 — Регламент соревнований",
     description: "Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.",
@@ -25,7 +25,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     maxPlayers: 10,
     minPlayers: 10,
     registeredCount: 0,
-    startsAt: "2026-09-08T21:30:00+03:00",
+    startsAt: "2026-09-20T21:30:00+03:00",
     status: "recruiting",
     format: "5v5, Captains Mode — Регламент соревнований",
     description: "Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.",
@@ -41,7 +41,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     maxPlayers: 100,
     minPlayers: 50,
     registeredCount: 0,
-    startsAt: "2026-09-07T19:00:00+03:00",
+    startsAt: "2026-09-21T19:00:00+03:00",
     status: "recruiting",
     format: "Solo, 1 соревнование",
     description: "Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение 2 200 ₽ учреждено организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.",
@@ -57,7 +57,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     maxPlayers: 100,
     minPlayers: 50,
     registeredCount: 0,
-    startsAt: "2026-09-07T21:00:00+03:00",
+    startsAt: "2026-09-21T21:00:00+03:00",
     status: "recruiting",
     format: "Solo, 1 соревнование",
     description: "Премиум одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
@@ -73,7 +73,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     maxPlayers: 100,
     minPlayers: 50,
     registeredCount: 0,
-    startsAt: "2026-09-10T19:00:00+03:00",
+    startsAt: "2026-10-01T19:00:00+03:00",
     status: "soon",
     format: "Solo Resurgence, 1 катка",
     description: "Соревнования по Call of Duty: Warzone откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
@@ -86,7 +86,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     maxPlayers: 100,
     minPlayers: 50,
     registeredCount: 0,
-    startsAt: "2026-09-11T19:00:00+03:00",
+    startsAt: "2026-10-02T19:00:00+03:00",
     status: "soon",
     format: "Solo Zero Build, 1 катка",
     description: "Соревнования по Fortnite откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
@@ -95,9 +95,9 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v15');
+  const data = localStorage.getItem('nb_tournaments_v16');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v15', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v16', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {

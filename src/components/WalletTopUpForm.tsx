@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { formatRub } from '@/lib/format';
 import { initiateTopUpPayment } from '@/lib/yookassa-client';
 import { useAuth } from '@/context/AuthContext';
@@ -55,19 +56,19 @@ export const WalletTopUpForm: React.FC = () => {
   return (
     <div className="surface-card p-5 sm:p-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold text-white">Пополнение баланса</h3>
+        <h3 className="text-base font-bold text-white">Предоплата услуг платформы</h3>
         <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
           СБП / МИР / ЮKassa
         </span>
       </div>
       <p className="mt-1 text-xs text-zinc-400">
-        Через СБП, банковскую карту (ЮKassa) или SberPay. Без комиссии.
+        Через СБП, банковскую карту РФ (ЮKassa) или SberPay. Без комиссии.
       </p>
 
       {/* Список доступных фиксированных сумм */}
       <div className="mt-4 space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-          Выберите доступную сумму:
+          Выберите пакет организационных услуг:
         </p>
 
         <div className="space-y-2">
@@ -142,11 +143,23 @@ export const WalletTopUpForm: React.FC = () => {
         >
           {isLoading
             ? 'Перенаправление на ЮKassa...'
-            : `Пополнить кошелек на ${formatRub(selectedAmount)} через ЮKassa`}
+            : `Пополнить баланс на ${formatRub(selectedAmount)} через ЮKassa`}
         </button>
 
+        <p className="text-[11px] text-zinc-400 text-center leading-relaxed">
+          Нажимая кнопку, вы принимаете условия{' '}
+          <Link to="/offer" target="_blank" className="text-cyan-400 hover:underline">
+            Публичной оферты
+          </Link>{' '}
+          и соглашаетесь с{' '}
+          <Link to="/privacy" target="_blank" className="text-cyan-400 hover:underline">
+            Политикой конфиденциальности
+          </Link>
+          .
+        </p>
+
         <p className="text-[10px] text-zinc-500 text-center leading-relaxed">
-          🔒 В соответствии с правилами платформы пополнение осуществляется только фиксированными номиналами (100, 1 000, 1 500 ₽).
+          🔒 Оплата услуг по организации соревнований фиксированными пакетами (100, 1 000, 1 500 ₽).
         </p>
       </div>
     </div>

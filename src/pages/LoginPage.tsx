@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
@@ -233,6 +233,18 @@ export const LoginPage: React.FC = () => {
               ? 'Войти в профиль'
               : 'Зарегистрироваться (18+)'}
           </button>
+
+          <p className="mt-3.5 text-[11px] text-zinc-500 text-center leading-relaxed">
+            Нажимая кнопку, вы подтверждаете совершеннолетие (18+), соглашаетесь с условиями{' '}
+            <Link to="/offer" target="_blank" className="text-cyan-400 hover:underline">
+              Публичной оферты
+            </Link>{' '}
+            и даёте согласие на обработку персональных данных в соответствии с{' '}
+            <Link to="/privacy" target="_blank" className="text-cyan-400 hover:underline">
+              Политикой конфиденциальности
+            </Link>
+            .
+          </p>
         </form>
 
         <div className="mt-6 text-center text-xs text-zinc-500">

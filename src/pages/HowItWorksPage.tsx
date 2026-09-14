@@ -103,6 +103,19 @@ export const HowItWorksPage: React.FC = () => {
             При регистрации на соревнование участник подтверждает своё совершеннолетие. Организатор оставляет за собой право запросить подтверждение возраста победителей перед выплатой вознаграждения.
           </p>
         </section>
+
+        <section className="space-y-3 rounded-2xl border border-cyan-500/20 bg-cyan-950/20 p-6">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🔄</span>
+            <h2 className="text-xl font-bold text-cyan-300">8. Порядок возврата денежных средств</h2>
+          </div>
+          <p className="leading-relaxed text-zinc-300 text-sm">
+            В случае отмены или невозможности проведения соревнований по вине организатора либо из-за технических сбоев, оплата организационных услуг возвращается Заказчику в 100% полном объеме.
+          </p>
+          <p className="leading-relaxed text-zinc-400 text-sm">
+            Заказчик также вправе отказаться от участия и запросить возврат до момента публикации Room ID и пароля к игровому лобби. Заявления направляются на <a href="mailto:inkerdany@mail.ru" className="text-cyan-400 underline font-mono">inkerdany@mail.ru</a> и рассматриваются до 3 рабочих дней. Возврат осуществляется в безналичном порядке через ЮKassa на карту / СБП Заказчика в срок от 1 до 10 рабочих дней.
+          </p>
+        </section>
       </div>
 
       <div className="mt-12 pt-8 border-t border-white/10">
