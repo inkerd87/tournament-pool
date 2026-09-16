@@ -277,7 +277,7 @@ async function handleCreateFreeKassaPayment(req, res, bodyStr) {
     us_gameAccount: gameAccount,
   });
 
-  const paymentUrl = `https://pay.freekassa.ru/?${queryParams.toString()}`;
+  const paymentUrl = `https://pay.freekassa.net/?${queryParams.toString()}`;
 
   res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify({

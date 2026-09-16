@@ -57,7 +57,7 @@ $query_params = [
     'us_gameAccount' => $game_account,
 ];
 
-$payment_url = 'https://pay.freekassa.ru/?' . http_build_query($query_params);
+$payment_url = 'https://pay.freekassa.net/?' . http_build_query($query_params);
 
 echo json_encode([
     'success' => true,

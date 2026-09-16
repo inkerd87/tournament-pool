@@ -11,8 +11,7 @@ import CryptoJS from 'crypto-js';
 
 export const FREEKASSA_SHOP_ID = '75872';
 export const FREEKASSA_SECRET_1 = 'владимир';
-export const FREEKASSA_SECRET_2 = 'данила';
-export const FREEKASSA_PAYMENT_BASE_URL = 'https://pay.freekassa.ru/';
+export const FREEKASSA_PAYMENT_BASE_URL = 'https://pay.freekassa.net/';
 
 export const FREEKASSA_DEFAULT_RETURN_URL = typeof window !== 'undefined'
   ? `${window.location.origin}/payment/return`
@@ -74,7 +73,7 @@ export function buildFreeKassaPaymentUrl(payload: FreeKassaPaymentPayload): {
     params.set('em', payload.email.trim());
   }
   if (payload.phone && payload.phone.trim()) {
-    params.set('phone', payload.phone.trim());
+    params.set('phone', payload.phone.trim().replace(/[^\d+]/g, ''));
   }
   if (payload.userId && payload.userId.trim()) {
     params.set('us_userId', payload.userId.trim());
