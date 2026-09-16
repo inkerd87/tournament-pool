@@ -101,7 +101,7 @@ export function buildFreeKassaPaymentUrl(payload: FreeKassaPaymentPayload): {
 export async function createFreeKassaPayment(
   payload: FreeKassaPaymentPayload
 ): Promise<FreeKassaCreateResponse> {
-  const { url, orderId } = buildFreeKassaPaymentUrl(payload);
+  const { url: fallbackUrl, orderId } = buildFreeKassaPaymentUrl(payload);
 
   // 1. Сохраняем состояние ожидающего платежа в localStorage для обработки после возврата
   if (payload.type === 'registration') {
@@ -135,9 +135,42 @@ export async function createFreeKassaPayment(
     );
   }
 
+  // 2. Вызываем серверный обработчик для создания официального заказа через FreeKassa API v1
+  try {
+    const res = await fetch('/freekassa-create.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: payload.amount,
+        email: payload.email,
+        phone: payload.phone,
+        tournamentId: payload.tournamentId,
+        tournamentTitle: payload.tournamentTitle,
+        nickname: payload.nickname,
+        gameAccount: payload.gameAccount,
+        userId: payload.userId,
+        type: payload.type,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.confirmationUrl) {
+        return {
+          success: true,
+          confirmationUrl: data.confirmationUrl,
+          orderId: data.orderId || orderId,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('[FreeKassa] API backend order creation error, using fallback:', err);
+  }
+
+  // 3. Fallback: прямая ссылка FreeKassa
   return {
     success: true,
-    confirmationUrl: url,
+    confirmationUrl: fallbackUrl,
     orderId,
   };
 }

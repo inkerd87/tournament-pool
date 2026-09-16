@@ -245,47 +245,80 @@ async function handleCreateFreeKassaPayment(req, res, bodyStr) {
   } catch {}
 
   const amount = parseFloat(body.amount) || 100;
-  const email = (body.email || '').trim();
-  const phone = (body.phone || '').trim();
+  const email = (body.email || '').trim() || 'player@nightbyteonline.ru';
+  const phone = (body.phone || '').trim().replace(/[^\d+]/g, '');
   const tournamentId = (body.tournamentId || '').trim();
-  const tournamentTitle = (body.tournamentTitle || '').trim();
-  const nickname = (body.nickname || '').trim();
-  const gameAccount = (body.gameAccount || '').trim();
-  const userId = (body.userId || '').trim();
-  const type = body.type || 'topup';
-
-  const oa = (Math.floor(amount) === amount) ? String(amount) : amount.toFixed(2);
   const orderId = 'nb_' + Date.now() + '_' + Math.floor(1000 + Math.random() * 9000);
-  const currency = 'RUB';
+  const methodCode = body.method === 'card' ? 36 : 42; // 42 = СБП, 36 = Card RUB
 
-  // md5(merchant_id:order_amount:secret_word:currency:order_id)
-  const sign = crypto.createHash('md5').update(`${FREEKASSA_SHOP_ID}:${oa}:${FREEKASSA_SECRET_1}:${currency}:${orderId}`).digest('hex');
+  // 1. Создание официального заказа через API FreeKassa v1
+  try {
+    const nonce = Date.now();
+    const apiPayload = {
+      shopId: parseInt(FREEKASSA_SHOP_ID, 10),
+      nonce,
+      paymentId: orderId,
+      i: methodCode,
+      email,
+      ip: req.socket.remoteAddress || '127.0.0.1',
+      amount,
+      currency: 'RUB',
+    };
+    if (phone) {
+      apiPayload.tel = phone;
+    }
 
-  const queryParams = new URLSearchParams({
+    const sortedKeys = Object.keys(apiPayload).sort();
+    const signString = sortedKeys.map((k) => apiPayload[k]).join('|');
+    apiPayload.signature = crypto
+      .createHmac('sha256', FREEKASSA_API_KEY)
+      .update(signString)
+      .digest('hex');
+
+    const apiRes = await fetch('https://api.freekassa.net/v1/orders/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(apiPayload),
+      signal: AbortSignal.timeout(8000),
+    });
+
+    const apiJson = await apiRes.json();
+    if (apiJson && apiJson.type === 'success' && apiJson.location) {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({
+        success: true,
+        confirmationUrl: apiJson.location,
+        orderId,
+        fkOrderId: apiJson.orderId,
+      }));
+    }
+  } catch (err) {
+    console.error('[FreeKassa] API create order error:', err);
+  }
+
+  // 2. Fallback при ошибке API
+  const oa = Math.floor(amount) === amount ? String(amount) : amount.toFixed(2);
+  const fallbackSign = crypto
+    .createHash('md5')
+    .update(`${FREEKASSA_SHOP_ID}:${oa}:${FREEKASSA_SECRET_1}:RUB:${orderId}`)
+    .digest('hex');
+
+  const fallbackUrl = `https://pay.freekassa.net/?${new URLSearchParams({
     m: FREEKASSA_SHOP_ID,
     oa,
     o: orderId,
-    s: sign,
-    currency,
+    s: fallbackSign,
+    currency: 'RUB',
     em: email,
     phone,
     lang: 'ru',
-    us_userId: userId,
-    us_type: type,
-    us_tournamentId: tournamentId,
-    us_nickname: nickname,
-    us_gameAccount: gameAccount,
-  });
-
-  const paymentUrl = `https://pay.freekassa.net/?${queryParams.toString()}`;
+  }).toString()}`;
 
   res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify({
     success: true,
-    confirmationUrl: paymentUrl,
+    confirmationUrl: fallbackUrl,
     orderId,
-    amount,
-    shopId: FREEKASSA_SHOP_ID,
   }));
 }
 
