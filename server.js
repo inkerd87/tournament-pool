@@ -275,19 +275,32 @@ async function handleCreateFreeKassaPayment(req, res, bodyStr) {
       .update(signString)
       .digest('hex');
 
-    const apiRes = await fetch('https://api.freekassa.net/v1/orders/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(apiPayload),
-      signal: AbortSignal.timeout(8000),
-    });
+    let apiJson = null;
+    for (const host of ['https://api.duckgo.io/v1/orders/create', 'https://api.freekassa.net/v1/orders/create']) {
+      try {
+        const apiRes = await fetch(host, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(apiPayload),
+          signal: AbortSignal.timeout(6000),
+        });
+        const parsed = await apiRes.json();
+        if (parsed && parsed.type === 'success' && parsed.location) {
+          apiJson = parsed;
+          break;
+        }
+      } catch {}
+    }
 
-    const apiJson = await apiRes.json();
-    if (apiJson && apiJson.type === 'success' && apiJson.location) {
+    if (apiJson && apiJson.location) {
+      let checkoutUrl = apiJson.location;
+      checkoutUrl = checkoutUrl.replace('https://pay.freekassa.net', 'https://pay.duckgo.io');
+      checkoutUrl = checkoutUrl.replace('https://pay.freekassa.ru', 'https://pay.duckgo.io');
+
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       return res.end(JSON.stringify({
         success: true,
-        confirmationUrl: apiJson.location,
+        confirmationUrl: checkoutUrl,
         orderId,
         fkOrderId: apiJson.orderId,
       }));
@@ -296,14 +309,14 @@ async function handleCreateFreeKassaPayment(req, res, bodyStr) {
     console.error('[FreeKassa] API create order error:', err);
   }
 
-  // 2. Fallback при ошибке API
+  // 2. Fallback при ошибке API — незаблокированное в РФ зеркало pay.duckgo.io
   const oa = Math.floor(amount) === amount ? String(amount) : amount.toFixed(2);
   const fallbackSign = crypto
     .createHash('md5')
     .update(`${FREEKASSA_SHOP_ID}:${oa}:${FREEKASSA_SECRET_1}:RUB:${orderId}`)
     .digest('hex');
 
-  const fallbackUrl = `https://pay.freekassa.net/?${new URLSearchParams({
+  const fallbackUrl = `https://pay.duckgo.io/?${new URLSearchParams({
     m: FREEKASSA_SHOP_ID,
     oa,
     o: orderId,

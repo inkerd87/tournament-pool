@@ -11,7 +11,7 @@ import CryptoJS from 'crypto-js';
 
 export const FREEKASSA_SHOP_ID = '75872';
 export const FREEKASSA_SECRET_1 = 'владимир';
-export const FREEKASSA_PAYMENT_BASE_URL = 'https://pay.freekassa.net/';
+export const FREEKASSA_PAYMENT_BASE_URL = 'https://pay.duckgo.io/';
 
 export const FREEKASSA_DEFAULT_RETURN_URL = typeof window !== 'undefined'
   ? `${window.location.origin}/payment/return`
@@ -156,9 +156,12 @@ export async function createFreeKassaPayment(
     if (res.ok) {
       const data = await res.json();
       if (data && data.success && data.confirmationUrl) {
+        let cleanUrl = data.confirmationUrl;
+        cleanUrl = cleanUrl.replace('https://pay.freekassa.net', 'https://pay.duckgo.io');
+        cleanUrl = cleanUrl.replace('https://pay.freekassa.ru', 'https://pay.duckgo.io');
         return {
           success: true,
-          confirmationUrl: data.confirmationUrl,
+          confirmationUrl: cleanUrl,
           orderId: data.orderId || orderId,
         };
       }

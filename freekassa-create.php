@@ -1,7 +1,7 @@
 <?php
 /**
  * FreeKassa Payment Creation Endpoint for NightByte
- * Sprinthost / Apache PHP
+ * Незаблокированное в РФ зеркало (DDoS-Guard / duckgo.io / fmt.me)
  */
 
 header('Content-Type: application/json; charset=utf-8');
@@ -34,10 +34,10 @@ $user_id = isset($data['userId']) ? trim($data['userId']) : '';
 $type = isset($data['type']) ? trim($data['type']) : 'topup';
 $order_id = 'nb_' . time() . '_' . mt_rand(1000, 9999);
 
-// Выбор метода: 42 = СБП (QR код), 36 = Card RUB (Банковские карты МИР/Visa/MasterCard)
+// 42 = СБП (QR код), 36 = Card RUB (Банковские карты МИР/Visa/MasterCard)
 $method_code = (isset($data['method']) && $data['method'] === 'card') ? 36 : 42;
 
-// 1. Создание заказа через официальный API FreeKassa v1
+// 1. Создание заказа через официальное зеркало FreeKassa API (без VPN)
 $nonce = round(microtime(true) * 1000);
 $api_payload = [
     'shopId' => intval($shop_id),
@@ -59,31 +59,52 @@ ksort($api_payload);
 $sign_string = implode('|', $api_payload);
 $api_payload['signature'] = hash_hmac('sha256', $sign_string, $api_key);
 
-$ch = curl_init('https://api.freekassa.net/v1/orders/create');
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_payload));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-$api_res = curl_exec($ch);
-curl_close($ch);
+// Пробуем сначала через api.duckgo.io (не заблокировано РКН, DDoS-Guard), затем api.freekassa.net
+$api_endpoints = [
+    'https://api.duckgo.io/v1/orders/create',
+    'https://api.freekassa.net/v1/orders/create'
+];
 
-$api_json = json_decode($api_res, true);
+$api_json = null;
 
-if ($api_json && isset($api_json['type']) && $api_json['type'] === 'success' && !empty($api_json['location'])) {
+foreach ($api_endpoints as $endpoint) {
+    $ch = curl_init($endpoint);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($api_payload));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    $api_res = curl_exec($ch);
+    curl_close($ch);
+
+    if ($api_res) {
+        $parsed = json_decode($api_res, true);
+        if ($parsed && isset($parsed['type']) && $parsed['type'] === 'success' && !empty($parsed['location'])) {
+            $api_json = $parsed;
+            break;
+        }
+    }
+}
+
+if ($api_json && !empty($api_json['location'])) {
+    $checkout_url = $api_json['location'];
+    // Заменяем заблокированные домены на незаблокированное зеркало pay.duckgo.io
+    $checkout_url = str_replace('https://pay.freekassa.net', 'https://pay.duckgo.io', $checkout_url);
+    $checkout_url = str_replace('https://pay.freekassa.ru', 'https://pay.duckgo.io', $checkout_url);
+
     echo json_encode([
         'success' => true,
-        'confirmationUrl' => $api_json['location'],
+        'confirmationUrl' => $checkout_url,
         'orderId' => $order_id,
         'fkOrderId' => $api_json['orderId'] ?? null
     ]);
     exit;
 }
 
-// 2. Fallback при сбое связи с API
+// 2. Fallback при сбое связи с API — прямое зеркало pay.duckgo.io
 $oa = (floor($amount) == $amount) ? (string)intval($amount) : number_format($amount, 2, '.', '');
 $fallback_sign = md5($shop_id . ':' . $oa . ':' . $secret_1 . ':RUB:' . $order_id);
-$fallback_url = 'https://pay.freekassa.net/?' . http_build_query([
+$fallback_url = 'https://pay.duckgo.io/?' . http_build_query([
     'm' => $shop_id,
     'oa' => $oa,
     'o' => $order_id,
@@ -97,6 +118,5 @@ $fallback_url = 'https://pay.freekassa.net/?' . http_build_query([
 echo json_encode([
     'success' => true,
     'confirmationUrl' => $fallback_url,
-    'orderId' => $order_id,
-    'apiResponse' => $api_json
+    'orderId' => $order_id
 ]);
