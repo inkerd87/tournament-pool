@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
@@ -18,7 +18,7 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   if (user) {
-    navigate('/account');
+    return <Navigate to="/account" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { AdminLoginForm } from '@/components/AdminLoginForm';
 import { AdminMatchForm } from '@/components/AdminMatchForm';
 import { AdminRegistrationsManager } from '@/components/AdminRegistrationsManager';
+import { AdminTipsTipsPayments } from '@/components/AdminTipsTipsPayments';
+import { getStoredTipsTipsPayments } from '@/lib/tipstips-client';
 
 export const AdminPage: React.FC = () => {
   const { isAdmin, adminLogout } = useAuth();
   const { tournaments, matches, registrations } = useTournaments();
-  const [activeTab, setActiveTab] = useState<'registrations' | 'matches'>('registrations');
+  const [activeTab, setActiveTab] = useState<'registrations' | 'matches' | 'tipstips'>('tipstips');
+  const [pendingTipsCount, setPendingTipsCount] = useState<number>(() => {
+    return getStoredTipsTipsPayments().filter((p) => p.status === 'pending').length;
+  });
+
+  useEffect(() => {
+    const updateCount = () => {
+      setPendingTipsCount(getStoredTipsTipsPayments().filter((p) => p.status === 'pending').length);
+    };
+    window.addEventListener('nb_tipstips_updated', updateCount);
+    return () => window.removeEventListener('nb_tipstips_updated', updateCount);
+  }, []);
 
   if (!isAdmin) {
     return (
@@ -36,7 +49,30 @@ export const AdminPage: React.FC = () => {
       </div>
 
       {/* Переключатель вкладок */}
-      <div className="mt-6 flex items-center gap-3 border-b border-white/10 pb-4">
+      <div className="mt-6 flex flex-wrap items-center gap-3 border-b border-white/10 pb-4">
+        <button
+          type="button"
+          onClick={() => setActiveTab('tipstips')}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
+            activeTab === 'tipstips'
+              ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+              : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
+          }`}
+        >
+          <span>💳 Платежи tips.tips</span>
+          {pendingTipsCount > 0 ? (
+            <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-extrabold text-white animate-pulse">
+              {pendingTipsCount}
+            </span>
+          ) : (
+            <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
+              activeTab === 'tipstips' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
+            }`}>
+              0
+            </span>
+          )}
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('registrations')}
@@ -73,7 +109,9 @@ export const AdminPage: React.FC = () => {
       </div>
 
       <div className="mt-6">
-        {activeTab === 'registrations' ? (
+        {activeTab === 'tipstips' ? (
+          <AdminTipsTipsPayments />
+        ) : activeTab === 'registrations' ? (
           <AdminRegistrationsManager />
         ) : (
           <div className="space-y-6">

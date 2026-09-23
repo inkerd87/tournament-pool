@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatRub } from '@/lib/format';
-import { initiateTopUpPayment } from '@/lib/freekassa-client';
 import { useAuth } from '@/context/AuthContext';
+import { TipsTipsPaymentModal } from '@/components/TipsTipsPaymentModal';
+import { createTipsTipsPayment, TipsTipsPayment } from '@/lib/tipstips-client';
 
 interface TopUpTier {
   amount: number;
@@ -35,36 +36,58 @@ export const WalletTopUpForm: React.FC = () => {
   const [selectedAmount, setSelectedAmount] = useState<number>(1500);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activePayment, setActivePayment] = useState<TipsTipsPayment | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   const handleTopUp = async () => {
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      await initiateTopUpPayment({
+      const payment = await createTipsTipsPayment({
         amount: selectedAmount,
+        type: 'topup',
+        userId: user?.id,
         email: user?.email || '',
         phone: user?.phone || '',
-        userId: user?.id,
+        nickname: user?.nickname || user?.email || 'Игрок',
       });
+
+      setActivePayment(payment);
+      setIsModalOpen(true);
     } catch (err: any) {
-      console.error('FreeKassa top-up error:', err);
-      setErrorMessage(err.message || 'Ошибка подключения к FreeKassa. Попробуйте еще раз.');
+      console.error('tips.tips top-up error:', err);
+      setErrorMessage(err.message || 'Ошибка создания платежа. Попробуйте еще раз.');
+    } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePaymentSubmitted = (payment: TipsTipsPayment) => {
+    setSuccessBanner(
+      `Заявка ${payment.code} на сумму ${formatRub(payment.amount)} принята в обработку! Администратор сверит перевод в tips.tips.`
+    );
   };
 
   return (
     <div className="surface-card p-5 sm:p-6">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-white">Предоплата услуг платформы</h3>
-        <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
-          СБП / МИР / FreeKassa
+        <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+          СБП / МИР / tips.tips
         </span>
       </div>
       <p className="mt-1 text-xs text-zinc-400">
-        Через СБП, банковскую карту РФ, кошельки или криптовалюту (FreeKassa).
+        Моментальный перевод через СБП или любую карту РФ через сервис <strong>tips.tips</strong> без банковских комиссий и отказов.
       </p>
+
+      {/* Сообщение об успешном создании заявки */}
+      {successBanner && (
+        <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-3.5 text-xs text-emerald-300">
+          ✓ {successBanner}
+        </div>
+      )}
 
       {/* Список доступных фиксированных сумм */}
       <div className="mt-4 space-y-2">
@@ -82,7 +105,7 @@ export const WalletTopUpForm: React.FC = () => {
                 onClick={() => setSelectedAmount(tier.amount)}
                 className={`w-full flex items-center justify-between rounded-xl border p-3 text-left transition-all ${
                   isSelected
-                    ? 'border-cyan-500 bg-cyan-950/30 text-white shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/50'
+                    ? 'border-emerald-500 bg-emerald-950/30 text-white shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/50'
                     : 'border-white/10 bg-black/30 text-zinc-300 hover:border-white/20 hover:bg-black/50'
                 }`}
               >
@@ -108,7 +131,7 @@ export const WalletTopUpForm: React.FC = () => {
                   <div
                     className={`flex h-5 w-5 items-center justify-center rounded-full border transition-all ${
                       isSelected
-                        ? 'border-cyan-400 bg-cyan-400 text-black'
+                        ? 'border-emerald-400 bg-emerald-400 text-black'
                         : 'border-zinc-600 bg-transparent'
                     }`}
                   >
@@ -125,7 +148,7 @@ export const WalletTopUpForm: React.FC = () => {
         </div>
       </div>
 
-      {/* Ошибка если создание платежа не удалось */}
+      {/* Ошибка */}
       {errorMessage && (
         <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
           {errorMessage}
@@ -138,13 +161,16 @@ export const WalletTopUpForm: React.FC = () => {
           type="button"
           onClick={handleTopUp}
           disabled={isLoading}
-          className={`btn-primary w-full text-xs sm:text-sm py-3 px-4 font-bold shadow-lg shadow-cyan-500/20 transition text-center ${
+          className={`w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs sm:text-sm py-3 px-4 font-extrabold shadow-lg shadow-emerald-500/20 transition text-center ${
             isLoading ? 'opacity-70 cursor-wait' : ''
           }`}
         >
-          {isLoading
-            ? 'Перенаправление на FreeKassa...'
-            : `Пополнить баланс на ${formatRub(selectedAmount)} через FreeKassa`}
+          <span>💳</span>
+          <span>
+            {isLoading
+              ? 'Формирование платежа...'
+              : `Пополнить баланс на ${formatRub(selectedAmount)} через tips.tips`}
+          </span>
         </button>
 
         <p className="text-[11px] text-zinc-400 text-center leading-relaxed">
@@ -160,9 +186,19 @@ export const WalletTopUpForm: React.FC = () => {
         </p>
 
         <p className="text-[10px] text-zinc-500 text-center leading-relaxed">
-          🔒 Оплата услуг по организации соревнований фиксированными пакетами (100, 1 000, 1 500 ₽).
+          🔒 Оплата услуг по организации соревнований через безопасный перевод tips.tips (СБП, МИР, Visa, Mastercard).
         </p>
       </div>
+
+      {/* Модальное окно оплаты */}
+      {activePayment && (
+        <TipsTipsPaymentModal
+          payment={activePayment}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onPaymentSubmitted={handlePaymentSubmitted}
+        />
+      )}
     </div>
   );
 };

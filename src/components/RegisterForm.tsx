@@ -4,7 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { ENTRY_FEE_RUB } from '@/lib/constants';
 import { formatRub } from '@/lib/format';
-import { initiateTournamentPayment } from '@/lib/freekassa-client';
+import { TipsTipsPaymentModal } from '@/components/TipsTipsPaymentModal';
+import { createTipsTipsPayment, TipsTipsPayment } from '@/lib/tipstips-client';
 import { formatPhoneNumber, isValidPhone, isValidEmail } from '@/lib/validation';
 
 type Props = {
@@ -30,6 +31,8 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
   const [payMethod, setPayMethod] = useState<'card' | 'balance'>('card');
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [activePayment, setActivePayment] = useState<TipsTipsPayment | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const canPayFromBalance = user && user.balanceRub >= fee;
 
@@ -100,23 +103,33 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
       const currentTourney = tournaments.find(t => t.id === tournamentId);
       setIsSubmitting(true);
       try {
-        await initiateTournamentPayment({
-          tournamentId,
-          tournamentTitle: currentTourney?.title || '',
+        const payment = await createTipsTipsPayment({
           amount: fee,
+          type: 'registration',
+          userId: user?.id,
           email: email.trim(),
           phone: phone.trim(),
-          userId: user?.id,
           nickname: nickname.trim(),
           gameAccount: gameAccount.trim(),
-          password: password.trim(),
+          tournamentId,
+          tournamentTitle: currentTourney?.title || '',
         });
+        setActivePayment(payment);
+        setIsModalOpen(true);
       } catch (err: any) {
-        console.error('YooKassa tournament payment error:', err);
-        setMessage({ type: 'err', text: err.message || 'Ошибка подключения к ЮKassa. Попробуйте еще раз.' });
+        console.error('tips.tips payment error:', err);
+        setMessage({ type: 'err', text: err.message || 'Ошибка формирования платежа tips.tips. Попробуйте еще раз.' });
+      } finally {
         setIsSubmitting(false);
       }
     }
+  };
+
+  const handlePaymentSubmitted = (payment: TipsTipsPayment) => {
+    setMessage({
+      type: 'ok',
+      text: `Заявка ${payment.code} на участие в соревновании принята! Администратор сверит перевод в tips.tips и подтвердит регистрацию.`,
+    });
   };
 
   return (
@@ -272,12 +285,12 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
               onClick={() => setPayMethod('card')}
               className={`rounded-xl border p-3 text-left transition ${
                 payMethod === 'card'
-                  ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
+                  ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300'
                   : 'border-white/10 bg-black/20 text-zinc-400 hover:border-white/20'
               }`}
             >
-              <p className="text-xs font-bold text-white">💳 СБП / Карты / FreeKassa</p>
-              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, МИР, Карты РФ, FKWallet</p>
+              <p className="text-xs font-bold text-white">💳 СБП / Карты / tips.tips</p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">СБП, МИР, любые карты РФ</p>
             </button>
 
             <button
@@ -320,10 +333,10 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           }`}
         >
           {isSubmitting
-            ? 'Перенаправление на FreeKassa...'
+            ? 'Формирование платежа...'
             : payMethod === 'balance'
             ? `Оплатить ${formatRub(fee)} с баланса`
-            : `Оплатить ${formatRub(fee)} через FreeKassa (СБП / Карта)`}
+            : `Оплатить ${formatRub(fee)} через tips.tips (СБП / Карта)`}
         </button>
 
         <p className="text-[11px] text-zinc-500 text-center leading-relaxed">
@@ -333,10 +346,20 @@ export const RegisterForm: React.FC<Props> = ({ tournamentId, canRegister, entry
           </a>{' '}
           и{' '}
           <a href="/privacy" target="_blank" className="text-cyan-400 hover:underline">
-            Политики конфиденциальности
+            Политикой конфиденциальности
           </a>
         </p>
       </form>
+
+      {/* Модальное окно оплаты tips.tips */}
+      {activePayment && (
+        <TipsTipsPaymentModal
+          payment={activePayment}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onPaymentSubmitted={handlePaymentSubmitted}
+        />
+      )}
     </div>
   );
 };

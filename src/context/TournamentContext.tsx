@@ -499,11 +499,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const getUserRegistrations = (email: string) => {
-    return registrations.filter(r => r.email.toLowerCase() === email.toLowerCase());
+    if (!email) return [];
+    return registrations.filter(r => (r?.email || '').toLowerCase() === email.toLowerCase());
   };
 
   const isUserRegistered = (tournamentId: string, email: string) => {
-    return registrations.some(r => r.tournamentId === tournamentId && r.email.toLowerCase() === email.toLowerCase());
+    if (!email) return false;
+    return registrations.some(r => r.tournamentId === tournamentId && (r?.email || '').toLowerCase() === email.toLowerCase());
   };
 
   const computedTournaments = React.useMemo(() => {

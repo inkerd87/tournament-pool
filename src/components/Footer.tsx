@@ -72,8 +72,8 @@ export const Footer: React.FC = () => {
             <span className="inline-flex items-center rounded-md border border-white/10 bg-white/5 px-2.5 py-1 font-bold text-emerald-400 text-[11px] tracking-wider">
               СБП
             </span>
-            <span className="inline-flex items-center rounded-md border border-cyan-500/20 bg-cyan-950/30 px-2.5 py-1 font-bold text-cyan-300 text-[11px] tracking-wider">
-              FreeKassa
+            <span className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-950/40 px-2.5 py-1 font-bold text-emerald-300 text-[11px] tracking-wider">
+              tips.tips
             </span>
             <span className="inline-flex items-center rounded-md border border-white/10 bg-white/5 px-2.5 py-1 font-bold text-zinc-300 text-[11px] tracking-wider">
               Mastercard
@@ -84,7 +84,7 @@ export const Footer: React.FC = () => {
           </div>
 
           <p className="text-center sm:text-right text-[11px] text-zinc-500 leading-relaxed">
-            Приём платежей организован через платёжный сервис <strong className="text-zinc-400">FreeKassa</strong>. Безопасность гарантируется протоколами шифрования SSL/TLS и стандартом PCI DSS.
+            Приём переводов организован через сервис <strong className="text-zinc-300">tips.tips</strong> (СБП и банковские карты РФ). Безопасность гарантируется протоколами шифрования SSL/TLS и стандартом PCI DSS.
           </p>
         </div>
       </div>

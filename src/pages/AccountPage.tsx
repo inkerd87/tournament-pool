@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
@@ -8,6 +8,8 @@ import { WalletTopUpForm } from '@/components/WalletTopUpForm';
 import { RegisteredTournamentsList } from '@/components/RegisteredTournamentsList';
 import { MatchHistoryList } from '@/components/MatchHistoryList';
 import { getStoredHistory } from '@/lib/storage';
+import { getUserTipsTipsPayments, TipsTipsPayment } from '@/lib/tipstips-client';
+import { formatDateTime } from '@/lib/format';
 
 export const AccountPage: React.FC = () => {
   const { user, logout, refreshUser, updatePhone, updateNickname } = useAuth();
@@ -24,6 +26,20 @@ export const AccountPage: React.FC = () => {
   const [nickError, setNickError] = useState<string | null>(null);
   const [nickSuccess, setNickSuccess] = useState(false);
   const [isSavingNick, setIsSavingNick] = useState(false);
+
+  const [userTips, setUserTips] = useState<TipsTipsPayment[]>(() => {
+    return user?.email ? getUserTipsTipsPayments(user.email) : [];
+  });
+
+  useEffect(() => {
+    if (!user?.email) return;
+    setUserTips(getUserTipsTipsPayments(user.email));
+    const updateTips = () => {
+      setUserTips(getUserTipsTipsPayments(user.email));
+    };
+    window.addEventListener('nb_tipstips_updated', updateTips);
+    return () => window.removeEventListener('nb_tipstips_updated', updateTips);
+  }, [user?.email]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -276,6 +292,53 @@ export const AccountPage: React.FC = () => {
           </div>
 
           <WalletTopUpForm />
+
+          {userTips.length > 0 && (
+            <div className="surface-card p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Мои платежи tips.tips
+                </h3>
+                <span className="text-[10px] text-zinc-500 font-mono">
+                  {userTips.length} заявок
+                </span>
+              </div>
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                {userTips.map((p) => (
+                  <div
+                    key={p.id}
+                    className="rounded-xl border border-white/5 bg-white/[0.02] p-3 text-xs space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-extrabold text-amber-300">
+                        {p.code}
+                      </span>
+                      <span className="font-mono font-bold text-white">
+                        {formatRub(p.amount)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-zinc-400">
+                        {p.type === 'topup' ? 'Пополнение' : p.tournamentTitle || 'Турнир'}
+                      </span>
+                      {p.status === 'pending' && (
+                        <span className="text-amber-400 font-semibold">⏳ На проверке</span>
+                      )}
+                      {p.status === 'confirmed' && (
+                        <span className="text-emerald-400 font-semibold">✓ Зачислено</span>
+                      )}
+                      {p.status === 'rejected' && (
+                        <span className="text-rose-400 font-semibold">✕ Отклонено</span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-zinc-500 font-mono">
+                      {formatDateTime(p.createdAt)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="lg:col-span-2 space-y-6 sm:space-y-8">
