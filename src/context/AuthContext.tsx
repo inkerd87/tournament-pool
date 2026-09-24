@@ -39,6 +39,9 @@ interface AuthContextType {
   updatePhone: (newPhone: string) => Promise<boolean>;
   updateNickname: (newNick: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
+  verifyResetIdentity: (email: string, phoneOrNick: string) => Promise<{ success: boolean; nickname?: string; error?: string }>;
+  resetPassword: (email: string, phoneOrNick: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  adminResetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -418,6 +421,153 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true };
   };
 
+  const verifyResetIdentity = async (
+    email: string,
+    phoneOrNick: string
+  ): Promise<{ success: boolean; nickname?: string; error?: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanVerify = phoneOrNick.trim();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return { success: false, error: 'Укажите корректный адрес электронной почты.' };
+    }
+    if (!cleanVerify) {
+      return { success: false, error: 'Укажите номер телефона или никнейм.' };
+    }
+
+    const authMap = getStoredAuthMap();
+    const storedUser = authMap[cleanEmail];
+
+    let dbUser: any = null;
+    try {
+      const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', cleanEmail)
+        .maybeSingle();
+      if (data) dbUser = data;
+    } catch (e) {
+      console.warn('Supabase fetch user for verify notice:', e);
+    }
+
+    if (!storedUser && !dbUser) {
+      return { success: false, error: 'Пользователь с таким Email не найден в системе.' };
+    }
+
+    const normalizeDigits = (str: string) => (str || '').replace(/\D/g, '').slice(-10);
+    const verifyDigits = normalizeDigits(cleanVerify);
+
+    const userPhone = dbUser?.phone || storedUser?.phone || '';
+    const userPhoneDigits = normalizeDigits(userPhone);
+
+    const userNick = (dbUser?.nickname || storedUser?.nickname || '').toLowerCase().trim();
+    const verifyNick = cleanVerify.toLowerCase().trim();
+
+    const isPhoneMatch = verifyDigits.length >= 10 && userPhoneDigits.length >= 10 && verifyDigits === userPhoneDigits;
+    const isNickMatch = verifyNick.length >= 2 && userNick.length >= 2 && verifyNick === userNick;
+
+    if (!isPhoneMatch && !isNickMatch) {
+      return {
+        success: false,
+        error: 'Введённый телефон или никнейм не совпадает с данными этого аккаунта.',
+      };
+    }
+
+    const matchedNick = dbUser?.nickname || storedUser?.nickname || cleanEmail.split('@')[0];
+    return { success: true, nickname: matchedNick };
+  };
+
+  const resetPassword = async (
+    email: string,
+    phoneOrNick: string,
+    newPassword: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const verifyRes = await verifyResetIdentity(email, phoneOrNick);
+    if (!verifyRes.success) {
+      return { success: false, error: verifyRes.error };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'Новый пароль должен содержать не менее 6 символов.' };
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const authMap = getStoredAuthMap();
+    const storedUser = authMap[cleanEmail];
+
+    let dbUser: any = null;
+    try {
+      const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', cleanEmail)
+        .maybeSingle();
+      if (data) dbUser = data;
+    } catch (e) {
+      console.warn('Supabase fetch for reset notice:', e);
+    }
+
+    const finalNick = verifyRes.nickname || dbUser?.nickname || storedUser?.nickname || cleanEmail.split('@')[0];
+    const finalPhone = dbUser?.phone || storedUser?.phone || phoneOrNick;
+
+    // 1. Обновляем в локальной карте
+    authMap[cleanEmail] = {
+      password: newPassword,
+      phone: finalPhone,
+      nickname: finalNick,
+    };
+    saveStoredAuthMap(authMap);
+
+    // 2. Обновляем в Supabase
+    try {
+      await supabase
+        .from('users')
+        .update({ password: newPassword })
+        .eq('email', cleanEmail);
+    } catch (e) {
+      console.warn('Could not update password in Supabase:', e);
+    }
+
+    // 3. Автоматически авторизуем пользователя с новым паролем
+    const userObj: User = {
+      id: dbUser?.id || 'usr_' + Math.random().toString(36).substring(2, 9),
+      email: cleanEmail,
+      nickname: finalNick,
+      phone: finalPhone,
+      balanceRub: Number(dbUser?.balance_rub) || 0,
+      createdAt: dbUser?.created_at || new Date().toISOString(),
+    };
+    setUser(userObj);
+    saveUser(userObj);
+
+    return { success: true };
+  };
+
+  const adminResetPassword = async (
+    email: string,
+    newPassword: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !newPassword || newPassword.length < 6) {
+      return { success: false, error: 'Укажите email и пароль от 6 символов.' };
+    }
+
+    const authMap = getStoredAuthMap();
+    if (authMap[cleanEmail]) {
+      authMap[cleanEmail].password = newPassword;
+      saveStoredAuthMap(authMap);
+    }
+
+    try {
+      await supabase
+        .from('users')
+        .update({ password: newPassword })
+        .eq('email', cleanEmail);
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Ошибка обновления пароля в базе.' };
+    }
+  };
+
   const adminLogin = (password: string) => {
     if (password === 'Wek320_zag12_') {
       setIsAdmin(true);
@@ -599,6 +749,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updatePhone,
         updateNickname,
         refreshUser,
+        verifyResetIdentity,
+        resetPassword,
+        adminResetPassword,
       }}
     >
       {children}

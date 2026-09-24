@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTournaments } from '@/context/TournamentContext';
+import { useAuth } from '@/context/AuthContext';
 import { GameBadge } from '@/components/GameBadge';
 import { formatDateTime } from '@/lib/format';
 
@@ -11,10 +12,37 @@ export const AdminRegistrationsManager: React.FC = () => {
     clearTournamentRegistrations,
     refreshData,
   } = useTournaments();
+  const { adminResetPassword } = useAuth();
 
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>('all');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // Состояние сброса пароля
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetPass, setResetPass] = useState('');
+  const [resetFeedback, setResetFeedback] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handleAdminResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail.trim() || !resetPass.trim()) return;
+    setResetLoading(true);
+    setResetFeedback(null);
+    try {
+      const res = await adminResetPassword(resetEmail.trim(), resetPass.trim());
+      if (res.success) {
+        setResetFeedback(`✓ Пароль для ${resetEmail.trim()} успешно изменён!`);
+        setResetPass('');
+      } else {
+        setResetFeedback(`Ошибка: ${res.error}`);
+      }
+    } catch (err: any) {
+      setResetFeedback(`Ошибка: ${err?.message || 'Не удалось обновить пароль'}`);
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   const filteredRegistrations = selectedTournamentId === 'all'
     ? registrations
@@ -225,7 +253,18 @@ export const AdminRegistrationsManager: React.FC = () => {
                     <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">
                       {formatDateTime(reg.paidAt)}
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <td className="px-4 py-3 text-right whitespace-nowrap space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResetEmail(reg.email);
+                          setResetFeedback(null);
+                        }}
+                        className="rounded border border-amber-500/30 bg-amber-950/40 px-2 py-1 text-xs font-semibold text-amber-300 hover:bg-amber-900/60 transition"
+                        title="Сбросить пароль этому игроку"
+                      >
+                        Сбросить пароль
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleDeleteOne(reg.id, reg.nickname)}
@@ -242,6 +281,68 @@ export const AdminRegistrationsManager: React.FC = () => {
           </table>
         </div>
       )}
+
+      {/* Форма ручного сброса пароля администратором */}
+      <div className="surface-card p-5 border border-white/10 mt-6 space-y-3 bg-black/40">
+        <div className="flex items-center gap-2">
+          <span className="text-base">🔑</span>
+          <h3 className="text-sm font-bold text-white">Ручной сброс пароля игрока</h3>
+        </div>
+        <p className="text-xs text-zinc-400">
+          Если игрок обратился в поддержку и забыл пароль, вы можете назначить ему новый пароль вручную.
+        </p>
+
+        {resetFeedback && (
+          <div
+            className={`p-3 rounded-xl text-xs font-medium ${
+              resetFeedback.startsWith('✓')
+                ? 'bg-emerald-950/40 border border-emerald-500/30 text-emerald-300'
+                : 'bg-red-950/40 border border-red-500/30 text-red-300'
+            }`}
+          >
+            {resetFeedback}
+          </div>
+        )}
+
+        <form onSubmit={handleAdminResetPassword} className="grid sm:grid-cols-3 gap-3 items-end">
+          <div>
+            <label className="block text-[11px] font-semibold text-zinc-400 mb-1">
+              Email игрока:
+            </label>
+            <input
+              type="email"
+              required
+              className="input-field text-xs"
+              placeholder="player@mail.ru"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-zinc-400 mb-1">
+              Новый пароль:
+            </label>
+            <input
+              type="text"
+              required
+              minLength={6}
+              className="input-field text-xs font-mono"
+              placeholder="Минимум 6 символов..."
+              value={resetPass}
+              onChange={(e) => setResetPass(e.target.value)}
+            />
+          </div>
+          <div>
+            <button
+              type="submit"
+              disabled={resetLoading}
+              className="rounded-xl bg-amber-500 hover:bg-amber-400 text-black px-4 py-2.5 text-xs font-extrabold transition shadow-md shadow-amber-500/20 w-full"
+            >
+              {resetLoading ? 'Сохранение...' : 'Сменить пароль игроку'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
