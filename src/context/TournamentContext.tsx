@@ -18,6 +18,10 @@ interface TournamentContextType {
   deleteRegistration: (registrationId: string) => Promise<void>;
   clearTournamentRegistrations: (tournamentId?: string) => Promise<void>;
   updateMatch: (tournamentId: string, roomId: string, password: string, joinUrl?: string) => Promise<void> | void;
+  updateTournamentStartsAt: (tournamentId: string, startsAt: string) => Promise<boolean>;
+  updateTournament: (tournamentId: string, updates: Partial<Tournament>) => Promise<boolean>;
+  createTournament: (tournament: Omit<Tournament, 'registeredCount'>) => Promise<boolean>;
+  deleteTournament: (tournamentId: string) => Promise<boolean>;
   getUserRegistrations: (email: string) => Registration[];
   isUserRegistered: (tournamentId: string, email: string) => boolean;
   refreshData: () => Promise<void>;
@@ -126,14 +130,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
               return {
                 id: t.id,
-                title: isCsOrDota
+                title: t.title || (isCsOrDota
                   ? (t.game === 'cs2' ? 'CS2 5v5 Cup #1' : 'Dota 2 5v5 Battle Cup')
-                  : (isPubgPremium ? 'PUBG Solo Premium Showdown' : t.title),
+                  : (isPubgPremium ? 'PUBG Solo Premium Showdown' : t.id)),
                 game: t.game,
                 maxPlayers,
                 minPlayers,
                 registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length,
-                startsAt: t.starts_at,
+                startsAt: t.starts_at || new Date().toISOString(),
                 status,
                 format: isCsOrDota
                   ? (t.game === 'cs2' ? '5v5, BO1 — Регламент соревнований' : '5v5, Captains Mode — Регламент соревнований')
@@ -204,7 +208,19 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             }
           });
 
-          setTournaments(mapped);
+          setTournaments(prev => {
+            const merged = [...mapped];
+            prev.forEach(p => {
+              const existingIdx = merged.findIndex(m => m.id === p.id);
+              if (existingIdx === -1) {
+                merged.push(p);
+              } else if (p.startsAt && p.startsAt !== merged[existingIdx].startsAt) {
+                merged[existingIdx] = { ...merged[existingIdx], startsAt: p.startsAt };
+              }
+            });
+            saveTournaments(merged);
+            return merged;
+          });
         }
       } catch (e) {
         console.warn('Tournaments fetch notice (using cache):', e);
@@ -498,6 +514,103 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
+  const updateTournamentStartsAt = async (tournamentId: string, startsAt: string): Promise<boolean> => {
+    setTournaments(prev => {
+      const updated = prev.map(t => (t.id === tournamentId ? { ...t, startsAt } : t));
+      saveTournaments(updated);
+      return updated;
+    });
+
+    try {
+      await supabase
+        .from('tournaments')
+        .update({ starts_at: startsAt })
+        .eq('id', tournamentId);
+      return true;
+    } catch (e) {
+      console.warn('Could not sync tournament starts_at to Supabase:', e);
+      return true;
+    }
+  };
+
+  const updateTournament = async (tournamentId: string, updates: Partial<Tournament>): Promise<boolean> => {
+    setTournaments(prev => {
+      const updated = prev.map(t => (t.id === tournamentId ? { ...t, ...updates } : t));
+      saveTournaments(updated);
+      return updated;
+    });
+
+    try {
+      const dbPayload: Record<string, any> = {};
+      if (updates.startsAt !== undefined) dbPayload.starts_at = updates.startsAt;
+      if (updates.title !== undefined) dbPayload.title = updates.title;
+      if (updates.status !== undefined) dbPayload.status = updates.status;
+      if (updates.format !== undefined) dbPayload.format = updates.format;
+      if (updates.description !== undefined) dbPayload.description = updates.description;
+      if (updates.maxPlayers !== undefined) dbPayload.max_players = updates.maxPlayers;
+
+      if (Object.keys(dbPayload).length > 0) {
+        await supabase
+          .from('tournaments')
+          .update(dbPayload)
+          .eq('id', tournamentId);
+      }
+      return true;
+    } catch (e) {
+      console.warn('Could not sync tournament update to Supabase:', e);
+      return true;
+    }
+  };
+
+  const createTournament = async (tournamentData: Omit<Tournament, 'registeredCount'>): Promise<boolean> => {
+    const newTournament: Tournament = {
+      ...tournamentData,
+      id: tournamentData.id || `${tournamentData.game}-${Date.now().toString(36)}`,
+      registeredCount: 0,
+    };
+
+    setTournaments(prev => {
+      const updated = [newTournament, ...prev];
+      saveTournaments(updated);
+      return updated;
+    });
+
+    try {
+      await supabase.from('tournaments').insert({
+        id: newTournament.id,
+        title: newTournament.title,
+        game: newTournament.game,
+        max_players: newTournament.maxPlayers,
+        registered_count: 0,
+        starts_at: newTournament.startsAt,
+        status: newTournament.status,
+        format: newTournament.format,
+        description: newTournament.description,
+      });
+      return true;
+    } catch (e) {
+      console.warn('Could not sync tournament creation to Supabase, saved locally:', e);
+      return true;
+    }
+  };
+
+  const deleteTournament = async (tournamentId: string): Promise<boolean> => {
+    setTournaments(prev => {
+      const updated = prev.filter(t => t.id !== tournamentId);
+      saveTournaments(updated);
+      return updated;
+    });
+
+    try {
+      await supabase.from('tournaments').delete().eq('id', tournamentId);
+      await supabase.from('matches').delete().eq('tournament_id', tournamentId);
+      return true;
+    } catch (e) {
+      console.warn('Could not sync tournament deletion to Supabase:', e);
+      return true;
+    }
+  };
+
   const getUserRegistrations = (email: string) => {
     if (!email) return [];
     return registrations.filter(r => (r?.email || '').toLowerCase() === email.toLowerCase());
@@ -532,6 +645,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         deleteRegistration,
         clearTournamentRegistrations,
         updateMatch,
+        updateTournamentStartsAt,
+        updateTournament,
+        createTournament,
+        deleteTournament,
         getUserRegistrations,
         isUserRegistered,
         refreshData,

@@ -5,12 +5,14 @@ import { AdminLoginForm } from '@/components/AdminLoginForm';
 import { AdminMatchForm } from '@/components/AdminMatchForm';
 import { AdminRegistrationsManager } from '@/components/AdminRegistrationsManager';
 import { AdminTipsTipsPayments } from '@/components/AdminTipsTipsPayments';
+import { AdminCreateTournamentModal } from '@/components/AdminCreateTournamentModal';
 import { getStoredTipsTipsPayments } from '@/lib/tipstips-client';
 
 export const AdminPage: React.FC = () => {
   const { isAdmin, adminLogout } = useAuth();
   const { tournaments, matches, registrations } = useTournaments();
   const [activeTab, setActiveTab] = useState<'registrations' | 'matches' | 'tipstips'>('tipstips');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [pendingTipsCount, setPendingTipsCount] = useState<number>(() => {
     return getStoredTipsTipsPayments().filter((p) => p.status === 'pending').length;
   });
@@ -37,7 +39,7 @@ export const AdminPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-extrabold text-white">Панель администратора</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Управление участниками, регистрациями и доступами к лобби
+            Управление матчами, расписанием, участниками и платежами
           </p>
         </div>
         <button
@@ -65,12 +67,33 @@ export const AdminPage: React.FC = () => {
               {pendingTipsCount}
             </span>
           ) : (
-            <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
-              activeTab === 'tipstips' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
-            }`}>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
+                activeTab === 'tipstips' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
+              }`}
+            >
               0
             </span>
           )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('matches')}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
+            activeTab === 'matches'
+              ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20'
+              : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
+          }`}
+        >
+          <span>🏆 Матчи и расписание</span>
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
+              activeTab === 'matches' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
+            }`}
+          >
+            {tournaments.length}
+          </span>
         </button>
 
         <button
@@ -83,27 +106,12 @@ export const AdminPage: React.FC = () => {
           }`}
         >
           <span>👥 Участники соревнований</span>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
-            activeTab === 'registrations' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
-          }`}>
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
+              activeTab === 'registrations' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
+            }`}
+          >
             {registrations.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('matches')}
-          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
-            activeTab === 'matches'
-              ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20'
-              : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
-          }`}
-        >
-          <span>🔑 Доступы к лобби</span>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
-            activeTab === 'matches' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
-          }`}>
-            {tournaments.length}
           </span>
         </button>
       </div>
@@ -115,12 +123,23 @@ export const AdminPage: React.FC = () => {
           <AdminRegistrationsManager />
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Активные соревнования и лобби</h2>
-              <span className="text-xs text-zinc-500">
-                Данные обновляются в реальном времени через Supabase Realtime
-              </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5 border border-white/10 p-5 rounded-2xl">
+              <div>
+                <h2 className="text-xl font-bold text-white">Управление матчами и расписанием</h2>
+                <p className="mt-0.5 text-xs text-zinc-400">
+                  Меняйте время старта матчей, статусы (набор / игра / завершено), доступы к лобби или создавайте новые турниры.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="self-start sm:self-auto rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-2.5 text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition whitespace-nowrap"
+              >
+                <span>➕</span>
+                <span>Создать новый матч</span>
+              </button>
             </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               {tournaments.map((tournament) => (
                 <AdminMatchForm
@@ -130,6 +149,12 @@ export const AdminPage: React.FC = () => {
                 />
               ))}
             </div>
+
+            {/* Модальное окно создания нового матча/турнира */}
+            <AdminCreateTournamentModal
+              isOpen={isCreateModalOpen}
+              onClose={() => setIsCreateModalOpen(false)}
+            />
           </div>
         )}
       </div>
