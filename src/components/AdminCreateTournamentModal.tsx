@@ -116,7 +116,7 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({ isOpen, onClose })
       const startsAtIso = new Date(startsAtLocal).toISOString();
       const newId = `${selectedGame}-${Date.now().toString(36)}`;
 
-      await createTournament({
+      const success = await createTournament({
         id: newId,
         title: title.trim(),
         game: selectedGame,
@@ -132,6 +132,10 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({ isOpen, onClose })
           ? { 1: Number(prizePoolRub) || 12000, 2: 0, 3: 0 }
           : { 1: Math.round(prizePoolRub * 0.5), 2: Math.round(prizePoolRub * 0.3), 3: Math.round(prizePoolRub * 0.2) },
       });
+
+      if (!success) {
+        throw new Error('Не удалось сохранить соревнование в базу данных Supabase. Проверьте соединение.');
+      }
 
       onClose();
     } catch (err: any) {

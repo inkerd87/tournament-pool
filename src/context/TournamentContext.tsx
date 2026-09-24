@@ -50,14 +50,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Fetch from Supabase PostgreSQL
   const refreshData = useCallback(async () => {
     try {
-      const createTimeout = (ms = 2500) =>
+      const createTimeout = (ms = 10000) =>
         new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase fetch timeout')), ms));
 
-      // 1. Fetch registrations with 2.5s timeout
+      // 1. Fetch registrations with 10s timeout
       let currentRegs: Registration[] = [];
       try {
         const regsPromise = supabase.from('registrations').select('*');
-        const { data: dbRegs, error: rErr } = (await Promise.race([regsPromise, createTimeout()])) as any;
+        const { data: dbRegs, error: rErr } = (await Promise.race([regsPromise, createTimeout(10000)])) as any;
         if (!rErr && dbRegs) {
           currentRegs = dbRegs.map((r: any) => ({
             id: r.id,
@@ -93,40 +93,46 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         console.warn('Registrations fetch notice (using cache):', e);
       }
 
-      // 2. Fetch tournaments with 2.5s timeout
+      // 2. Fetch tournaments with 10s timeout
       try {
         const tourneysPromise = supabase.from('tournaments').select('*').order('starts_at', { ascending: true });
-        const { data: dbTournaments, error: tErr } = (await Promise.race([tourneysPromise, createTimeout()])) as any;
+        const { data: dbTournaments, error: tErr } = (await Promise.race([tourneysPromise, createTimeout(10000)])) as any;
 
         if (!tErr && dbTournaments && dbTournaments.length > 0) {
           const mapped: Tournament[] = dbTournaments
             .filter((t: any) => t.game !== ('valorant' as any) && t.id !== 'valorant-skirmish-001')
             .map((t: any) => {
-              const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
-              const isSoon = t.game === 'warzone' || t.game === 'fortnite';
-              const isPubgPremium = t.id === 'pubg-premium-001' || t.is_premium || (t.game === 'pubg' && t.title?.toLowerCase().includes('premium'));
-              
-              let entryFeeRub = 100;
-              let prizePoolRub = 2200;
-              let maxPlayers = t.max_players || 100;
-              let minPlayers = isCsOrDota ? 10 : 50;
-              let prizes = { 1: 1000, 2: 700, 3: 500 };
-
-              if (isCsOrDota) {
-                entryFeeRub = 1500;
-                prizePoolRub = 12000;
-                maxPlayers = 10;
-                minPlayers = 10;
-                prizes = { 1: 12000, 2: 0, 3: 0 };
-              } else if (isPubgPremium) {
-                entryFeeRub = 1000;
-                prizePoolRub = 28000;
-                maxPlayers = 100;
-                minPlayers = 50;
-                prizes = { 1: 15000, 2: 8000, 3: 5000 };
+              let cleanDesc = t.description || '';
+              let meta: any = null;
+              const metaMatch = cleanDesc.match(/<!--nb_meta:(.*?)-->/);
+              if (metaMatch) {
+                try {
+                  meta = JSON.parse(metaMatch[1]);
+                  cleanDesc = cleanDesc.replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
+                } catch (e) {
+                  console.warn('Failed to parse metadata from tournament description:', e);
+                }
               }
 
-              const status = isSoon ? 'soon' : (t.status as any);
+              const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
+              const isPubgPremium = t.id === 'pubg-premium-001' || t.is_premium || Boolean(meta?.isPremium) || (t.game === 'pubg' && t.title?.toLowerCase().includes('premium'));
+
+              let entryFeeRub = isCsOrDota ? 1500 : (isPubgPremium ? 1000 : 100);
+              let prizePoolRub = isCsOrDota ? 12000 : (isPubgPremium ? 28000 : 2200);
+              let maxPlayers = t.max_players || (isCsOrDota ? 10 : 100);
+              let minPlayers = isCsOrDota ? 10 : 50;
+              let prizes = isCsOrDota
+                ? { 1: 12000, 2: 0, 3: 0 }
+                : (isPubgPremium ? { 1: 15000, 2: 8000, 3: 5000 } : { 1: 1000, 2: 700, 3: 500 });
+
+              if (meta) {
+                if (typeof meta.entryFeeRub === 'number') entryFeeRub = meta.entryFeeRub;
+                if (typeof meta.prizePoolRub === 'number') prizePoolRub = meta.prizePoolRub;
+                if (meta.prizes) prizes = meta.prizes;
+                if (typeof meta.minPlayers === 'number') minPlayers = meta.minPlayers;
+              }
+
+              const status: TournamentStatus = t.status || 'recruiting';
 
               return {
                 id: t.id,
@@ -139,16 +145,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length,
                 startsAt: t.starts_at || new Date().toISOString(),
                 status,
-                format: isCsOrDota
+                format: t.format || (isCsOrDota
                   ? (t.game === 'cs2' ? '5v5, BO1 — Регламент соревнований' : '5v5, Captains Mode — Регламент соревнований')
-                  : (isPubgPremium ? 'Solo, 1 соревнование' : (t.format || 'Solo, 1 соревнование').replace(/\(быстрые призовые\)/gi, '').trim()),
-                description: isCsOrDota
-                  ? 'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.'
-                  : (isPubgPremium
-                      ? 'Премиум одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.'
-                      : (t.id === 'pubg-solo-001'
-                          ? 'Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение 2 200 ₽ учреждено организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.'
-                          : t.description)),
+                  : (isPubgPremium ? 'Solo, 1 соревнование' : 'Solo, 1 соревнование')),
+                description: cleanDesc,
                 entryFeeRub,
                 prizePoolRub,
                 prizes,
@@ -157,65 +157,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               };
             });
 
-          const defaultExtra: Tournament[] = [
-            {
-              id: "pubg-premium-001",
-              title: "PUBG Solo Premium Showdown",
-              game: "pubg",
-              maxPlayers: 100,
-              minPlayers: 50,
-              registeredCount: currentRegs.filter(r => r.tournamentId === "pubg-premium-001").length,
-              startsAt: "2026-09-07T21:00:00+03:00",
-              status: "recruiting",
-              format: "Solo, 1 соревнование",
-              description: "Премиум одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
-              entryFeeRub: 1000,
-              prizePoolRub: 28000,
-              prizes: { 1: 15000, 2: 8000, 3: 5000 },
-              isPremium: true,
-            },
-            {
-              id: "warzone-solo-001",
-              title: "Warzone Battle Royale",
-              game: "warzone",
-              maxPlayers: 100,
-              minPlayers: 50,
-              registeredCount: currentRegs.filter(r => r.tournamentId === "warzone-solo-001").length,
-              startsAt: "2026-09-10T19:00:00+03:00",
-              status: "soon",
-              format: "Solo Resurgence, 1 катка",
-              description: "Соревнования по Call of Duty: Warzone откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
-              entryFeeRub: 100,
-            },
-            {
-              id: "fortnite-solo-001",
-              title: "Fortnite Zero Build Cup",
-              game: "fortnite",
-              maxPlayers: 100,
-              minPlayers: 50,
-              registeredCount: currentRegs.filter(r => r.tournamentId === "fortnite-solo-001").length,
-              startsAt: "2026-09-11T19:00:00+03:00",
-              status: "soon",
-              format: "Solo Zero Build, 1 катка",
-              description: "Соревнования по Fortnite откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
-              entryFeeRub: 100,
-            },
-          ];
-
-          defaultExtra.forEach(extra => {
-            if (!mapped.some(t => t.id === extra.id)) {
-              mapped.push(extra);
-            }
-          });
-
           setTournaments(prev => {
             const merged = [...mapped];
+            // Only add local tournaments that are not yet in Supabase mapped results
             prev.forEach(p => {
-              const existingIdx = merged.findIndex(m => m.id === p.id);
-              if (existingIdx === -1) {
+              const exists = merged.some(m => m.id === p.id);
+              if (!exists) {
                 merged.push(p);
-              } else if (p.startsAt && p.startsAt !== merged[existingIdx].startsAt) {
-                merged[existingIdx] = { ...merged[existingIdx], startsAt: p.startsAt };
               }
             });
             saveTournaments(merged);
@@ -226,10 +174,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         console.warn('Tournaments fetch notice (using cache):', e);
       }
 
-      // 3. Fetch matches with 2.5s timeout
+      // 3. Fetch matches with 10s timeout
       try {
         const matchesPromise = supabase.from('matches').select('*');
-        const { data: dbMatches, error: mErr } = (await Promise.race([matchesPromise, createTimeout()])) as any;
+        const { data: dbMatches, error: mErr } = (await Promise.race([matchesPromise, createTimeout(10000)])) as any;
 
         if (!mErr && dbMatches) {
           const matchMap: Record<string, TournamentMatchAccess> = {};
@@ -243,6 +191,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             };
           });
           setMatches(matchMap);
+          saveMatches(matchMap);
         }
       } catch (e) {
         console.warn('Matches fetch notice (using cache):', e);
@@ -494,21 +443,26 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       updatedAt: new Date().toISOString(),
     };
 
-    setMatches(prev => ({
-      ...prev,
-      [tournamentId]: matchObj,
-    }));
+    setMatches(prev => {
+      const updated = {
+        ...prev,
+        [tournamentId]: matchObj,
+      };
+      saveMatches(updated);
+      return updated;
+    });
 
     try {
-      Promise.resolve(
-        supabase.from('matches').upsert({
-          tournament_id: tournamentId,
-          room_id: roomId,
-          password: password,
-          join_url: joinUrl,
-          updated_at: matchObj.updatedAt,
-        })
-      ).catch(() => {});
+      const { error } = await supabase.from('matches').upsert({
+        tournament_id: tournamentId,
+        room_id: roomId,
+        password: password,
+        join_url: joinUrl,
+        updated_at: matchObj.updatedAt,
+      });
+      if (error) {
+        console.error('Could not sync match to Supabase:', error);
+      }
     } catch (e) {
       console.warn('Could not sync match to Supabase:', e);
     }
@@ -522,14 +476,20 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('tournaments')
         .update({ starts_at: startsAt })
         .eq('id', tournamentId);
+
+      if (error) {
+        console.error('Could not sync tournament starts_at to Supabase:', error);
+        return false;
+      }
+      await refreshData();
       return true;
     } catch (e) {
       console.warn('Could not sync tournament starts_at to Supabase:', e);
-      return true;
+      return false;
     }
   };
 
@@ -546,26 +506,64 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (updates.title !== undefined) dbPayload.title = updates.title;
       if (updates.status !== undefined) dbPayload.status = updates.status;
       if (updates.format !== undefined) dbPayload.format = updates.format;
-      if (updates.description !== undefined) dbPayload.description = updates.description;
       if (updates.maxPlayers !== undefined) dbPayload.max_players = updates.maxPlayers;
 
+      if (
+        updates.description !== undefined ||
+        updates.entryFeeRub !== undefined ||
+        updates.prizePoolRub !== undefined ||
+        updates.prizes !== undefined ||
+        updates.minPlayers !== undefined ||
+        updates.isPremium !== undefined
+      ) {
+        const existingT = tournaments.find(t => t.id === tournamentId);
+        const desc = updates.description !== undefined ? updates.description : (existingT?.description || '');
+        const meta = {
+          entryFeeRub: updates.entryFeeRub !== undefined ? updates.entryFeeRub : existingT?.entryFeeRub,
+          prizePoolRub: updates.prizePoolRub !== undefined ? updates.prizePoolRub : existingT?.prizePoolRub,
+          prizes: updates.prizes !== undefined ? updates.prizes : existingT?.prizes,
+          minPlayers: updates.minPlayers !== undefined ? updates.minPlayers : existingT?.minPlayers,
+          isPremium: updates.isPremium !== undefined ? updates.isPremium : existingT?.isPremium,
+        };
+        const cleanDesc = desc.replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
+        dbPayload.description = `${cleanDesc}\n<!--nb_meta:${JSON.stringify(meta)}-->`;
+      }
+
       if (Object.keys(dbPayload).length > 0) {
-        await supabase
+        const { error } = await supabase
           .from('tournaments')
           .update(dbPayload)
           .eq('id', tournamentId);
+
+        if (error) {
+          console.error('Could not sync tournament update to Supabase:', error);
+          return false;
+        }
       }
+      await refreshData();
       return true;
     } catch (e) {
       console.warn('Could not sync tournament update to Supabase:', e);
-      return true;
+      return false;
     }
   };
 
   const createTournament = async (tournamentData: Omit<Tournament, 'registeredCount'>): Promise<boolean> => {
+    const newId = tournamentData.id || `${tournamentData.game}-${Date.now().toString(36)}`;
+    const meta = {
+      entryFeeRub: tournamentData.entryFeeRub,
+      prizePoolRub: tournamentData.prizePoolRub,
+      prizes: tournamentData.prizes,
+      minPlayers: tournamentData.minPlayers,
+      isPremium: tournamentData.isPremium,
+    };
+    const cleanDesc = (tournamentData.description || '').replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
+    const fullDescription = `${cleanDesc}\n<!--nb_meta:${JSON.stringify(meta)}-->`;
+
     const newTournament: Tournament = {
       ...tournamentData,
-      id: tournamentData.id || `${tournamentData.game}-${Date.now().toString(36)}`,
+      id: newId,
+      description: cleanDesc,
       registeredCount: 0,
     };
 
@@ -576,7 +574,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
 
     try {
-      await supabase.from('tournaments').insert({
+      const { error } = await supabase.from('tournaments').insert({
         id: newTournament.id,
         title: newTournament.title,
         game: newTournament.game,
@@ -585,12 +583,19 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         starts_at: newTournament.startsAt,
         status: newTournament.status,
         format: newTournament.format,
-        description: newTournament.description,
+        description: fullDescription,
       });
+
+      if (error) {
+        console.error('Could not sync tournament creation to Supabase:', error);
+        return false;
+      }
+
+      await refreshData();
       return true;
     } catch (e) {
       console.warn('Could not sync tournament creation to Supabase, saved locally:', e);
-      return true;
+      return false;
     }
   };
 
@@ -602,12 +607,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
 
     try {
-      await supabase.from('tournaments').delete().eq('id', tournamentId);
+      const { error: tErr } = await supabase.from('tournaments').delete().eq('id', tournamentId);
+      if (tErr) console.warn('Supabase delete tournament notice:', tErr);
       await supabase.from('matches').delete().eq('tournament_id', tournamentId);
+      await refreshData();
       return true;
     } catch (e) {
       console.warn('Could not sync tournament deletion to Supabase:', e);
-      return true;
+      return false;
     }
   };
 
@@ -624,9 +631,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const computedTournaments = React.useMemo(() => {
     return tournaments.map(t => {
       const regCount = registrations.filter(r => r.tournamentId === t.id).length;
-      const status = t.status === 'soon'
-        ? 'soon'
-        : (regCount >= t.maxPlayers ? 'full' : (t.status === 'full' ? 'recruiting' : t.status));
+      let status = t.status;
+      if (t.status === 'recruiting' || t.status === 'full') {
+        status = regCount >= t.maxPlayers ? 'full' : 'recruiting';
+      }
       return {
         ...t,
         registeredCount: regCount,

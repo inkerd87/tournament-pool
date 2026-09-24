@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tournament, TournamentMatchAccess, TournamentStatus } from '@/lib/types';
 import { useTournaments } from '@/context/TournamentContext';
 import { formatDateTime, statusLabel } from '@/lib/format';
@@ -24,12 +24,34 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
   const [status, setStatus] = useState<TournamentStatus>(tournament.status);
   const [title, setTitle] = useState(tournament.title);
 
+  // Синхронизация при обновлении данных из Supabase
+  useEffect(() => {
+    setStartsAtLocal(toDateTimeLocal(tournament.startsAt));
+  }, [tournament.startsAt]);
+
+  useEffect(() => {
+    setStatus(tournament.status);
+  }, [tournament.status]);
+
+  useEffect(() => {
+    setTitle(tournament.title);
+  }, [tournament.title]);
+
   // Данные лобби
   const [roomId, setRoomId] = useState(initialMatch?.roomId || `NB_${tournament.game.toUpperCase()}_01`);
   const [password, setPassword] = useState(initialMatch?.password || 'NB' + Math.floor(1000 + Math.random() * 9000));
   const [joinUrl, setJoinUrl] = useState(initialMatch?.joinUrl || '');
 
+  useEffect(() => {
+    if (initialMatch) {
+      setRoomId(initialMatch.roomId);
+      setPassword(initialMatch.password);
+      setJoinUrl(initialMatch.joinUrl || '');
+    }
+  }, [initialMatch]);
+
   // Статусы сохранения
+  const [isSaving, setIsSaving] = useState(false);
   const [savedTime, setSavedTime] = useState(false);
   const [savedLobby, setSavedLobby] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -40,14 +62,20 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
     if (!startsAtLocal) return;
     const isoStartsAt = new Date(startsAtLocal).toISOString();
 
-    await updateTournament(tournament.id, {
+    setIsSaving(true);
+    const ok = await updateTournament(tournament.id, {
       title: title.trim(),
       startsAt: isoStartsAt,
       status: status,
     });
+    setIsSaving(false);
 
-    setSavedTime(true);
-    setTimeout(() => setSavedTime(false), 3000);
+    if (ok) {
+      setSavedTime(true);
+      setTimeout(() => setSavedTime(false), 3000);
+    } else {
+      alert('Ошибка при сохранении в базу данных. Попробуйте еще раз.');
+    }
   };
 
   // Быстрые кнопки времени
@@ -65,9 +93,9 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
   };
 
   // Сохранение доступов к лобби
-  const handleSaveLobby = (e: React.FormEvent) => {
+  const handleSaveLobby = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateMatch(tournament.id, roomId, password, joinUrl);
+    await updateMatch(tournament.id, roomId, password, joinUrl);
     setSavedLobby(true);
     setTimeout(() => setSavedLobby(false), 3000);
   };
@@ -201,9 +229,10 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
         <div className="flex items-center justify-between pt-1">
           <button
             type="submit"
-            className="rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs px-3.5 py-1.5 font-bold transition shadow-sm shadow-amber-500/20"
+            disabled={isSaving}
+            className="rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs px-3.5 py-1.5 font-bold transition shadow-sm shadow-amber-500/20 disabled:opacity-50"
           >
-            {savedTime ? '✓ Время и статус сохранены!' : '💾 Сохранить время и статус'}
+            {isSaving ? '⏳ Сохранение в базу...' : savedTime ? '✓ Время и статус сохранены!' : '💾 Сохранить время и статус'}
           </button>
           {savedTime && (
             <span className="text-xs text-amber-400 font-semibold animate-pulse">
