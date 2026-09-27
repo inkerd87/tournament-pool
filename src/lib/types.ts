@@ -1,4 +1,4 @@
-export type GameId = "cs2" | "dota2" | "pubg" | "warzone" | "fortnite";
+export type GameId = "cs2" | "dota2" | "pubg" | "pubg_mobile" | "warzone" | "fortnite";
 
 export type TournamentStatus =
   | "recruiting"

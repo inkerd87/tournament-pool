@@ -13,11 +13,12 @@ export const TournamentsPage: React.FC = () => {
     if (selectedGame !== 'all' && t.game !== selectedGame) {
       return false;
     }
-    if (t.game === 'pubg') {
+    if (t.game === 'pubg' || t.game === 'pubg_mobile') {
+      const isPrem = Boolean(t.isPremium || t.id === 'pubg-premium-001' || t.id === 'pubg-mobile-premium-001');
       if (pubgMode === 'premium') {
-        return t.isPremium === true || t.id === 'pubg-premium-001';
+        return isPrem;
       } else {
-        return !t.isPremium && t.id !== 'pubg-premium-001';
+        return !isPrem;
       }
     }
     return true;
@@ -71,7 +72,7 @@ export const TournamentsPage: React.FC = () => {
         })}
       </div>
 
-      {/* Ползунок / Переключатель: Премиум соревнования (пока что только PUBG) */}
+      {/* Ползунок / Переключатель: Премиум соревнования (PUBG и PUBG Mobile) */}
       <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-[#12161f] to-amber-500/5 p-3.5 sm:p-4 shadow-lg shadow-amber-500/5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-black font-extrabold text-base shadow-md shadow-amber-500/20">
@@ -81,13 +82,13 @@ export const TournamentsPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="text-xs sm:text-sm font-extrabold text-white">Режим: Премиум соревнования</span>
               <span className="rounded-full bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                Пока что только PUBG
+                PUBG & PUBG Mobile
               </span>
             </div>
             <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
               {pubgMode === 'premium'
-                ? 'Премиум PUBG: орг. услуги 1 000 ₽ (судейство, лобби, платформа) · вознаграждение от организатора 28 000 ₽'
-                : 'Обычный PUBG: орг. услуги 100 ₽ (судейство, платформа, подбор оппонентов) · вознаграждение от организатора 2 200 ₽'}
+                ? 'Премиум PUBG & PUBG Mobile: орг. услуги 1 000 ₽ (судейство, лобби, платформа) · вознаграждение от организатора 28 000 ₽'
+                : 'Обычный PUBG & PUBG Mobile: орг. услуги 100 ₽ (судейство, платформа, подбор оппонентов) · вознаграждение от организатора 2 200 ₽'}
             </p>
           </div>
         </div>

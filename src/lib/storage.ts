@@ -67,6 +67,38 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     isPremium: true,
   },
   {
+    id: "pubg-mobile-solo-001",
+    title: "PUBG Mobile Solo Showdown",
+    game: "pubg_mobile",
+    maxPlayers: 100,
+    minPlayers: 50,
+    registeredCount: 0,
+    startsAt: "2026-09-28T19:00:00+03:00",
+    status: "recruiting",
+    format: "Solo, 1 соревнование",
+    description: "Одиночные мобильные соревнования по PUBG MOBILE до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение 2 200 ₽ учреждено организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.",
+    entryFeeRub: 100,
+    prizePoolRub: 2200,
+    prizes: { 1: 1000, 2: 700, 3: 500 },
+    isPremium: false,
+  },
+  {
+    id: "pubg-mobile-premium-001",
+    title: "PUBG Mobile Solo Premium Showdown",
+    game: "pubg_mobile",
+    maxPlayers: 100,
+    minPlayers: 50,
+    registeredCount: 0,
+    startsAt: "2026-10-02T21:00:00+03:00",
+    status: "recruiting",
+    format: "Solo, 1 соревнование",
+    description: "Премиум одиночные мобильные соревнования по PUBG MOBILE до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
+    entryFeeRub: 1000,
+    prizePoolRub: 28000,
+    prizes: { 1: 15000, 2: 8000, 3: 5000 },
+    isPremium: true,
+  },
+  {
     id: "warzone-solo-001",
     title: "Warzone Battle Royale",
     game: "warzone",
@@ -95,9 +127,9 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v17');
+  const data = localStorage.getItem('nb_tournaments_v18');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v17', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v18', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
@@ -113,7 +145,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v17', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v18', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {

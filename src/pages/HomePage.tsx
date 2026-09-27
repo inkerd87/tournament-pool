@@ -8,13 +8,14 @@ const HERO_GAMES = [
   { id: 'cs2', name: 'CS2', color: '#f97316', glow: 'rgba(249, 115, 22, 0.45)', tag: '5v5 BO1' },
   { id: 'dota2', name: 'Dota 2', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.45)', tag: '5v5 MOBA' },
   { id: 'pubg', name: 'PUBG', color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)', tag: 'Battle Royale' },
+  { id: 'pubg_mobile', name: 'PUBG Mobile', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.45)', tag: 'Mobile BR' },
   { id: 'warzone', name: 'Warzone', color: '#22c55e', glow: 'rgba(34, 197, 94, 0.45)', tag: 'Resurgence' },
   { id: 'fortnite', name: 'Fortnite', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.45)', tag: 'Zero Build' },
 ] as const;
 
 export const HomePage: React.FC = () => {
   const { tournaments } = useTournaments();
-  const featured = tournaments.slice(0, 3);
+  const featured = tournaments.filter((t) => !t.isPremium).slice(0, 6);
 
   return (
     <div>
@@ -40,7 +41,7 @@ export const HomePage: React.FC = () => {
               </h1>
 
               <p className="mt-4 max-w-xl text-sm sm:text-base text-zinc-400 leading-relaxed">
-                Открытые любительские соревнования по CS2, Dota 2, PUBG, Warzone и Fortnite. Различные форматы соревнований, честное судейство и вознаграждение победителям.
+                Открытые любительские соревнования по CS2, Dota 2, PUBG, PUBG Mobile, Warzone и Fortnite. Различные форматы соревнований, честное судейство и вознаграждение победителям.
               </p>
 
               <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4">

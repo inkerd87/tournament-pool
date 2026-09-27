@@ -114,8 +114,21 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 }
               }
 
-              const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
-              const isPubgPremium = t.id === 'pubg-premium-001' || t.is_premium || Boolean(meta?.isPremium) || (t.game === 'pubg' && t.title?.toLowerCase().includes('premium'));
+              const resolvedGame =
+                meta?.game === 'pubg_mobile' ||
+                t.id.startsWith('pubg-mobile') ||
+                t.game === 'pubg_mobile' ||
+                (t.game === 'pubg' && t.title?.toLowerCase().includes('mobile'))
+                  ? 'pubg_mobile'
+                  : t.game;
+
+              const isCsOrDota = resolvedGame === 'cs2' || resolvedGame === 'dota2';
+              const isPubgPremium =
+                t.id === 'pubg-premium-001' ||
+                t.id === 'pubg-mobile-premium-001' ||
+                t.is_premium ||
+                Boolean(meta?.isPremium) ||
+                ((resolvedGame === 'pubg' || resolvedGame === 'pubg_mobile') && t.title?.toLowerCase().includes('premium'));
 
               let entryFeeRub = isCsOrDota ? 1500 : (isPubgPremium ? 1000 : 100);
               let prizePoolRub = isCsOrDota ? 12000 : (isPubgPremium ? 28000 : 2200);
@@ -132,21 +145,21 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 if (typeof meta.minPlayers === 'number') minPlayers = meta.minPlayers;
               }
 
-              const status: TournamentStatus = t.status || 'recruiting';
+              const status = t.status || 'recruiting';
 
               return {
                 id: t.id,
                 title: t.title || (isCsOrDota
-                  ? (t.game === 'cs2' ? 'CS2 5v5 Cup #1' : 'Dota 2 5v5 Battle Cup')
+                  ? (resolvedGame === 'cs2' ? 'CS2 5v5 Cup #1' : 'Dota 2 5v5 Battle Cup')
                   : (isPubgPremium ? 'PUBG Solo Premium Showdown' : t.id)),
-                game: t.game,
+                game: resolvedGame,
                 maxPlayers,
                 minPlayers,
                 registeredCount: currentRegs.filter(r => r.tournamentId === t.id).length,
                 startsAt: t.starts_at || new Date().toISOString(),
                 status,
                 format: t.format || (isCsOrDota
-                  ? (t.game === 'cs2' ? '5v5, BO1 — Регламент соревнований' : '5v5, Captains Mode — Регламент соревнований')
+                  ? (resolvedGame === 'cs2' ? '5v5, BO1 — Регламент соревнований' : '5v5, Captains Mode — Регламент соревнований')
                   : (isPubgPremium ? 'Solo, 1 соревнование' : 'Solo, 1 соревнование')),
                 description: cleanDesc,
                 entryFeeRub,
@@ -514,11 +527,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updates.prizePoolRub !== undefined ||
         updates.prizes !== undefined ||
         updates.minPlayers !== undefined ||
-        updates.isPremium !== undefined
+        updates.isPremium !== undefined ||
+        updates.game !== undefined
       ) {
         const existingT = tournaments.find(t => t.id === tournamentId);
         const desc = updates.description !== undefined ? updates.description : (existingT?.description || '');
         const meta = {
+          game: updates.game !== undefined ? updates.game : existingT?.game,
           entryFeeRub: updates.entryFeeRub !== undefined ? updates.entryFeeRub : existingT?.entryFeeRub,
           prizePoolRub: updates.prizePoolRub !== undefined ? updates.prizePoolRub : existingT?.prizePoolRub,
           prizes: updates.prizes !== undefined ? updates.prizes : existingT?.prizes,
@@ -551,6 +566,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const createTournament = async (tournamentData: Omit<Tournament, 'registeredCount'>): Promise<boolean> => {
     const newId = tournamentData.id || `${tournamentData.game}-${Date.now().toString(36)}`;
     const meta = {
+      game: tournamentData.game,
       entryFeeRub: tournamentData.entryFeeRub,
       prizePoolRub: tournamentData.prizePoolRub,
       prizes: tournamentData.prizes,
@@ -574,10 +590,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
 
     try {
+      const dbGame = newTournament.game === 'pubg_mobile' ? 'pubg' : newTournament.game;
       const { error } = await supabase.from('tournaments').insert({
         id: newTournament.id,
         title: newTournament.title,
-        game: newTournament.game,
+        game: dbGame,
         max_players: newTournament.maxPlayers,
         registered_count: 0,
         starts_at: newTournament.startsAt,

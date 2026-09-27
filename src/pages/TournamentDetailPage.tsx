@@ -38,7 +38,7 @@ export const TournamentDetailPage: React.FC = () => {
         ← Ко всем соревнованиям
       </Link>
 
-      {tournament.game === 'pubg' && (
+      {(tournament.game === 'pubg' || tournament.game === 'pubg_mobile') && (
         <div className="my-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-[#12161f] to-amber-500/5 p-3.5 sm:p-4 shadow-lg shadow-amber-500/5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-black font-extrabold text-base shadow-md shadow-amber-500/20">
@@ -59,7 +59,7 @@ export const TournamentDetailPage: React.FC = () => {
 
           <div className="relative inline-flex items-center rounded-xl bg-black/60 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
             <Link
-              to="/tournaments/pubg-solo-001"
+              to={tournament.game === 'pubg_mobile' ? '/tournaments/pubg-mobile-solo-001' : '/tournaments/pubg-solo-001'}
               className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
                 !tournament.isPremium
                   ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25'
@@ -69,7 +69,7 @@ export const TournamentDetailPage: React.FC = () => {
               🎮 Орг. тариф (100 ₽)
             </Link>
             <Link
-              to="/tournaments/pubg-premium-001"
+              to={tournament.game === 'pubg_mobile' ? '/tournaments/pubg-mobile-premium-001' : '/tournaments/pubg-premium-001'}
               className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
                 tournament.isPremium
                   ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-black shadow-md shadow-amber-400/30'

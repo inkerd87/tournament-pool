@@ -28,6 +28,15 @@ export const PUBGIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-
   />
 );
 
+export const PUBGMobileIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <img
+    src="/games/pubg-mobile.webp"
+    alt="PUBG MOBILE"
+    className={`${className} object-cover rounded`}
+    loading="lazy"
+  />
+);
+
 export const WarzoneIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <img
     src="/games/warzone.jpg"
@@ -54,6 +63,8 @@ export const GameIcon: React.FC<{ game: GameId; className?: string }> = ({ game,
       return <DotaIcon className={className} />;
     case 'pubg':
       return <PUBGIcon className={className} />;
+    case 'pubg_mobile':
+      return <PUBGMobileIcon className={className} />;
     case 'warzone':
       return <WarzoneIcon className={className} />;
     case 'fortnite':

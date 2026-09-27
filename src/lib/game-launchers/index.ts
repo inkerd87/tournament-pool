@@ -106,6 +106,7 @@ const LAUNCHERS: Record<
   (params: { tournamentId: string; registrations: Registration[] }) => TournamentLobby
 > = {
   pubg: createPubgCustomMatch,
+  pubg_mobile: createPubgCustomMatch,
   cs2: createCs2Lobby,
   dota2: createDota2Lobby,
   warzone: createWarzoneLobby,

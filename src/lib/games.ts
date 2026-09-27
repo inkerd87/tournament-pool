@@ -22,6 +22,12 @@ export const GAMES: Record<
     accent: "#facc15",
     glow: "rgba(250, 204, 21, 0.3)",
   },
+  pubg_mobile: {
+    name: "PUBG MOBILE",
+    short: "PUBG Mobile",
+    accent: "#f59e0b",
+    glow: "rgba(245, 158, 11, 0.35)",
+  },
   warzone: {
     name: "Call of Duty: Warzone",
     short: "Warzone",

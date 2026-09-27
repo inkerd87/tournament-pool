@@ -37,6 +37,15 @@ const GAME_OPTIONS: { id: GameId; name: string; defaultMax: number; defaultFee: 
     defaultDesc: 'Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 2 200 ₽ учреждено организатором (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽).',
   },
   {
+    id: 'pubg_mobile',
+    name: 'PUBG MOBILE',
+    defaultMax: 100,
+    defaultFee: 100,
+    defaultPrize: 2200,
+    defaultFormat: 'Solo, 1 соревнование',
+    defaultDesc: 'Одиночные мобильные соревнования по PUBG MOBILE до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 2 200 ₽ учреждено организатором (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽).',
+  },
+  {
     id: 'warzone',
     name: 'Call of Duty: Warzone',
     defaultMax: 100,

@@ -12,6 +12,8 @@ export const TournamentCard: React.FC<{
   onPubgModeChange?: (mode: 'standard' | 'premium') => void;
 }> = ({ tournament: propTournament, onPubgModeChange }) => {
   const { tournaments } = useTournaments();
+  const isPubgFamily = (g: string) => g === 'pubg' || g === 'pubg_mobile';
+
   const [pubgMode, setPubgMode] = useState<'standard' | 'premium'>(
     propTournament.isPremium ? 'premium' : 'standard'
   );
@@ -19,29 +21,34 @@ export const TournamentCard: React.FC<{
   useEffect(() => {
     if (propTournament.isPremium) {
       setPubgMode('premium');
-    } else if (propTournament.game === 'pubg') {
+    } else if (isPubgFamily(propTournament.game)) {
       setPubgMode('standard');
     }
   }, [propTournament.id, propTournament.isPremium, propTournament.game]);
 
   const tournament = useMemo(() => {
-    if (propTournament.game !== 'pubg') return propTournament;
+    if (!isPubgFamily(propTournament.game)) return propTournament;
+    const targetGame = propTournament.game;
     if (pubgMode === 'premium') {
       return (
-        tournaments.find((t) => t.game === 'pubg' && (t.isPremium || t.id === 'pubg-premium-001')) ||
-        propTournament
+        tournaments.find(
+          (t) => t.game === targetGame && (t.isPremium || t.id === 'pubg-premium-001' || t.id === 'pubg-mobile-premium-001')
+        ) || propTournament
       );
     } else {
       return (
-        tournaments.find((t) => t.game === 'pubg' && !t.isPremium && t.id !== 'pubg-premium-001') ||
-        propTournament
+        tournaments.find(
+          (t) => t.game === targetGame && !t.isPremium && t.id !== 'pubg-premium-001' && t.id !== 'pubg-mobile-premium-001'
+        ) || propTournament
       );
     }
   }, [propTournament, pubgMode, tournaments]);
 
   const game = GAMES[tournament.game];
   const isSoon = tournament.status === 'soon';
-  const isPremium = tournament.isPremium || tournament.id === 'pubg-premium-001';
+  const isPremium = Boolean(
+    tournament.isPremium || tournament.id === 'pubg-premium-001' || tournament.id === 'pubg-mobile-premium-001'
+  );
   const entryFee = tournament.entryFeeRub ?? ENTRY_FEE_RUB;
   const prizePool = tournament.prizePoolRub ?? TOTAL_PRIZES_RUB;
   const fillPercent = Math.min(100, Math.round((tournament.registeredCount / tournament.maxPlayers) * 100));
@@ -72,7 +79,7 @@ export const TournamentCard: React.FC<{
             )}
           </div>
 
-          {tournament.game === 'pubg' ? (
+          {isPubgFamily(tournament.game) ? (
             <div
               className="flex items-center rounded-lg bg-black/70 p-0.5 border border-white/10 text-[10px] font-bold shrink-0"
               onClick={(e) => {
