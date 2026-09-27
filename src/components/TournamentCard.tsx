@@ -160,9 +160,11 @@ export const TournamentCard: React.FC<{
           </div>
         ) : null}
         
-        <p className="relative mt-3 text-xs text-zinc-400">
-          Старт: <span className="text-zinc-300 font-medium">{formatDateTime(tournament.startsAt)}</span>
-        </p>
+        {!isSoon && (
+          <p className="relative mt-3 text-xs text-zinc-400">
+            Старт: <span className="text-zinc-300 font-medium">{formatDateTime(tournament.startsAt)}</span>
+          </p>
+        )}
 
         {!isSoon && (
           <div className="relative mt-4">

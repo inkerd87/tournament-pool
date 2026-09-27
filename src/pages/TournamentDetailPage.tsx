@@ -108,21 +108,25 @@ export const TournamentDetailPage: React.FC = () => {
                 <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Формат</dt>
                 <dd className="mt-0.5 font-bold text-white">{tournament.format}</dd>
               </div>
-              <div>
-                <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Старт</dt>
-                <dd className="mt-0.5 font-bold text-white">{formatDateTime(tournament.startsAt)}</dd>
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Участников</dt>
-                <dd className="mt-0.5 font-bold text-white flex items-center flex-wrap gap-1.5">
-                  <span>{tournament.registeredCount} / {tournament.maxPlayers}</span>
-                  {tournament.minPlayers && (
-                    <span className="inline-flex items-center rounded border border-red-900/60 bg-red-950/70 px-2 py-0.5 text-xs font-bold text-red-400">
-                      старт от {tournament.minPlayers}
-                    </span>
-                  )}
-                </dd>
-              </div>
+              {tournament.status !== 'soon' && (
+                <div>
+                  <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Старт</dt>
+                  <dd className="mt-0.5 font-bold text-white">{formatDateTime(tournament.startsAt)}</dd>
+                </div>
+              )}
+              {tournament.status !== 'soon' && (
+                <div className="col-span-2 sm:col-span-1">
+                  <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Участников</dt>
+                  <dd className="mt-0.5 font-bold text-white flex items-center flex-wrap gap-1.5">
+                    <span>{tournament.registeredCount} / {tournament.maxPlayers}</span>
+                    {tournament.minPlayers && (
+                      <span className="inline-flex items-center rounded border border-red-900/60 bg-red-950/70 px-2 py-0.5 text-xs font-bold text-red-400">
+                        старт от {tournament.minPlayers}
+                      </span>
+                    )}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
 
