@@ -9,13 +9,36 @@ type Props = {
   maxPlayers?: number;
 };
 
-const medals = ['🥇', '🥈', '🥉'] as const;
+const getMedal = (place: number) => {
+  if (place === 1) return '🥇';
+  if (place === 2) return '🥈';
+  if (place === 3) return '🥉';
+  return '🏅';
+};
 
 export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
   const isSoon = tournament.status === 'soon';
   const entryFee = tournament.entryFeeRub ?? ENTRY_FEE_RUB;
   const prizePool = tournament.prizePoolRub ?? TOTAL_PRIZES_RUB;
-  const prizes = tournament.prizes ?? PRIZE_BY_PLACE;
+  const prizes: Record<number, number> = tournament.prizes ?? PRIZE_BY_PLACE;
+
+  const placesCount = React.useMemo(() => {
+    if (typeof tournament.winningPlacesCount === 'number' && tournament.winningPlacesCount >= 1) {
+      return tournament.winningPlacesCount;
+    }
+    const nonZeroPlaces = Object.keys(prizes)
+      .map(Number)
+      .filter((p) => !isNaN(p) && (prizes[p] ?? 0) > 0);
+    if (nonZeroPlaces.length > 0) {
+      return Math.max(...nonZeroPlaces);
+    }
+    return tournament.winnerPerPlayerRub ? 1 : 3;
+  }, [tournament.winningPlacesCount, tournament.winnerPerPlayerRub, prizes]);
+
+  const placesList = React.useMemo(
+    () => Array.from({ length: placesCount }, (_, idx) => idx + 1),
+    [placesCount]
+  );
 
   if (isSoon) {
     return (
@@ -47,15 +70,18 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
           <span className="text-zinc-400">Вознаграждение от организатора:</span>
           <span className="text-base font-extrabold text-amber-300 font-mono">{formatRub(prizePool)}</span>
         </div>
-        <p className="text-[11px] text-zinc-400 leading-relaxed">
+        <div className="flex items-center justify-between text-[11px] text-zinc-400">
+          <span>Призовых мест:</span>
+          <span className="font-bold text-cyan-300 font-mono">{placesCount}</span>
+        </div>
+        <p className="text-[11px] text-zinc-400 leading-relaxed pt-0.5">
           Фиксированная сумма учреждена организатором соревнований за спортивные достижения и <strong>не зависит от количества участников</strong> или сбора платежей.
         </p>
       </div>
 
       <ul className="mt-5 space-y-2">
-        {([1, 2, 3] as const).map((place) => {
+        {placesList.map((place) => {
           const prizeAmt = prizes[place] ?? 0;
-          if (tournament.winnerPerPlayerRub && place === 3) return null; // Не показываем 3 место для 5v5 соревнований двух команд
 
           return (
             <li
@@ -63,12 +89,12 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
               className={`flex items-center justify-between rounded-lg border px-4 py-3 ${
                 place === 1
                   ? 'border-amber-500/30 bg-amber-500/10 shadow-sm shadow-amber-500/10'
-                  : 'border-white/10 bg-black/20 opacity-75'
+                  : 'border-white/10 bg-black/20 opacity-85'
               }`}
             >
               <div className="flex flex-col">
                 <span className="flex items-center gap-2 text-zinc-200 font-semibold text-sm">
-                  <span aria-hidden>{medals[place - 1]}</span>
+                  <span aria-hidden>{getMedal(place)}</span>
                   {place}-е место {place === 1 && tournament.winnerPerPlayerRub ? '(Команда-победитель)' : ''}
                 </span>
                 {place === 1 && tournament.winnerPerPlayerRub && (
@@ -77,7 +103,7 @@ export const PrizeBreakdown: React.FC<Props> = ({ tournament }) => {
                   </span>
                 )}
               </div>
-              <span className={`font-mono text-lg font-bold ${place === 1 ? 'text-amber-300' : 'text-zinc-400'}`}>
+              <span className={`font-mono text-lg font-bold ${place === 1 ? 'text-amber-300' : 'text-zinc-300'}`}>
                 {prizeAmt > 0 ? formatRub(prizeAmt) : '0 ₽'}
               </span>
             </li>

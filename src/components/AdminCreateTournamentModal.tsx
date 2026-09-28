@@ -113,8 +113,11 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
   const [startsAtLocal, setStartsAtLocal] = useState(getDefaultStartsAt);
   const [format, setFormat] = useState('5v5, BO1 — Регламент соревнований');
   const [maxPlayers, setMaxPlayers] = useState(10);
+  const [minPlayers, setMinPlayers] = useState(10);
   const [entryFeeRub, setEntryFeeRub] = useState(1500);
   const [prizePoolRub, setPrizePoolRub] = useState(12000);
+  const [winningPlacesCount, setWinningPlacesCount] = useState(1);
+  const [prizesByPlace, setPrizesByPlace] = useState<Record<number, number>>({ 1: 12000 });
   const [status, setStatus] = useState<TournamentStatus>('recruiting');
   const [description, setDescription] = useState(
     'Командные киберспортивные соревнования 5 на 5. Оплата организационных услуг с игрока. Фиксированное вознаграждение за спортивные достижения!'
@@ -157,15 +160,46 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
     })),
   ];
 
+  const handleWinningPlacesCountChange = (newCountRaw: number) => {
+    const newCount = Math.max(1, Math.min(20, newCountRaw || 1));
+    setWinningPlacesCount(newCount);
+    setPrizesByPlace((prev) => {
+      const next: Record<number, number> = {};
+      for (let i = 1; i <= newCount; i++) {
+        next[i] = prev[i] ?? 0;
+      }
+      const sum = Object.values(next).reduce((acc, v) => acc + (Number(v) || 0), 0);
+      if (sum > 0) setPrizePoolRub(sum);
+      return next;
+    });
+  };
+
+  const handlePlacePrizeChange = (place: number, amount: number) => {
+    const cleanVal = Math.max(0, Number(amount) || 0);
+    setPrizesByPlace((prev) => {
+      const next: Record<number, number> = { ...prev, [place]: cleanVal };
+      let sum = 0;
+      for (let i = 1; i <= winningPlacesCount; i++) {
+        sum += Number(next[i]) || 0;
+      }
+      setPrizePoolRub(sum);
+      return next;
+    });
+  };
+
   const handleGameChange = (gameId: GameId) => {
     setSelectedGame(gameId);
     const opt = allGameOptions.find((g) => g.id === gameId);
     if (opt) {
+      const isTeam = gameId === 'cs2' || gameId === 'dota2';
       setTitle(`${opt.name} Cup`);
       setFormat(opt.defaultFormat);
       setMaxPlayers(opt.defaultMax);
+      setMinPlayers(isTeam ? 10 : 50);
       setEntryFeeRub(opt.defaultFee);
       setPrizePoolRub(opt.defaultPrize);
+      setWinningPlacesCount(isTeam ? 1 : 3);
+      setPrizesByPlace(isTeam ? { 1: opt.defaultPrize } : { 1: 1000, 2: 700, 3: 500 });
       setDescription(opt.defaultDesc);
     }
   };
@@ -222,8 +256,11 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
       setTitle(`${newGame.name} Cup #1`);
       setFormat(`${newGame.tag || 'Solo'}, 1 соревнование`);
       setMaxPlayers(100);
+      setMinPlayers(50);
       setEntryFeeRub(100);
       setPrizePoolRub(2200);
+      setWinningPlacesCount(3);
+      setPrizesByPlace({ 1: 1000, 2: 700, 3: 500 });
       setDescription(
         `Соревнования по дисциплине ${newGame.name}. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям от организатора.`
       );
@@ -264,26 +301,25 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
       const newId = `${selectedGame}-${Date.now().toString(36)}`;
       const customGameObj = customGames.find((cg) => cg.id === selectedGame);
 
+      const cleanPrizes: Record<number, number> = {};
+      for (let i = 1; i <= winningPlacesCount; i++) {
+        cleanPrizes[i] = Number(prizesByPlace[i]) || 0;
+      }
+
       const success = await createTournament({
         id: newId,
         title: title.trim(),
         game: selectedGame,
-        maxPlayers: Number(maxPlayers) || 10,
-        minPlayers: selectedGame === 'cs2' || selectedGame === 'dota2' ? 10 : 50,
+        maxPlayers: Math.max(2, Number(maxPlayers) || 10),
+        minPlayers: Math.max(0, Number(minPlayers) || 0),
         startsAt: startsAtIso,
         status,
         format: format.trim() || 'Регламент соревнований',
         description: description.trim(),
-        entryFeeRub: Number(entryFeeRub) || 0,
-        prizePoolRub: Number(prizePoolRub) || 0,
-        prizes:
-          selectedGame === 'cs2' || selectedGame === 'dota2'
-            ? { 1: Number(prizePoolRub) || 12000, 2: 0, 3: 0 }
-            : {
-                1: Math.round(prizePoolRub * 0.5),
-                2: Math.round(prizePoolRub * 0.3),
-                3: Math.round(prizePoolRub * 0.2),
-              },
+        entryFeeRub: Math.max(0, Number(entryFeeRub) || 0),
+        prizePoolRub: Math.max(0, Number(prizePoolRub) || 0),
+        winningPlacesCount,
+        prizes: cleanPrizes,
         customGame: customGameObj,
       });
 
@@ -609,8 +645,8 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Формат и лимит игроков */}
-          <div className="grid sm:grid-cols-3 gap-3">
+          {/* Формат, лимиты мест и взнос */}
+          <div className="grid sm:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">
                 Формат
@@ -626,44 +662,108 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">
-                Макс. игроков
+                Макс. мест
               </label>
               <input
                 type="number"
                 required
                 min={2}
-                max={200}
+                max={500}
                 className="input-field font-mono"
                 value={maxPlayers}
                 onChange={(e) => setMaxPlayers(Number(e.target.value))}
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-red-300 mb-1">
+                Мин. мест (старт)
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={500}
+                className="input-field font-mono text-red-300"
+                value={minPlayers}
+                onChange={(e) => setMinPlayers(Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-cyan-300 mb-1">
                 Взнос с игрока (₽)
               </label>
               <input
                 type="number"
                 min={0}
-                className="input-field font-mono"
+                className="input-field font-mono text-cyan-300"
                 value={entryFeeRub}
                 onChange={(e) => setEntryFeeRub(Number(e.target.value))}
               />
             </div>
           </div>
 
-          {/* Призовой фонд */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">
-              Вознаграждение / Призовой фонд (₽)
-            </label>
-            <input
-              type="number"
-              min={0}
-              className="input-field font-mono"
-              value={prizePoolRub}
-              onChange={(e) => setPrizePoolRub(Number(e.target.value))}
-            />
+          {/* Призовой фонд и количество призовых мест */}
+          <div className="rounded-xl border border-amber-500/25 bg-amber-950/10 p-3.5 space-y-3">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-amber-300 mb-1">
+                  Общий призовой фонд (₽)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  className="input-field font-mono font-bold text-amber-300"
+                  value={prizePoolRub}
+                  onChange={(e) => setPrizePoolRub(Number(e.target.value))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1">
+                  Количество выигрышных мест
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleWinningPlacesCountChange(winningPlacesCount - 1)}
+                    className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-extrabold text-zinc-300 hover:bg-white/15"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    className="input-field text-center font-mono font-bold"
+                    value={winningPlacesCount}
+                    onChange={(e) => handleWinningPlacesCountChange(Number(e.target.value))}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleWinningPlacesCountChange(winningPlacesCount + 1)}
+                    className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-extrabold text-zinc-300 hover:bg-white/15"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {Array.from({ length: winningPlacesCount }, (_, idx) => idx + 1).map((place) => (
+                <div key={place} className="rounded-lg border border-white/10 bg-black/40 p-2">
+                  <label className="block text-[10px] font-bold text-zinc-300 mb-1">
+                    {place === 1 ? '🥇 1 место (₽)' : place === 2 ? '🥈 2 место (₽)' : place === 3 ? '🥉 3 место (₽)' : `🏅 ${place} место (₽)`}
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    className="w-full rounded-md border border-white/15 bg-black/60 px-2 py-1 text-xs font-mono font-bold text-amber-300 focus:border-amber-400 focus:outline-none"
+                    value={prizesByPlace[place] ?? 0}
+                    onChange={(e) => handlePlacePrizeChange(place, Number(e.target.value))}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Описание */}

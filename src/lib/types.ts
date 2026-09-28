@@ -32,11 +32,8 @@ export type Tournament = {
   description: string;
   entryFeeRub?: number;
   prizePoolRub?: number;
-  prizes?: {
-    1: number;
-    2: number;
-    3: number;
-  };
+  winningPlacesCount?: number;
+  prizes?: Record<number, number>;
   winnerPerPlayerRub?: number;
   isPremium?: boolean;
   customGame?: CustomGame;

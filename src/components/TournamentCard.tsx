@@ -147,15 +147,15 @@ export const TournamentCard: React.FC<{
           <div className="relative mt-2.5 grid grid-cols-3 gap-1 rounded-xl border border-amber-500/20 bg-amber-500/5 p-1.5 text-center text-[10px]">
             <div>
               <div className="text-zinc-400 text-[9px] uppercase font-semibold">1 место</div>
-              <div className="font-extrabold text-amber-300 font-mono">15 000 ₽</div>
+              <div className="font-extrabold text-amber-300 font-mono">{formatRub(tournament.prizes?.[1] ?? 15000)}</div>
             </div>
             <div>
               <div className="text-zinc-400 text-[9px] uppercase font-semibold">2 место</div>
-              <div className="font-bold text-zinc-200 font-mono">8 000 ₽</div>
+              <div className="font-bold text-zinc-200 font-mono">{formatRub(tournament.prizes?.[2] ?? 8000)}</div>
             </div>
             <div>
               <div className="text-zinc-400 text-[9px] uppercase font-semibold">3 место</div>
-              <div className="font-bold text-zinc-400 font-mono">5 000 ₽</div>
+              <div className="font-bold text-zinc-400 font-mono">{formatRub(tournament.prizes?.[3] ?? 5000)}</div>
             </div>
           </div>
         ) : null}
@@ -171,7 +171,7 @@ export const TournamentCard: React.FC<{
             <div className="mb-1.5 flex items-center justify-between text-[11px] text-zinc-400">
               <span className="flex items-center flex-wrap gap-1">
                 <span>{tournament.registeredCount} / {tournament.maxPlayers} игроков</span>
-                {tournament.minPlayers && (
+                {Boolean(tournament.minPlayers && tournament.minPlayers > 0) && (
                   <span className="inline-flex items-center rounded border border-red-900/60 bg-red-950/70 px-1.5 py-0.5 text-[10px] font-bold text-red-400">
                     старт от {tournament.minPlayers}
                   </span>

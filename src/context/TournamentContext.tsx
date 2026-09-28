@@ -171,16 +171,33 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               let entryFeeRub = isCsOrDota ? 1500 : (isPubgPremium ? 1000 : 100);
               let prizePoolRub = isCsOrDota ? 12000 : (isPubgPremium ? 28000 : 2200);
               let maxPlayers = t.max_players || (isCsOrDota ? 10 : 100);
-              let minPlayers = isCsOrDota ? 10 : 50;
-              let prizes = isCsOrDota
-                ? { 1: 12000, 2: 0, 3: 0 }
+              let minPlayers: number | undefined = isCsOrDota ? 10 : 50;
+              let winningPlacesCount: number = isCsOrDota ? 1 : 3;
+              let prizes: Record<number, number> = isCsOrDota
+                ? { 1: 12000 }
                 : (isPubgPremium ? { 1: 15000, 2: 8000, 3: 5000 } : { 1: 1000, 2: 700, 3: 500 });
+              let winnerPerPlayerRub: number | undefined = isCsOrDota ? 2400 : undefined;
 
               if (meta) {
                 if (typeof meta.entryFeeRub === 'number') entryFeeRub = meta.entryFeeRub;
                 if (typeof meta.prizePoolRub === 'number') prizePoolRub = meta.prizePoolRub;
-                if (meta.prizes) prizes = meta.prizes;
+                if (meta.prizes && typeof meta.prizes === 'object') prizes = meta.prizes;
                 if (typeof meta.minPlayers === 'number') minPlayers = meta.minPlayers;
+                if (typeof meta.winningPlacesCount === 'number' && meta.winningPlacesCount >= 1) {
+                  winningPlacesCount = meta.winningPlacesCount;
+                } else if (meta.prizes && typeof meta.prizes === 'object') {
+                  const activePlaces = Object.keys(meta.prizes)
+                    .map(Number)
+                    .filter(k => !isNaN(k) && Number(meta.prizes[k]) > 0);
+                  if (activePlaces.length > 0) {
+                    winningPlacesCount = Math.max(...activePlaces);
+                  }
+                }
+                if (meta.winnerPerPlayerRub !== undefined) {
+                  winnerPerPlayerRub = meta.winnerPerPlayerRub || undefined;
+                } else if (winningPlacesCount > 1) {
+                  winnerPerPlayerRub = undefined;
+                }
               }
 
               const status = t.status || 'recruiting';
@@ -202,8 +219,9 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 description: cleanDesc,
                 entryFeeRub,
                 prizePoolRub,
+                winningPlacesCount,
                 prizes,
-                winnerPerPlayerRub: isCsOrDota ? 2400 : undefined,
+                winnerPerPlayerRub,
                 isPremium: isPubgPremium,
                 customGame: meta?.customGame,
               };
@@ -571,9 +589,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updates.description !== undefined ||
         updates.entryFeeRub !== undefined ||
         updates.prizePoolRub !== undefined ||
+        updates.winningPlacesCount !== undefined ||
         updates.prizes !== undefined ||
         updates.minPlayers !== undefined ||
         updates.isPremium !== undefined ||
+        updates.winnerPerPlayerRub !== undefined ||
         updates.game !== undefined
       ) {
         const existingT = tournaments.find(t => t.id === tournamentId);
@@ -584,9 +604,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           game: resolvedGameId,
           entryFeeRub: updates.entryFeeRub !== undefined ? updates.entryFeeRub : existingT?.entryFeeRub,
           prizePoolRub: updates.prizePoolRub !== undefined ? updates.prizePoolRub : existingT?.prizePoolRub,
+          winningPlacesCount: updates.winningPlacesCount !== undefined ? updates.winningPlacesCount : existingT?.winningPlacesCount,
           prizes: updates.prizes !== undefined ? updates.prizes : existingT?.prizes,
           minPlayers: updates.minPlayers !== undefined ? updates.minPlayers : existingT?.minPlayers,
           isPremium: updates.isPremium !== undefined ? updates.isPremium : existingT?.isPremium,
+          winnerPerPlayerRub: updates.winnerPerPlayerRub !== undefined ? updates.winnerPerPlayerRub : existingT?.winnerPerPlayerRub,
           customGame: customGameObj,
         };
         const cleanDesc = desc.replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
@@ -666,9 +688,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       game: tournamentData.game,
       entryFeeRub: tournamentData.entryFeeRub,
       prizePoolRub: tournamentData.prizePoolRub,
+      winningPlacesCount: tournamentData.winningPlacesCount,
       prizes: tournamentData.prizes,
       minPlayers: tournamentData.minPlayers,
       isPremium: tournamentData.isPremium,
+      winnerPerPlayerRub: tournamentData.winnerPerPlayerRub,
       customGame: customGameObj,
     };
     const cleanDesc = (tournamentData.description || '').replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();

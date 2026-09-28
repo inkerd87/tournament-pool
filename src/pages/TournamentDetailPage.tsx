@@ -119,7 +119,7 @@ export const TournamentDetailPage: React.FC = () => {
                   <dt className="text-zinc-500 text-[11px] uppercase font-semibold">Участников</dt>
                   <dd className="mt-0.5 font-bold text-white flex items-center flex-wrap gap-1.5">
                     <span>{tournament.registeredCount} / {tournament.maxPlayers}</span>
-                    {tournament.minPlayers && (
+                    {Boolean(tournament.minPlayers && tournament.minPlayers > 0) && (
                       <span className="inline-flex items-center rounded border border-red-900/60 bg-red-950/70 px-2 py-0.5 text-xs font-bold text-red-400">
                         старт от {tournament.minPlayers}
                       </span>
