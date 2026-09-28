@@ -1,4 +1,16 @@
-export type GameId = "cs2" | "dota2" | "pubg" | "pubg_mobile" | "warzone" | "fortnite";
+export type BuiltinGameId = "cs2" | "dota2" | "pubg" | "pubg_mobile" | "warzone" | "fortnite";
+
+export type GameId = BuiltinGameId | (string & {});
+
+export type CustomGame = {
+  id: string;
+  name: string;
+  short: string;
+  accent: string;
+  glow: string;
+  iconUrl: string;
+  tag?: string;
+};
 
 export type TournamentStatus =
   | "recruiting"
@@ -27,6 +39,7 @@ export type Tournament = {
   };
   winnerPerPlayerRub?: number;
   isPremium?: boolean;
+  customGame?: CustomGame;
 };
 
 export type Registration = {

@@ -102,7 +102,7 @@ function createFortniteLobby(params: {
 }
 
 const LAUNCHERS: Record<
-  GameId,
+  string,
   (params: { tournamentId: string; registrations: Registration[] }) => TournamentLobby
 > = {
   pubg: createPubgCustomMatch,
@@ -117,5 +117,6 @@ export function createGameLobby(
   game: GameId,
   params: { tournamentId: string; registrations: Registration[] },
 ): TournamentLobby {
-  return LAUNCHERS[game](params);
+  const launcher = LAUNCHERS[game] || createPubgCustomMatch;
+  return launcher(params);
 }

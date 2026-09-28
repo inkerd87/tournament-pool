@@ -4,7 +4,7 @@ import { useTournaments } from '@/context/TournamentContext';
 import { TournamentCard } from '@/components/TournamentCard';
 import { GameIcon } from '@/components/GameIcons';
 
-const HERO_GAMES = [
+const DEFAULT_HERO_GAMES = [
   { id: 'cs2', name: 'CS2', color: '#f97316', glow: 'rgba(249, 115, 22, 0.45)', tag: '5v5 BO1' },
   { id: 'dota2', name: 'Dota 2', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.45)', tag: '5v5 MOBA' },
   { id: 'pubg', name: 'PUBG', color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)', tag: 'Battle Royale' },
@@ -14,8 +14,18 @@ const HERO_GAMES = [
 ] as const;
 
 export const HomePage: React.FC = () => {
-  const { tournaments } = useTournaments();
-  const featured = tournaments.filter((t) => !t.isPremium).slice(0, 6);
+  const { tournaments, customGames } = useTournaments();
+  const heroGames = [
+    ...DEFAULT_HERO_GAMES,
+    ...customGames.map((cg) => ({
+      id: cg.id,
+      name: cg.short || cg.name,
+      color: cg.accent || '#22d3ee',
+      glow: cg.glow || 'rgba(34, 211, 238, 0.45)',
+      tag: cg.tag || 'Tournament',
+    })),
+  ];
+  const featured = tournaments.filter((t) => !t.isPremium).slice(0, Math.max(6, 6 + customGames.length));
 
   return (
     <div>
@@ -57,7 +67,7 @@ export const HomePage: React.FC = () => {
             {/* Right: 5 Game Cubes */}
             <div className="lg:col-span-5">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
-                {HERO_GAMES.map((g) => (
+                {heroGames.map((g) => (
                   <Link
                     key={g.id}
                     to="/tournaments"

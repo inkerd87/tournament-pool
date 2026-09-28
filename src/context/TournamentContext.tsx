@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Tournament, Registration, TournamentMatchAccess } from '@/lib/types';
+import { Tournament, Registration, TournamentMatchAccess, CustomGame } from '@/lib/types';
 import {
   getStoredTournaments,
   saveTournaments,
@@ -8,12 +8,19 @@ import {
   getStoredMatches,
   saveMatches,
 } from '@/lib/storage';
+import { getStoredCustomGames, saveStoredCustomGames } from '@/lib/games';
 import { supabase } from '@/lib/supabase';
+
+const SYSTEM_CUSTOM_GAMES_ROW_ID = '__nb_custom_games__';
+const DB_ALLOWED_GAMES = new Set(['cs2', 'dota2', 'pubg', 'warzone', 'fortnite']);
 
 interface TournamentContextType {
   tournaments: Tournament[];
   registrations: Registration[];
   matches: Record<string, TournamentMatchAccess>;
+  customGames: CustomGame[];
+  addCustomGame: (game: CustomGame) => Promise<boolean>;
+  deleteCustomGame: (gameId: string) => Promise<boolean>;
   registerForTournament: (tournamentId: string, nickname: string, gameAccount: string, email: string, phone: string) => Promise<boolean> | boolean;
   deleteRegistration: (registrationId: string) => Promise<void>;
   clearTournamentRegistrations: (tournamentId?: string) => Promise<void>;
@@ -33,6 +40,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [tournaments, setTournaments] = useState<Tournament[]>(() => getStoredTournaments());
   const [registrations, setRegistrations] = useState<Registration[]>(() => getStoredRegistrations());
   const [matches, setMatches] = useState<Record<string, TournamentMatchAccess>>(() => getStoredMatches());
+  const [customGames, setCustomGames] = useState<CustomGame[]>(() => getStoredCustomGames());
 
   // Save to local storage as fallback cache
   useEffect(() => {
@@ -46,6 +54,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     saveMatches(matches);
   }, [matches]);
+
+  useEffect(() => {
+    saveStoredCustomGames(customGames);
+  }, [customGames]);
 
   // Fetch from Supabase PostgreSQL
   const refreshData = useCallback(async () => {
@@ -99,8 +111,29 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const { data: dbTournaments, error: tErr } = (await Promise.race([tourneysPromise, createTimeout(10000)])) as any;
 
         if (!tErr && dbTournaments && dbTournaments.length > 0) {
+          // Extract system custom games registry row if present
+          const sysGamesRow = dbTournaments.find((t: any) => t.id === SYSTEM_CUSTOM_GAMES_ROW_ID);
+          const discoveredCustomGamesMap = new Map<string, CustomGame>();
+          if (sysGamesRow && sysGamesRow.description) {
+            try {
+              const parsedGames = JSON.parse(sysGamesRow.description);
+              if (Array.isArray(parsedGames)) {
+                parsedGames.forEach((cg: CustomGame) => {
+                  if (cg && cg.id) discoveredCustomGamesMap.set(cg.id, cg);
+                });
+              }
+            } catch (e) {
+              console.warn('Failed to parse system custom games row:', e);
+            }
+          }
+
           const mapped: Tournament[] = dbTournaments
-            .filter((t: any) => t.game !== ('valorant' as any) && t.id !== 'valorant-skirmish-001')
+            .filter(
+              (t: any) =>
+                t.id !== SYSTEM_CUSTOM_GAMES_ROW_ID &&
+                t.game !== ('valorant' as any) &&
+                t.id !== 'valorant-skirmish-001'
+            )
             .map((t: any) => {
               let cleanDesc = t.description || '';
               let meta: any = null;
@@ -114,11 +147,16 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 }
               }
 
+              if (meta?.customGame && meta.customGame.id) {
+                discoveredCustomGamesMap.set(meta.customGame.id, meta.customGame);
+              }
+
               const resolvedGame =
-                meta?.game === 'pubg_mobile' ||
-                t.id.startsWith('pubg-mobile') ||
-                t.game === 'pubg_mobile' ||
-                (t.game === 'pubg' && t.title?.toLowerCase().includes('mobile'))
+                meta?.game
+                  ? meta.game
+                  : t.id.startsWith('pubg-mobile') ||
+                    t.game === 'pubg_mobile' ||
+                    (t.game === 'pubg' && t.title?.toLowerCase().includes('mobile'))
                   ? 'pubg_mobile'
                   : t.game;
 
@@ -167,13 +205,21 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 prizes,
                 winnerPerPlayerRub: isCsOrDota ? 2400 : undefined,
                 isPremium: isPubgPremium,
+                customGame: meta?.customGame,
               };
             });
+
+          if (sysGamesRow || discoveredCustomGamesMap.size > 0) {
+            const nextCustomGames = Array.from(discoveredCustomGamesMap.values());
+            saveStoredCustomGames(nextCustomGames);
+            setCustomGames(nextCustomGames);
+          }
 
           setTournaments(prev => {
             const merged = [...mapped];
             // Only add local tournaments that are not yet in Supabase mapped results
             prev.forEach(p => {
+              if (p.id === SYSTEM_CUSTOM_GAMES_ROW_ID) return;
               const exists = merged.some(m => m.id === p.id);
               if (!exists) {
                 merged.push(p);
@@ -532,13 +578,16 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ) {
         const existingT = tournaments.find(t => t.id === tournamentId);
         const desc = updates.description !== undefined ? updates.description : (existingT?.description || '');
+        const resolvedGameId = updates.game !== undefined ? updates.game : existingT?.game;
+        const customGameObj = customGames.find(cg => cg.id === resolvedGameId) || existingT?.customGame;
         const meta = {
-          game: updates.game !== undefined ? updates.game : existingT?.game,
+          game: resolvedGameId,
           entryFeeRub: updates.entryFeeRub !== undefined ? updates.entryFeeRub : existingT?.entryFeeRub,
           prizePoolRub: updates.prizePoolRub !== undefined ? updates.prizePoolRub : existingT?.prizePoolRub,
           prizes: updates.prizes !== undefined ? updates.prizes : existingT?.prizes,
           minPlayers: updates.minPlayers !== undefined ? updates.minPlayers : existingT?.minPlayers,
           isPremium: updates.isPremium !== undefined ? updates.isPremium : existingT?.isPremium,
+          customGame: customGameObj,
         };
         const cleanDesc = desc.replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
         dbPayload.description = `${cleanDesc}\n<!--nb_meta:${JSON.stringify(meta)}-->`;
@@ -563,8 +612,56 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
+  const syncCustomGamesToSupabase = async (nextGames: CustomGame[]): Promise<boolean> => {
+    try {
+      const { error } = await supabase.from('tournaments').upsert(
+        {
+          id: SYSTEM_CUSTOM_GAMES_ROW_ID,
+          title: 'System Custom Games Registry',
+          game: 'pubg',
+          max_players: 1,
+          registered_count: 0,
+          starts_at: '2099-01-01T00:00:00.000Z',
+          status: 'soon',
+          format: 'SYSTEM',
+          description: JSON.stringify(nextGames),
+        },
+        { onConflict: 'id' }
+      );
+      if (error) {
+        console.error('Could not sync custom games registry to Supabase:', error);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('Failed to sync custom games to Supabase:', e);
+      return false;
+    }
+  };
+
+  const addCustomGame = async (newGame: CustomGame): Promise<boolean> => {
+    const nextGames = [...customGames.filter(g => g.id !== newGame.id), newGame];
+    saveStoredCustomGames(nextGames);
+    setCustomGames(nextGames);
+    const ok = await syncCustomGamesToSupabase(nextGames);
+    await refreshData();
+    return ok;
+  };
+
+  const deleteCustomGame = async (gameId: string): Promise<boolean> => {
+    const nextGames = customGames.filter(g => g.id !== gameId);
+    saveStoredCustomGames(nextGames);
+    setCustomGames(nextGames);
+    const ok = await syncCustomGamesToSupabase(nextGames);
+    await refreshData();
+    return ok;
+  };
+
   const createTournament = async (tournamentData: Omit<Tournament, 'registeredCount'>): Promise<boolean> => {
     const newId = tournamentData.id || `${tournamentData.game}-${Date.now().toString(36)}`;
+    const customGameObj =
+      tournamentData.customGame || customGames.find(cg => cg.id === tournamentData.game);
+
     const meta = {
       game: tournamentData.game,
       entryFeeRub: tournamentData.entryFeeRub,
@@ -572,6 +669,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       prizes: tournamentData.prizes,
       minPlayers: tournamentData.minPlayers,
       isPremium: tournamentData.isPremium,
+      customGame: customGameObj,
     };
     const cleanDesc = (tournamentData.description || '').replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
     const fullDescription = `${cleanDesc}\n<!--nb_meta:${JSON.stringify(meta)}-->`;
@@ -581,6 +679,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       id: newId,
       description: cleanDesc,
       registeredCount: 0,
+      customGame: customGameObj,
     };
 
     setTournaments(prev => {
@@ -590,7 +689,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
 
     try {
-      const dbGame = newTournament.game === 'pubg_mobile' ? 'pubg' : newTournament.game;
+      const dbGame = DB_ALLOWED_GAMES.has(newTournament.game) ? newTournament.game : 'pubg';
       const { error } = await supabase.from('tournaments').insert({
         id: newTournament.id,
         title: newTournament.title,
@@ -666,6 +765,9 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         tournaments: computedTournaments,
         registrations,
         matches,
+        customGames,
+        addCustomGame,
+        deleteCustomGame,
         registerForTournament,
         deleteRegistration,
         clearTournamentRegistrations,

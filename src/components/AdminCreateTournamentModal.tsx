@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
-import { GameId, TournamentStatus } from '@/lib/types';
+import React, { useState, useEffect, useRef } from 'react';
+import { CustomGame, GameId, TournamentStatus } from '@/lib/types';
 import { useTournaments } from '@/context/TournamentContext';
-import { formatRub } from '@/lib/format';
+import { compressGameIconFile, hexToRgbaGlow } from '@/lib/games';
+import { GameIcon } from '@/components/GameIcons';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  initialShowCustomGame?: boolean;
 }
 
-const GAME_OPTIONS: { id: GameId; name: string; defaultMax: number; defaultFee: number; defaultPrize: number; defaultFormat: string; defaultDesc: string }[] = [
+const BUILTIN_GAME_OPTIONS: {
+  id: GameId;
+  name: string;
+  defaultMax: number;
+  defaultFee: number;
+  defaultPrize: number;
+  defaultFormat: string;
+  defaultDesc: string;
+}[] = [
   {
     id: 'cs2',
     name: 'Counter-Strike 2 (5v5)',
@@ -16,7 +26,8 @@ const GAME_OPTIONS: { id: GameId; name: string; defaultMax: number; defaultFee: 
     defaultFee: 1500,
     defaultPrize: 12000,
     defaultFormat: '5v5, BO1 — Регламент соревнований',
-    defaultDesc: 'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, 10 участников). Оплата орг. услуг 1 500 ₽ с игрока. Фиксированное вознаграждение 12 000 ₽ учреждено организатором за спортивные достижения!',
+    defaultDesc:
+      'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, 10 участников). Оплата орг. услуг 1 500 ₽ с игрока. Фиксированное вознаграждение 12 000 ₽ учреждено организатором за спортивные достижения!',
   },
   {
     id: 'dota2',
@@ -25,7 +36,8 @@ const GAME_OPTIONS: { id: GameId; name: string; defaultMax: number; defaultFee: 
     defaultFee: 1500,
     defaultPrize: 12000,
     defaultFormat: '5v5, Captains Mode — Регламент соревнований',
-    defaultDesc: 'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, 10 участников). Оплата орг. услуг 1 500 ₽ с игрока. Фиксированное вознаграждение 12 000 ₽ учреждено организатором за спортивные достижения!',
+    defaultDesc:
+      'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, 10 участников). Оплата орг. услуг 1 500 ₽ с игрока. Фиксированное вознаграждение 12 000 ₽ учреждено организатором за спортивные достижения!',
   },
   {
     id: 'pubg',
@@ -34,7 +46,8 @@ const GAME_OPTIONS: { id: GameId; name: string; defaultMax: number; defaultFee: 
     defaultFee: 100,
     defaultPrize: 2200,
     defaultFormat: 'Solo, 1 соревнование',
-    defaultDesc: 'Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 2 200 ₽ учреждено организатором (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽).',
+    defaultDesc:
+      'Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 2 200 ₽ учреждено организатором (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽).',
   },
   {
     id: 'pubg_mobile',
@@ -43,7 +56,8 @@ const GAME_OPTIONS: { id: GameId; name: string; defaultMax: number; defaultFee: 
     defaultFee: 100,
     defaultPrize: 2200,
     defaultFormat: 'Solo, 1 соревнование',
-    defaultDesc: 'Одиночные мобильные соревнования по PUBG MOBILE до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 2 200 ₽ учреждено организатором (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽).',
+    defaultDesc:
+      'Одиночные мобильные соревнования по PUBG MOBILE до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 2 200 ₽ учреждено организатором (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽).',
   },
   {
     id: 'warzone',
@@ -52,7 +66,8 @@ const GAME_OPTIONS: { id: GameId; name: string; defaultMax: number; defaultFee: 
     defaultFee: 100,
     defaultPrize: 2200,
     defaultFormat: 'Solo Resurgence, 1 катка',
-    defaultDesc: 'Соревнования по Call of Duty: Warzone. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям.',
+    defaultDesc:
+      'Соревнования по Call of Duty: Warzone. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям.',
   },
   {
     id: 'fortnite',
@@ -61,13 +76,24 @@ const GAME_OPTIONS: { id: GameId; name: string; defaultMax: number; defaultFee: 
     defaultFee: 100,
     defaultPrize: 2200,
     defaultFormat: 'Solo Zero Build, 1 катка',
-    defaultDesc: 'Соревнования по Fortnite Zero Build. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям.',
+    defaultDesc:
+      'Соревнования по Fortnite Zero Build. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям.',
   },
+];
+
+const COLOR_PRESETS = [
+  { label: 'Циан', hex: '#22d3ee' },
+  { label: 'Оранжевый', hex: '#f97316' },
+  { label: 'Красный', hex: '#ef4444' },
+  { label: 'Золотой', hex: '#facc15' },
+  { label: 'Изумруд', hex: '#22c55e' },
+  { label: 'Фиолетовый', hex: '#a855f7' },
+  { label: 'Розовый', hex: '#ec4899' },
+  { label: 'Синий', hex: '#3b82f6' },
 ];
 
 function getDefaultStartsAt(): string {
   const d = new Date();
-  // By default set to today at 20:00 or tomorrow if past 20:00
   if (d.getHours() >= 20) {
     d.setDate(d.getDate() + 1);
   }
@@ -76,8 +102,12 @@ function getDefaultStartsAt(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export const AdminCreateTournamentModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { createTournament } = useTournaments();
+export const AdminCreateTournamentModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  initialShowCustomGame = false,
+}) => {
+  const { createTournament, customGames, addCustomGame, deleteCustomGame } = useTournaments();
   const [selectedGame, setSelectedGame] = useState<GameId>('cs2');
   const [title, setTitle] = useState('CS2 5v5 Night Cup');
   const [startsAtLocal, setStartsAtLocal] = useState(getDefaultStartsAt);
@@ -92,18 +122,126 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({ isOpen, onClose })
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Состояние формы добавления своей игры
+  const [showCustomGameForm, setShowCustomGameForm] = useState(initialShowCustomGame);
+  const [customGameName, setCustomGameName] = useState('');
+  const [customGameShort, setCustomGameShort] = useState('');
+  const [customGameTag, setCustomGameTag] = useState('Tournament');
+  const [customGameColor, setCustomGameColor] = useState('#22d3ee');
+  const [customGameIcon, setCustomGameIcon] = useState('');
+  const [isSavingGame, setIsSavingGame] = useState(false);
+  const [gameSuccessMsg, setGameSuccessMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShowCustomGameForm(initialShowCustomGame);
+      setError(null);
+      setGameSuccessMsg(null);
+    }
+  }, [isOpen, initialShowCustomGame]);
+
   if (!isOpen) return null;
+
+  const allGameOptions = [
+    ...BUILTIN_GAME_OPTIONS,
+    ...customGames.map((cg) => ({
+      id: cg.id as GameId,
+      name: cg.name,
+      defaultMax: 100,
+      defaultFee: 100,
+      defaultPrize: 2200,
+      defaultFormat: `${cg.tag || 'Solo'}, 1 соревнование`,
+      defaultDesc: `Соревнования по дисциплине ${cg.name}. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям от организатора.`,
+      isCustom: true,
+    })),
+  ];
 
   const handleGameChange = (gameId: GameId) => {
     setSelectedGame(gameId);
-    const opt = GAME_OPTIONS.find((g) => g.id === gameId);
+    const opt = allGameOptions.find((g) => g.id === gameId);
     if (opt) {
-      setTitle(`${opt.name} Match`);
+      setTitle(`${opt.name} Cup`);
       setFormat(opt.defaultFormat);
       setMaxPlayers(opt.defaultMax);
       setEntryFeeRub(opt.defaultFee);
       setPrizePoolRub(opt.defaultPrize);
       setDescription(opt.defaultDesc);
+    }
+  };
+
+  const handleIconFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    try {
+      const compressedDataUrl = await compressGameIconFile(file, 140);
+      setCustomGameIcon(compressedDataUrl);
+    } catch (err: any) {
+      setError(err?.message || 'Не удалось обработать иконку');
+    }
+  };
+
+  const handleSaveCustomGame = async (andCloseModal = false) => {
+    const cleanName = customGameName.trim();
+    if (!cleanName) {
+      setError('Введите название своей игры');
+      return;
+    }
+    if (!customGameIcon.trim()) {
+      setError('Загрузите иконку для вашей игры (PNG, JPG, WEBP или SVG)');
+      return;
+    }
+
+    setIsSavingGame(true);
+    setError(null);
+    setGameSuccessMsg(null);
+
+    try {
+      const slug = cleanName
+        .toLowerCase()
+        .replace(/[^a-z0-9а-яё]+/gi, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 20);
+      const id = `custom_${slug || 'game'}_${Date.now().toString(36).slice(-4)}`;
+      const shortName = customGameShort.trim() || cleanName;
+      const newGame: CustomGame = {
+        id,
+        name: cleanName,
+        short: shortName,
+        accent: customGameColor || '#22d3ee',
+        glow: hexToRgbaGlow(customGameColor || '#22d3ee', 0.4),
+        iconUrl: customGameIcon.trim(),
+        tag: customGameTag.trim() || 'Tournament',
+      };
+
+      await addCustomGame(newGame);
+
+      // Сразу выбираем созданную игру для создания турнира
+      setSelectedGame(newGame.id);
+      setTitle(`${newGame.name} Cup #1`);
+      setFormat(`${newGame.tag || 'Solo'}, 1 соревнование`);
+      setMaxPlayers(100);
+      setEntryFeeRub(100);
+      setPrizePoolRub(2200);
+      setDescription(
+        `Соревнования по дисциплине ${newGame.name}. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям от организатора.`
+      );
+
+      // Сбрасываем поля формы новой игры
+      setCustomGameName('');
+      setCustomGameShort('');
+      setCustomGameIcon('');
+      setShowCustomGameForm(false);
+      setGameSuccessMsg(`Игра «${newGame.name}» успешно добавлена!`);
+
+      if (andCloseModal) {
+        onClose();
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Не удалось сохранить свою игру');
+    } finally {
+      setIsSavingGame(false);
     }
   };
 
@@ -124,6 +262,7 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({ isOpen, onClose })
     try {
       const startsAtIso = new Date(startsAtLocal).toISOString();
       const newId = `${selectedGame}-${Date.now().toString(36)}`;
+      const customGameObj = customGames.find((cg) => cg.id === selectedGame);
 
       const success = await createTournament({
         id: newId,
@@ -137,9 +276,15 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({ isOpen, onClose })
         description: description.trim(),
         entryFeeRub: Number(entryFeeRub) || 0,
         prizePoolRub: Number(prizePoolRub) || 0,
-        prizes: selectedGame === 'cs2' || selectedGame === 'dota2'
-          ? { 1: Number(prizePoolRub) || 12000, 2: 0, 3: 0 }
-          : { 1: Math.round(prizePoolRub * 0.5), 2: Math.round(prizePoolRub * 0.3), 3: Math.round(prizePoolRub * 0.2) },
+        prizes:
+          selectedGame === 'cs2' || selectedGame === 'dota2'
+            ? { 1: Number(prizePoolRub) || 12000, 2: 0, 3: 0 }
+            : {
+                1: Math.round(prizePoolRub * 0.5),
+                2: Math.round(prizePoolRub * 0.3),
+                3: Math.round(prizePoolRub * 0.2),
+              },
+        customGame: customGameObj,
       });
 
       if (!success) {
@@ -166,9 +311,13 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({ isOpen, onClose })
           ✕
         </button>
 
-        <h2 className="text-xl font-extrabold text-white">Создание нового матча / турнира</h2>
+        <h2 className="text-xl font-extrabold text-white">
+          {showCustomGameForm ? '🎮 Добавление своей игры с иконкой' : 'Создание нового матча / турнира'}
+        </h2>
         <p className="mt-1 text-xs text-zinc-400">
-          Заполните параметры матча. Он мгновенно появится в сетке сайта и станет доступен для регистрации.
+          {showCustomGameForm
+            ? 'Загрузите свою иконку и укажите название дисциплины — игра появится на главной странице, в фильтрах и при создании турниров.'
+            : 'Заполните параметры матча. Он мгновенно появится в сетке сайта и станет доступен для регистрации.'}
         </p>
 
         {error && (
@@ -177,26 +326,238 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({ isOpen, onClose })
           </div>
         )}
 
+        {gameSuccessMsg && (
+          <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300 font-semibold">
+            ✓ {gameSuccessMsg}
+          </div>
+        )}
+
+        {/* Форма добавления своей игры с загрузкой иконки */}
+        {showCustomGameForm && (
+          <div className="mt-5 rounded-2xl border border-cyan-500/30 bg-cyan-950/15 p-4 sm:p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-cyan-300 flex items-center gap-2">
+                <span>✨</span>
+                <span>Новая игровая дисциплина</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowCustomGameForm(false)}
+                className="text-xs text-zinc-400 hover:text-white underline"
+              >
+                ← Вернуться к матчу
+              </button>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1">
+                  Полное название игры *
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Например: Apex Legends / Standoff 2"
+                  value={customGameName}
+                  onChange={(e) => setCustomGameName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1">
+                  Короткое имя (на значке)
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Например: Apex / Standoff"
+                  value={customGameShort}
+                  onChange={(e) => setCustomGameShort(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1">
+                  Подпись / Режим (на главной)
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Например: Battle Royale / 5v5"
+                  value={customGameTag}
+                  onChange={(e) => setCustomGameTag(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1">
+                  Фирменный цвет подсветки
+                </label>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {COLOR_PRESETS.map((c) => (
+                    <button
+                      key={c.hex}
+                      type="button"
+                      onClick={() => setCustomGameColor(c.hex)}
+                      title={c.label}
+                      className={`h-7 w-7 rounded-lg border transition ${
+                        customGameColor === c.hex
+                          ? 'scale-110 border-white ring-2 ring-white/50'
+                          : 'border-white/20 opacity-80 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: c.hex }}
+                    />
+                  ))}
+                  <input
+                    type="color"
+                    value={customGameColor}
+                    onChange={(e) => setCustomGameColor(e.target.value)}
+                    className="h-7 w-8 rounded cursor-pointer bg-transparent border-0"
+                    title="Выбрать свой цвет"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Загрузка иконки */}
+            <div>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
+                Иконка игры (загрузка файла) *
+              </label>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-xl border border-dashed border-white/20 bg-black/40 p-4">
+                {/* Превью иконки */}
+                <div
+                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border p-1 overflow-hidden shadow-lg"
+                  style={{
+                    backgroundColor: `${customGameColor}18`,
+                    borderColor: `${customGameColor}50`,
+                  }}
+                >
+                  {customGameIcon ? (
+                    <img
+                      src={customGameIcon}
+                      alt="Preview"
+                      className="h-full w-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    <span className="text-2xl">🖼️</span>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-2 w-full">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIconFileChange}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-2 text-xs font-extrabold transition shadow-md shadow-cyan-500/20"
+                    >
+                      📁 Загрузить иконку с устройства
+                    </button>
+                    {customGameIcon && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomGameIcon('')}
+                        className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/20 transition"
+                      >
+                        Удалить
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-zinc-400">
+                    Поддерживаются PNG, JPG, WEBP, SVG. Иконка автоматически кадрируется под квадрат и сохраняется для всех пользователей.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setShowCustomGameForm(false)}
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white transition"
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                disabled={isSavingGame}
+                onClick={() => handleSaveCustomGame(true)}
+                className="rounded-xl border border-cyan-500/40 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 px-4 py-2 text-xs font-bold transition"
+              >
+                {isSavingGame ? 'Сохранение...' : 'Сохранить только игру'}
+              </button>
+              <button
+                type="button"
+                disabled={isSavingGame}
+                onClick={() => handleSaveCustomGame(false)}
+                className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black px-5 py-2 text-xs font-extrabold shadow-lg shadow-emerald-500/20 transition"
+              >
+                {isSavingGame ? 'Сохранение...' : '✓ Сохранить игру и настроить турнир →'}
+              </button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           {/* Выбор дисциплины */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-2">
-              Дисциплина / Игра:
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {GAME_OPTIONS.map((g) => (
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
+                Дисциплина / Игра:
+              </label>
+              {!showCustomGameForm && (
                 <button
-                  key={g.id}
                   type="button"
+                  onClick={() => setShowCustomGameForm(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/15 px-3 py-1 text-xs font-extrabold text-cyan-300 hover:bg-cyan-500 hover:text-black transition"
+                >
+                  <span>➕</span>
+                  <span>Добавить свою игру с иконкой</span>
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {allGameOptions.map((g) => (
+                <div
+                  key={g.id}
                   onClick={() => handleGameChange(g.id)}
-                  className={`rounded-xl border p-2.5 text-left text-xs font-bold transition ${
+                  className={`group relative flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs font-bold cursor-pointer transition ${
                     selectedGame === g.id
                       ? 'border-cyan-500 bg-cyan-950/40 text-cyan-300 ring-1 ring-cyan-500/50'
                       : 'border-white/10 bg-white/5 text-zinc-300 hover:border-white/20'
                   }`}
                 >
-                  {g.name}
-                </button>
+                  <GameIcon game={g.id} className="w-5 h-5 shrink-0 rounded" />
+                  <span className="truncate flex-1">{g.name}</span>
+                  {(g as any).isCustom && (
+                    <button
+                      type="button"
+                      title="Удалить свою игру"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm(`Удалить игру «${g.name}»?`)) {
+                          deleteCustomGame(g.id);
+                          if (selectedGame === g.id) {
+                            handleGameChange('cs2');
+                          }
+                        }
+                      }}
+                      className="opacity-60 hover:opacity-100 text-red-400 hover:text-red-300 px-1 text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </div>

@@ -55,7 +55,25 @@ export const FortniteIcon: React.FC<{ className?: string }> = ({ className = "w-
   />
 );
 
-export const GameIcon: React.FC<{ game: GameId; className?: string }> = ({ game, className = "w-5 h-5" }) => {
+import { GAMES } from '@/lib/games';
+
+export const GameIcon: React.FC<{ game: GameId; className?: string; customIconUrl?: string }> = ({
+  game,
+  className = "w-5 h-5",
+  customIconUrl,
+}) => {
+  const iconUrl = customIconUrl || GAMES[game]?.iconUrl;
+  if (iconUrl) {
+    return (
+      <img
+        src={iconUrl}
+        alt={GAMES[game]?.name || String(game)}
+        className={`${className} object-cover rounded`}
+        loading="lazy"
+      />
+    );
+  }
+
   switch (game) {
     case 'cs2':
       return <CS2Icon className={className} />;
@@ -69,5 +87,13 @@ export const GameIcon: React.FC<{ game: GameId; className?: string }> = ({ game,
       return <WarzoneIcon className={className} />;
     case 'fortnite':
       return <FortniteIcon className={className} />;
+    default:
+      return (
+        <span
+          className={`${className} inline-flex items-center justify-center rounded bg-cyan-500/20 text-cyan-300 font-bold text-xs`}
+        >
+          🎮
+        </span>
+      );
   }
 };

@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { GameId } from '@/lib/types';
-import { GAMES } from '@/lib/games';
+import { BUILTIN_GAMES, GAMES } from '@/lib/games';
 import { useTournaments } from '@/context/TournamentContext';
 import { TournamentCard } from '@/components/TournamentCard';
+import { GameIcon } from '@/components/GameIcons';
 
 export const TournamentsPage: React.FC = () => {
-  const { tournaments } = useTournaments();
+  const { tournaments, customGames } = useTournaments();
   const [selectedGame, setSelectedGame] = useState<GameId | 'all'>('all');
   const [pubgMode, setPubgMode] = useState<'standard' | 'premium'>('standard');
+
+  const allGameKeys: GameId[] = [
+    ...Object.keys(BUILTIN_GAMES),
+    ...customGames.map((cg) => cg.id),
+  ];
 
   const filtered = tournaments.filter((t) => {
     if (selectedGame !== 'all' && t.game !== selectedGame) {
@@ -45,7 +51,7 @@ export const TournamentsPage: React.FC = () => {
         >
           Все игры
         </button>
-        {(Object.keys(GAMES) as GameId[]).map((game) => {
+        {allGameKeys.map((game) => {
           const info = GAMES[game];
           const isSelected = selectedGame === game;
           return (
@@ -62,10 +68,7 @@ export const TournamentsPage: React.FC = () => {
                 boxShadow: isSelected ? `0 4px 15px -3px ${info.glow}` : undefined,
               }}
             >
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: isSelected ? '#000' : info.accent }}
-              />
+              <GameIcon game={game} className="w-3.5 h-3.5 shrink-0 rounded-sm" />
               {info.short}
             </button>
           );
