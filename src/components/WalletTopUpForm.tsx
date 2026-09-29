@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { TipsTipsPaymentModal } from '@/components/TipsTipsPaymentModal';
 import { createTipsTipsPayment, TipsTipsPayment } from '@/lib/tipstips-client';
 
-const QUICK_PRESETS = [100, 300, 500, 1000, 1500, 3000, 5000];
+const QUICK_PRESETS = [100, 200, 500, 1000, 1500, 3000, 5000];
 
 export const WalletTopUpForm: React.FC = () => {
   const { user } = useAuth();
@@ -143,7 +143,7 @@ export const WalletTopUpForm: React.FC = () => {
         {/* Быстрое добавление к сумме */}
         <div className="flex items-center gap-2 pt-1">
           <span className="text-[11px] text-zinc-500">Добавить:</span>
-          {[100, 500, 1000].map((add) => (
+          {[100, 200, 500, 1000].map((add) => (
             <button
               key={add}
               type="button"
