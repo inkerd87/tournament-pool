@@ -14,7 +14,7 @@ export const HowItWorksPage: React.FC = () => {
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-cyan-300">1. Оплата услуг по организации соревнований</h2>
           <p className="leading-relaxed text-zinc-300">
-            На платформе NightByte проводятся соревнования по дисциплинам CS2, Dota 2, PUBG, Warzone и Fortnite.
+            На платформе NightByte проводятся соревнования по дисциплинам CS2, Dota 2, PUBG, PUBG Mobile, Apex Legends, Minecraft, Warzone и Fortnite.
             Участие в соревнованиях предусматривает оплату организационных услуг: судейство соревнований, предоставление игровой платформы, модерация лобби и автоматизированный подбор равных оппонентов.
           </p>
           <p className="leading-relaxed text-zinc-300">
@@ -28,7 +28,7 @@ export const HowItWorksPage: React.FC = () => {
             <h2 className="text-lg sm:text-xl font-bold text-amber-300">2. Правило идентификации: совпадение никнейма</h2>
           </div>
           <p className="leading-relaxed text-zinc-300 text-sm">
-            При регистрации на сайте и входе в соревнования действует строгое правило: <strong>ваш игровой никнейм в клиенте игры (CS2, PUBG, Dota 2, Warzone, Fortnite) обязан в точности совпадать с ником, указанным при регистрации на платформе</strong>.
+            При регистрации на сайте и входе в соревнования действует строгое правило: <strong>ваш игровой никнейм в клиенте игры (CS2, PUBG, PUBG Mobile, Dota 2, Apex Legends, Minecraft, Warzone, Fortnite) обязан в точности совпадать с ником, указанным при регистрации на платформе</strong>.
           </p>
           <p className="leading-relaxed text-zinc-400 text-xs sm:text-sm">
             Судейская коллегия перед стартом соревнований сверяет ники участников в лобби с регистрационным списком платформы. Это необходимо для исключения подмены игроков (ringers), фиксации официальных спортивных итогов и корректного перечисления вознаграждения. При несовпадении никнеймов игрок не допускается к участию в соревнованиях.

@@ -52,7 +52,7 @@ export const HomePage: React.FC = () => {
               </h1>
 
               <p className="mt-4 max-w-xl text-sm sm:text-base text-zinc-400 leading-relaxed">
-                Открытые любительские соревнования по CS2, Dota 2, PUBG, PUBG Mobile, Warzone и Fortnite. Различные форматы соревнований, честное судейство и вознаграждение победителям.
+                Открытые любительские соревнования по CS2, Dota 2, PUBG, PUBG Mobile, Apex Legends, Minecraft, Warzone и Fortnite. Различные форматы соревнований, честное судейство и вознаграждение победителям.
               </p>
 
               <div className="mt-7 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">

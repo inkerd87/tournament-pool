@@ -213,7 +213,7 @@ export const AccountPage: React.FC = () => {
               </h3>
             </div>
             <p className="text-zinc-400 leading-relaxed max-w-2xl">
-              Ваш никнейм на сайте <strong>обязан строго совпадать</strong> с никнеймом в игре (CS2, Dota 2, PUBG, Warzone, Fortnite). Судьи верифицируют игроков в лобби перед стартом соревнований. Несовпадение ников влечет отстранение без возврата оплаты.
+              Ваш никнейм на сайте <strong>обязан строго совпадать</strong> с никнеймом в игре (CS2, Dota 2, PUBG, PUBG Mobile, Apex Legends, Minecraft, Warzone, Fortnite). Судьи верифицируют игроков в лобби перед стартом соревнований. Несовпадение ников влечет отстранение без возврата оплаты.
             </p>
           </div>
           {!isEditingNick && (
