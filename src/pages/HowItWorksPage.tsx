@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { VK_GROUP_URL } from '@/lib/constants';
 
 export const HowItWorksPage: React.FC = () => {
   return (
@@ -118,10 +119,21 @@ export const HowItWorksPage: React.FC = () => {
         </section>
       </div>
 
-      <div className="mt-12 pt-8 border-t border-white/10">
+      <div className="mt-12 pt-8 border-t border-white/10 flex flex-wrap items-center gap-4">
         <Link to="/tournaments" className="btn-primary">
           Выбрать соревнование и начать играть
         </Link>
+        <a
+          href={VK_GROUP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-xl border border-[#0077FF]/50 bg-[#0077FF]/15 px-5 py-3 text-sm font-bold text-white transition hover:border-[#0077FF] hover:bg-[#0077FF]/30"
+        >
+          <svg className="h-4 w-4 fill-[#3b9dff]" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zm3.08 14.27h-1.46c-.55 0-.72-.44-1.71-1.43-.86-.83-1.24-.94-1.46-.94-.3 0-.38.08-.38.49v1.31c0 .35-.11.56-1.04.56-1.54 0-3.24-.93-4.44-2.66-1.81-2.54-2.3-4.45-2.3-4.84 0-.21.08-.41.49-.41h1.46c.37 0 .51.17.65.56.72 2.08 1.92 3.9 2.41 3.9.19 0 .27-.09.27-.56V9.97c-.06-.99-.58-1.07-.58-1.42 0-.17.14-.34.37-.34h2.29c.31 0 .42.17.42.53v2.89c0 .31.14.42.23.42.19 0 .34-.11.68-.45 1.05-1.18 1.8-3 1.8-3 .1-.21.27-.41.64-.41h1.46c.44 0 .54.23.44.53-.18.85-1.95 3.35-1.95 3.35-.16.25-.22.36 0 .65.16.21.69.67 1.04 1.08.65.74 1.14 1.36 1.28 1.79.14.42-.08.64-.51.64z" />
+          </svg>
+          <span>Наше сообщество ВКонтакте →</span>
+        </a>
       </div>
     </div>
   );

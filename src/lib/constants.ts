@@ -22,5 +22,7 @@ export const PUBG_PREMIUM_PRIZES: Record<1 | 2 | 3, number> = {
 
 export const SITE_NAME = "NightByte";
 
+export const VK_GROUP_URL = "https://vk.ru/nightbyte.club";
+
 /** Баланс кошелька после пополнения через Robokassa */
 export const STARTING_BALANCE_RUB = 0;
