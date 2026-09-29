@@ -62,9 +62,9 @@ export const HowItWorksPage: React.FC = () => {
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/5 p-5 sm:col-span-2 lg:col-span-1">
-              <h3 className="font-bold text-white text-base">Соревнования по Minecraft (Майнкрафт)</h3>
+              <h3 className="font-bold text-white text-base">Minecraft (Hunger Games)</h3>
               <p className="mt-2 text-xs text-zinc-300 leading-relaxed">
-                Игровые соревнования на выживание, голодные игры и PvP-ивенты на выделенном сервере (оплата орг. услуг — 100 ₽, 200 ₽ или 500 ₽). Фиксированное вознаграждение от организатора распределяется между победителями и призерами согласно карточке выбранного соревнования.
+                Minecraft: соревнование по режиму Hunger Games. Турнир рассчитан на фиксированное количество участников — ровно 24 человека. Формат проведения предполагает одну игровую сессию, в которой будет определен один победитель. Условия участия: Организационный взнос составляет <strong className="text-white font-bold">500 рублей</strong>. Победитель получает денежное вознаграждение в размере <strong className="text-amber-300 font-bold">2500 рублей</strong>.
               </p>
             </div>
           </div>
