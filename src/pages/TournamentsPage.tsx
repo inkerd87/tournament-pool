@@ -76,15 +76,17 @@ export const TournamentsPage: React.FC = () => {
       </div>
 
       {/* Ползунок / Переключатель: Премиум соревнования (PUBG и PUBG Mobile) */}
-      <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-[#12161f] to-amber-500/5 p-3.5 sm:p-4 shadow-lg shadow-amber-500/5">
+      <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/25 bg-[#141210] p-3.5 sm:p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-black font-extrabold text-base shadow-md shadow-amber-500/20">
-            ⭐
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold text-base">
+            <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-extrabold text-white">Режим: Премиум соревнования</span>
-              <span className="rounded-full bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+              <span className="text-xs sm:text-sm font-bold text-white tracking-tight">Режим: Премиум соревнования</span>
+              <span className="rounded-md bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
                 PUBG & PUBG Mobile
               </span>
             </div>
@@ -103,22 +105,22 @@ export const TournamentsPage: React.FC = () => {
             onClick={() => setPubgMode('standard')}
             className={`relative z-10 flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
               pubgMode === 'standard'
-                ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25'
+                ? 'bg-cyan-400 text-black shadow-sm'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <span>🎮 Орг. тариф 100 ₽</span>
+            <span>Стандарт 100 ₽</span>
           </button>
           <button
             type="button"
             onClick={() => setPubgMode('premium')}
             className={`relative z-10 flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
               pubgMode === 'premium'
-                ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-black shadow-md shadow-amber-400/30'
+                ? 'bg-amber-400 text-black shadow-sm'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <span>⭐ Премиум тариф 1 000 ₽</span>
+            <span>Премиум 1 000 ₽</span>
           </button>
         </div>
       </div>

@@ -58,23 +58,17 @@ export const TournamentCard: React.FC<{
       to={`/tournaments/${tournament.id}`}
       className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 sm:p-5 transition hover:border-white/25 active:scale-[0.99] ${
         isPremium
-          ? 'border-amber-500/40 bg-gradient-to-b from-[#191512] via-[#12161f] to-[#12161f] shadow-lg shadow-amber-500/10 hover:border-amber-400/60'
-          : 'border-white/10 bg-[#12161f]'
+          ? 'border-amber-500/30 bg-[#141210] hover:border-amber-400/50'
+          : 'border-white/[0.08] bg-[#0f141d] hover:border-cyan-500/30'
       }`}
-      style={{ ['--glow' as string]: isPremium ? 'rgba(250, 204, 21, 0.4)' : game.glow }}
     >
-      <div
-        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full blur-3xl opacity-40"
-        style={{ background: isPremium ? '#f59e0b' : game.accent }}
-      />
-      
       <div>
         <div className="relative flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <GameBadge game={tournament.game} />
             {isPremium && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2 py-0.5 text-[10px] font-extrabold text-amber-300 shadow-sm shadow-amber-500/20">
-                ⭐ Премиум
+              <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                ПРЕМИУМ
               </span>
             )}
           </div>
@@ -97,7 +91,7 @@ export const TournamentCard: React.FC<{
                 }}
                 className={`rounded-md px-2 py-0.5 transition-all ${
                   pubgMode === 'standard'
-                    ? 'bg-cyan-400 text-black shadow-sm font-extrabold'
+                    ? 'bg-cyan-400 text-black shadow-sm font-bold'
                     : 'text-zinc-400 hover:text-white'
                 }`}
                 title="Обычные соревнования (100 ₽)"
@@ -114,16 +108,16 @@ export const TournamentCard: React.FC<{
                 }}
                 className={`rounded-md px-2 py-0.5 flex items-center gap-0.5 transition-all ${
                   pubgMode === 'premium'
-                    ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-black shadow-sm shadow-amber-400/30 font-extrabold'
+                    ? 'bg-amber-400 text-black shadow-sm font-bold'
                     : 'text-zinc-400 hover:text-white'
                 }`}
                 title="Премиум соревнования (1 000 ₽)"
               >
-                <span>⭐ 1 000 ₽</span>
+                <span>1 000 ₽</span>
               </button>
             </div>
           ) : isSoon ? (
-            <span className="rounded-full border border-amber-500/40 bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300 animate-pulse">
+            <span className="rounded-full border border-amber-500/40 bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-300">
               Скоро
             </span>
           ) : (
@@ -140,7 +134,10 @@ export const TournamentCard: React.FC<{
 
         {tournament.winnerPerPlayerRub ? (
           <div className="relative mt-2 inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold text-amber-300">
-            <span>🏆 Победитель: {formatRub(prizePool)}</span>
+            <svg className="w-3.5 h-3.5 text-amber-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H7M14 14.66V17c0 .55.45 1 1 1h2M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+            </svg>
+            <span>Победитель: {formatRub(prizePool)}</span>
             <span className="text-zinc-400 font-normal">({formatRub(tournament.winnerPerPlayerRub)} / игроку)</span>
           </div>
         ) : isPremium ? (
@@ -185,8 +182,8 @@ export const TournamentCard: React.FC<{
                 style={{
                   width: `${fillPercent}%`,
                   background: isPremium
-                    ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
-                    : `linear-gradient(90deg, ${game.accent}, #22d3ee)`,
+                    ? '#f59e0b'
+                    : game.accent,
                 }}
               />
             </div>
@@ -197,23 +194,26 @@ export const TournamentCard: React.FC<{
       <div className="relative mt-5 flex items-center justify-between border-t border-white/5 pt-3.5">
         <div>
           <p className="text-[10px] uppercase font-semibold tracking-wider text-zinc-500">Вознаграждение</p>
-          <p className="text-lg font-extrabold text-amber-300">
+          <p className="text-lg font-extrabold text-amber-300 font-mono">
             {isSoon ? 'Анонс скоро' : formatRub(prizePool)}
           </p>
         </div>
         {isSoon ? (
-          <div className="flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/15 px-3.5 py-1.5 text-xs font-bold text-amber-300">
+          <div className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/15 px-3 py-1.5 text-xs font-bold text-amber-300">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
             <span>Скоро</span>
-            <span>⏳</span>
           </div>
         ) : isPremium ? (
-          <div className="flex items-center gap-1 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-300 px-3.5 py-1.5 text-xs font-extrabold text-black shadow-md shadow-amber-400/20 group-hover:from-amber-300 group-hover:to-yellow-200 transition">
-            <span>⭐ Орг. услуги {formatRub(entryFee)}</span>
+          <div className="flex items-center gap-1 rounded-lg bg-amber-400 px-3.5 py-1.5 text-xs font-bold text-black shadow-sm group-hover:bg-amber-300 transition">
+            <span>Орг. тариф {formatRub(entryFee)}</span>
             <span>→</span>
           </div>
         ) : (
           <div className="flex items-center gap-1 rounded-lg bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-300 group-hover:bg-cyan-500 group-hover:text-black transition">
-            <span>Орг. услуги {formatRub(entryFee)}</span>
+            <span>Орг. тариф {formatRub(entryFee)}</span>
             <span>→</span>
           </div>
         )}

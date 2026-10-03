@@ -58,19 +58,23 @@ export const AdminPage: React.FC = () => {
           onClick={() => setActiveTab('tipstips')}
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
             activeTab === 'tipstips'
-              ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+              ? 'bg-amber-400 text-black shadow-md'
               : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
           }`}
         >
-          <span>💳 Платежи tips.tips</span>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
+          <span>Платежи tips.tips</span>
           {pendingTipsCount > 0 ? (
-            <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-extrabold text-white animate-pulse">
+            <span className="rounded-full bg-red-600 px-2 py-0.5 text-xs font-extrabold text-white animate-pulse">
               {pendingTipsCount}
             </span>
           ) : (
             <span
-              className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
-                activeTab === 'tipstips' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
+              className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                activeTab === 'tipstips' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-400'
               }`}
             >
               0
@@ -83,14 +87,17 @@ export const AdminPage: React.FC = () => {
           onClick={() => setActiveTab('matches')}
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
             activeTab === 'matches'
-              ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20'
+              ? 'bg-cyan-400 text-black shadow-md'
               : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
           }`}
         >
-          <span>🏆 Матчи и расписание</span>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8m-4-4v4M6 4h12a2 2 0 012 2v2a6 6 0 01-6 6h-4a6 6 0 01-6-6V6a2 2 0 012-2z" />
+          </svg>
+          <span>Матчи и расписание</span>
           <span
-            className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
-              activeTab === 'matches' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
+            className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+              activeTab === 'matches' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-400'
             }`}
           >
             {tournaments.length}
@@ -102,14 +109,17 @@ export const AdminPage: React.FC = () => {
           onClick={() => setActiveTab('registrations')}
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
             activeTab === 'registrations'
-              ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20'
+              ? 'bg-cyan-400 text-black shadow-md'
               : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
           }`}
         >
-          <span>👥 Участники соревнований</span>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span>Участники соревнований</span>
           <span
-            className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${
-              activeTab === 'registrations' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-300'
+            className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+              activeTab === 'registrations' ? 'bg-black/20 text-black' : 'bg-white/10 text-zinc-400'
             }`}
           >
             {registrations.length}

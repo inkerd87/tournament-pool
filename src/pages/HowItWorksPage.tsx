@@ -23,8 +23,10 @@ export const HowItWorksPage: React.FC = () => {
         </section>
 
         <section className="space-y-4 rounded-2xl border border-amber-500/30 bg-amber-950/15 p-5 sm:p-6">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">⚠️</span>
+          <div className="flex items-center gap-2.5">
+            <svg className="w-5 h-5 text-amber-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
             <h2 className="text-lg sm:text-xl font-bold text-amber-300">2. Правило идентификации: совпадение никнейма</h2>
           </div>
           <p className="leading-relaxed text-zinc-300 text-sm">
@@ -70,7 +72,10 @@ export const HowItWorksPage: React.FC = () => {
           </div>
 
           <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-4 text-sm text-zinc-300 flex items-start gap-3">
-            <span className="text-xl leading-none">⏱</span>
+            <svg className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
             <div>
               <p className="font-bold text-white">Срок и порядок выплат вознаграждений (до суток)</p>
               <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
@@ -99,8 +104,8 @@ export const HowItWorksPage: React.FC = () => {
         </section>
 
         <section className="space-y-4 rounded-2xl border border-amber-500/25 bg-amber-950/15 p-6">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-400 font-extrabold text-lg">🔞</span>
+          <div className="flex items-center gap-2.5">
+            <span className="rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 px-2 py-0.5 text-xs font-mono font-bold">18+</span>
             <h2 className="text-xl font-bold text-amber-300">7. Возрастное ограничение (Строго 18+)</h2>
           </div>
           <p className="leading-relaxed text-zinc-300 text-sm">
@@ -112,8 +117,10 @@ export const HowItWorksPage: React.FC = () => {
         </section>
 
         <section className="space-y-3 rounded-2xl border border-cyan-500/20 bg-cyan-950/20 p-6">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🔄</span>
+          <div className="flex items-center gap-2.5">
+            <svg className="w-5 h-5 text-cyan-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
             <h2 className="text-xl font-bold text-cyan-300">8. Порядок возврата денежных средств</h2>
           </div>
           <p className="leading-relaxed text-zinc-300 text-sm">

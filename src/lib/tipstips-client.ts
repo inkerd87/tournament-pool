@@ -71,6 +71,19 @@ export function saveTipsTipsPayments(payments: TipsTipsPayment[]): void {
   }
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 /**
  * Преобразование строки из таблицы transactions в объект TipsTipsPayment
  */
@@ -88,7 +101,7 @@ export function parseTransactionToPayment(tx: any): TipsTipsPayment | null {
   const status: 'pending' | 'confirmed' | 'rejected' =
     tx.status === 'completed' || tx.status === 'confirmed'
       ? 'confirmed'
-      : tx.status === 'cancelled' || tx.status === 'rejected'
+      : tx.status === 'failed' || tx.status === 'cancelled' || tx.status === 'rejected'
       ? 'rejected'
       : 'pending';
 
@@ -161,6 +174,8 @@ export async function fetchTipsTipsPaymentsFromDb(): Promise<TipsTipsPayment[]> 
 
 /**
  * Создание новой заявки на оплату через tips.tips
+ * Генерирует валидный UUID и код NB-XXXX, мгновенно сохраняет в LocalStorage (0 мс задержки для UI)
+ * и параллельно на фоне регистрирует запись в Supabase transactions.
  */
 export async function createTipsTipsPayment(data: {
   amount: number;
@@ -175,6 +190,7 @@ export async function createTipsTipsPayment(data: {
 }): Promise<TipsTipsPayment> {
   const code = generatePaymentCode();
   const now = new Date().toISOString();
+  const paymentId = generateUUID();
 
   const meta = {
     code,
@@ -189,34 +205,8 @@ export async function createTipsTipsPayment(data: {
     createdAt: now,
   };
 
-  let generatedId = `ttp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-
-  // Сохраняем в Supabase в таблицу transactions
-  try {
-    const { data: inserted, error } = await supabase
-      .from('transactions')
-      .insert([
-        {
-          user_id: data.userId || null,
-          type: data.type === 'registration' ? 'registration' : 'deposit',
-          amount_rub: data.amount,
-          status: 'pending',
-          description: JSON.stringify(meta),
-        },
-      ])
-      .select();
-
-    if (!error && inserted && inserted.length > 0) {
-      generatedId = inserted[0].id;
-    } else if (error) {
-      console.warn('Failed to insert into Supabase transactions:', error);
-    }
-  } catch (err) {
-    console.warn('Network error saving payment to Supabase:', err);
-  }
-
   const payment: TipsTipsPayment = {
-    id: generatedId,
+    id: paymentId,
     code,
     amount: data.amount,
     type: data.type,
@@ -231,9 +221,29 @@ export async function createTipsTipsPayment(data: {
     createdAt: now,
   };
 
+  // 1. Немедленно сохраняем локально, чтобы модалка открылась без малейшей задержки
   const list = getStoredTipsTipsPayments();
   list.unshift(payment);
   saveTipsTipsPayments(list);
+
+  // 2. Фоново асинхронно синхронизируем с Supabase transactions
+  // Запускаем через IIFE, чтобы никогда не блокировать UI модалки
+  (async () => {
+    try {
+      await supabase.from('transactions').insert([
+        {
+          id: paymentId,
+          user_id: data.userId || null,
+          type: data.type === 'registration' ? 'registration' : 'deposit',
+          amount_rub: data.amount,
+          status: 'pending',
+          description: JSON.stringify(meta),
+        },
+      ]);
+    } catch (err) {
+      console.warn('Background sync payment to Supabase transactions:', err);
+    }
+  })();
 
   return payment;
 }
@@ -252,13 +262,17 @@ export async function confirmTipsTipsPayment(
   ) => Promise<boolean> | boolean
 ): Promise<boolean> {
   const list = getStoredTipsTipsPayments();
-  let payment = list.find((p) => p.id === paymentId);
+  let payment = list.find((p) => p.id === paymentId || p.code === paymentId);
+
+  const isUUID = UUID_REGEX.test(paymentId);
 
   if (!payment) {
     try {
-      const { data: dbRow } = await supabase.from('transactions').select('*').eq('id', paymentId).single();
-      if (dbRow) {
-        payment = parseTransactionToPayment(dbRow) || undefined;
+      if (isUUID) {
+        const { data: dbRow } = await supabase.from('transactions').select('*').eq('id', paymentId).maybeSingle();
+        if (dbRow) {
+          payment = parseTransactionToPayment(dbRow) || undefined;
+        }
       }
     } catch (e) {
       console.warn('Error fetching payment for confirmation:', e);
@@ -283,7 +297,7 @@ export async function confirmTipsTipsPayment(
     // Также обновляем в Supabase users
     try {
       let userQuery = supabase.from('users').select('*');
-      if (payment.userId) {
+      if (payment.userId && UUID_REGEX.test(payment.userId)) {
         userQuery = userQuery.eq('id', payment.userId);
       } else if (payment.email) {
         userQuery = userQuery.eq('email', payment.email.toLowerCase().trim());
@@ -317,7 +331,7 @@ export async function confirmTipsTipsPayment(
     }
   }
 
-  const idx = list.findIndex((p) => p.id === paymentId);
+  const idx = list.findIndex((p) => p.id === payment.id || p.code === payment.code);
   if (idx !== -1) {
     list[idx] = payment;
   } else {
@@ -325,7 +339,7 @@ export async function confirmTipsTipsPayment(
   }
   saveTipsTipsPayments(list);
 
-  // Обновляем статус в Supabase transactions
+  // Обновляем статус в Supabase transactions: статус 'completed'
   try {
     const meta = {
       code: payment.code,
@@ -341,13 +355,23 @@ export async function confirmTipsTipsPayment(
       note: payment.note,
     };
 
-    await supabase
-      .from('transactions')
-      .update({
-        status: 'completed',
-        description: JSON.stringify(meta),
-      })
-      .eq('id', payment.id);
+    if (UUID_REGEX.test(payment.id)) {
+      await supabase
+        .from('transactions')
+        .update({
+          status: 'completed',
+          description: JSON.stringify(meta),
+        })
+        .eq('id', payment.id);
+    } else if (payment.code) {
+      await supabase
+        .from('transactions')
+        .update({
+          status: 'completed',
+          description: JSON.stringify(meta),
+        })
+        .ilike('description', `%"code":"${payment.code}"%`);
+    }
   } catch (err) {
     console.warn('Could not update transaction status in Supabase:', err);
   }
@@ -357,26 +381,44 @@ export async function confirmTipsTipsPayment(
 
 /**
  * Отклонение платежа администратором
+ * Важно: в PostgreSQL для transactions_status_check допустим статус 'failed' (не 'cancelled')
  */
 export async function rejectTipsTipsPayment(paymentId: string, note?: string): Promise<boolean> {
   const list = getStoredTipsTipsPayments();
-  let payment = list.find((p) => p.id === paymentId);
+  let payment = list.find((p) => p.id === paymentId || p.code === paymentId);
+
+  const isUUID = UUID_REGEX.test(paymentId);
 
   if (!payment) {
     try {
-      const { data: dbRow } = await supabase.from('transactions').select('*').eq('id', paymentId).single();
-      if (dbRow) {
-        payment = parseTransactionToPayment(dbRow) || undefined;
+      if (isUUID) {
+        const { data: dbRow } = await supabase.from('transactions').select('*').eq('id', paymentId).maybeSingle();
+        if (dbRow) {
+          payment = parseTransactionToPayment(dbRow) || undefined;
+        }
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Error fetching payment for rejection:', e);
+    }
   }
 
-  if (!payment) return false;
+  if (!payment) {
+    payment = {
+      id: paymentId,
+      code: paymentId,
+      amount: 0,
+      type: 'topup',
+      email: '',
+      nickname: 'Игрок',
+      status: 'rejected',
+      createdAt: new Date().toISOString(),
+    };
+  }
 
   payment.status = 'rejected';
   if (note) payment.note = note;
 
-  const idx = list.findIndex((p) => p.id === paymentId);
+  const idx = list.findIndex((p) => p.id === payment.id || p.code === payment.code);
   if (idx !== -1) {
     list[idx] = payment;
   } else {
@@ -398,14 +440,29 @@ export async function rejectTipsTipsPayment(paymentId: string, note?: string): P
       note: note || 'Отклонено администратором',
     };
 
-    await supabase
-      .from('transactions')
-      .update({
-        status: 'cancelled',
-        description: JSON.stringify(meta),
-      })
-      .eq('id', paymentId);
-  } catch {}
+    // PostgreSQL check constraint "transactions_status_check" требует статус 'failed'
+    if (UUID_REGEX.test(payment.id)) {
+      const { error } = await supabase
+        .from('transactions')
+        .update({
+          status: 'failed',
+          description: JSON.stringify(meta),
+        })
+        .eq('id', payment.id);
+      if (error) console.warn('Supabase reject error:', error);
+    } else if (payment.code) {
+      const { error } = await supabase
+        .from('transactions')
+        .update({
+          status: 'failed',
+          description: JSON.stringify(meta),
+        })
+        .ilike('description', `%"code":"${payment.code}"%`);
+      if (error) console.warn('Supabase reject error by code:', error);
+    }
+  } catch (err) {
+    console.warn('Network error rejecting payment in Supabase:', err);
+  }
 
   return true;
 }

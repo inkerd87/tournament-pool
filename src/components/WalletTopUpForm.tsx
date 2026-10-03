@@ -79,11 +79,11 @@ export const WalletTopUpForm: React.FC = () => {
   };
 
   return (
-    <div className="surface-card p-5 sm:p-6">
+    <div className="surface-card p-5 sm:p-6 bg-[#0e131b] border border-white/10">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold text-white">Пополнение баланса</h3>
-        <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-          СБП / МИР / tips.tips
+        <h3 className="text-base font-bold text-white tracking-tight">Пополнение баланса</h3>
+        <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-0.5 rounded-md">
+          СБП · МИР · tips.tips
         </span>
       </div>
       <p className="mt-1 text-xs text-zinc-400">
@@ -92,8 +92,11 @@ export const WalletTopUpForm: React.FC = () => {
 
       {/* Уведомление об успешной отправке заявки */}
       {successBanner && (
-        <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-3.5 text-xs text-emerald-300">
-          ✓ {successBanner}
+        <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-3.5 text-xs text-emerald-300 flex items-start gap-2.5">
+          <svg className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span>{successBanner}</span>
         </div>
       )}
 
@@ -109,7 +112,7 @@ export const WalletTopUpForm: React.FC = () => {
             value={rawInput}
             onChange={handleInputChange}
             placeholder="Введите любую сумму..."
-            className="w-full rounded-xl border border-white/15 bg-black/40 px-4 py-3.5 pr-12 text-xl font-mono font-extrabold text-white placeholder-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
+            className="w-full rounded-xl border border-white/15 bg-black/50 px-4 py-3.5 pr-12 text-xl font-mono font-extrabold text-white placeholder-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
           />
           <span className="absolute right-4 text-lg font-bold text-zinc-400 select-none">
             ₽
@@ -128,9 +131,9 @@ export const WalletTopUpForm: React.FC = () => {
                 key={preset}
                 type="button"
                 onClick={() => handleSelectPreset(preset)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                   isSelected
-                    ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20 ring-2 ring-emerald-400'
+                    ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
                     : 'bg-white/5 border border-white/10 text-zinc-300 hover:bg-white/10 hover:border-white/20'
                 }`}
               >
@@ -169,11 +172,14 @@ export const WalletTopUpForm: React.FC = () => {
           type="button"
           onClick={handleTopUp}
           disabled={isLoading || amount < 10}
-          className={`w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-sm py-3.5 px-4 font-extrabold shadow-lg shadow-emerald-500/20 transition text-center ${
+          className={`w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-sm py-3.5 px-4 font-bold shadow-md shadow-emerald-500/20 transition text-center ${
             isLoading || amount < 10 ? 'opacity-60 cursor-not-allowed' : ''
           }`}
         >
-          <span>💳</span>
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
           <span>
             {isLoading
               ? 'Формирование платежа...'
@@ -193,8 +199,12 @@ export const WalletTopUpForm: React.FC = () => {
           .
         </p>
 
-        <p className="text-[10px] text-zinc-500 text-center leading-relaxed">
-          🔒 Оплата через защищённый сервис tips.tips (СБП любого банка РФ, МИР, Visa, Mastercard).
+        <p className="text-[10px] text-zinc-500 text-center leading-relaxed flex items-center justify-center gap-1.5">
+          <svg className="w-3 h-3 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0110 0v4" />
+          </svg>
+          <span>Безопасный перевод через tips.tips (СБП любого банка РФ, МИР, Visa, Mastercard)</span>
         </p>
       </div>
 
