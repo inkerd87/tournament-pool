@@ -19,7 +19,7 @@ const DEFAULT_HERO_GAMES = [
 
 export const HomePage: React.FC = () => {
   const { tournaments, customGames } = useTournaments();
-  const [hoveredGame, setHoveredGame] = useState<string | null>(null);
+  const [activeGameId, setActiveGameId] = useState<string>('cs2');
 
   const heroGames = [
     ...DEFAULT_HERO_GAMES,
@@ -34,33 +34,38 @@ export const HomePage: React.FC = () => {
     })),
   ];
 
+  const activeGameConfig = heroGames.find((g) => g.id === activeGameId) || heroGames[0];
   const featured = tournaments.filter((t) => !t.isPremium).slice(0, Math.max(6, 6 + customGames.length));
 
   return (
     <div className="space-y-12 sm:space-y-16">
-      {/* Главный Hero-блок (Command Center) с динамическим фоном при наведении */}
+      {/* Главный Hero-блок (Command Center) с большой фоновой картинкой активной игры */}
       <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#06080e] pt-6 pb-12 sm:pt-12 sm:pb-20">
         
-        {/* Динамический кинематографичный фон игры при наведении курсора */}
+        {/* Большая кинематографичная картинка игры на заднем фоне всей верхней секции */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden transition-all duration-700">
-          {Object.entries(GAME_WALLPAPERS).map(([gid, url]) => (
-            <div
-              key={gid}
-              className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out ${
-                hoveredGame === gid ? 'opacity-35 scale-105 filter blur-[1px]' : 'opacity-0 scale-100'
-              }`}
-              style={{
-                backgroundImage: `url(${url})`,
-              }}
-            />
-          ))}
+          {heroGames.map((g) => {
+            const wallpaper = (g as any).wallpaperUrl || GAME_WALLPAPERS[g.id];
+            const isCurrent = activeGameId === g.id;
+            return (
+              <div
+                key={g.id}
+                className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out ${
+                  isCurrent ? 'opacity-40 scale-100 filter blur-[1px]' : 'opacity-0 scale-105 pointer-events-none'
+                }`}
+                style={{
+                  backgroundImage: `url(${wallpaper})`,
+                }}
+              />
+            );
+          })}
 
           {/* Стандартный фоновый кибер-свет */}
-          <div className={`absolute -top-40 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-500/10 via-blue-600/5 to-transparent blur-3xl transition-opacity duration-500 ${hoveredGame ? 'opacity-30' : 'opacity-70'}`} />
+          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-500/10 via-blue-600/5 to-transparent blur-3xl opacity-50" />
           <div className="absolute top-1/3 -right-40 w-[500px] h-[350px] bg-amber-500/5 blur-3xl" />
 
           {/* Затемняющие градиенты для сохранения 100% контрастности и читаемости текста */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#06080e] via-[#090d16]/85 to-[#0f1422]/80" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06080e] via-[#090d16]/80 to-[#06080e]/70" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#06080e_85%)]" />
         </div>
 
@@ -124,76 +129,105 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Правая колонка: Сетка дисциплин с фоновым артом при наведении */}
-            <div className="lg:col-span-5">
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3">
-                {heroGames.map((g) => {
-                  const wallpaper = (g as any).wallpaperUrl || GAME_WALLPAPERS[g.id];
-                  const isHovered = hoveredGame === g.id;
-
-                  return (
-                    <Link
-                      key={g.id}
-                      to={`/tournaments?game=${g.id}`}
-                      onMouseEnter={() => setHoveredGame(g.id)}
-                      onMouseLeave={() => setHoveredGame(null)}
-                      className="group relative flex items-center gap-3.5 rounded-2xl border border-white/[0.12] bg-[#0e1320]/90 backdrop-blur-md p-3.5 overflow-hidden transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_10px_35px_rgba(0,0,0,0.8)] active:scale-[0.98]"
-                      style={{
-                        borderColor: isHovered ? g.color : undefined,
-                        boxShadow: isHovered ? `0 8px 30px -4px ${g.glow}` : undefined,
-                      }}
-                    >
-                      {/* Фоновая картинка игры внутри карточки: при наведении красиво проявляется и масштабируется */}
-                      {wallpaper && (
-                        <div
-                          className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out opacity-25 group-hover:opacity-75 group-hover:scale-110"
-                          style={{ backgroundImage: `url(${wallpaper})` }}
-                        />
-                      )}
-
-                      {/* Затемняющий градиент для читаемости текста */}
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/45 group-hover:from-black/80 group-hover:via-black/60 group-hover:to-black/30 transition-colors duration-300" />
-
-                      {/* Неоновый акцентный цветной блик */}
+            {/* Правая колонка: БОЛЬШАЯ КАРТИНКА ИГРЫ НА ЗАДНЕМ ФОНЕ ВСЕХ ИГР */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative rounded-3xl border border-white/20 p-4 sm:p-5 overflow-hidden shadow-2xl backdrop-blur-xl bg-black/40">
+                
+                {/* БОЛЬШАЯ КАРТИНКА ИГРЫ ПРЯМО НА ЗАДНЕМ ФОНЕ ВСЕХ ПЛИТОК */}
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                  {heroGames.map((g) => {
+                    const wallpaper = (g as any).wallpaperUrl || GAME_WALLPAPERS[g.id];
+                    const isCurrent = activeGameId === g.id;
+                    return (
                       <div
-                        className="pointer-events-none absolute -right-6 -bottom-6 h-24 w-24 rounded-full blur-xl opacity-20 group-hover:opacity-60 transition-opacity duration-300"
-                        style={{ backgroundColor: g.color }}
+                        key={g.id}
+                        className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out ${
+                          isCurrent ? 'opacity-85 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+                        }`}
+                        style={{
+                          backgroundImage: `url(${wallpaper})`,
+                        }}
                       />
+                    );
+                  })}
 
-                      {/* Контент карточки */}
-                      <div className="relative z-10 flex items-center gap-3 w-full">
+                  {/* Затемняющий градиент поверх большой картинки */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/35" />
+                  <div className="absolute inset-0 bg-black/20" />
+                </div>
+
+                {/* Верхний статус-бар над играми с подсветкой активной игры */}
+                <div className="relative z-10 mb-3.5 flex items-center justify-between border-b border-white/15 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+                    </span>
+                    <span className="text-xs font-black uppercase tracking-wider text-white">
+                      {activeGameConfig.name}
+                    </span>
+                  </div>
+                  <span
+                    className="rounded-lg px-2.5 py-1 font-mono text-[10px] font-black uppercase shadow-sm"
+                    style={{
+                      backgroundColor: `${activeGameConfig.color}35`,
+                      color: activeGameConfig.color,
+                      border: `1px solid ${activeGameConfig.color}70`,
+                    }}
+                  >
+                    {activeGameConfig.tag} • {activeGameConfig.fee}
+                  </span>
+                </div>
+
+                {/* Сетка карточек всех игр прямо поверх большой картинки игры */}
+                <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2.5">
+                  {heroGames.map((g) => {
+                    const isHovered = activeGameId === g.id;
+
+                    return (
+                      <Link
+                        key={g.id}
+                        to={`/tournaments?game=${g.id}`}
+                        onMouseEnter={() => setActiveGameId(g.id)}
+                        className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 transition-all duration-200 active:scale-[0.98] ${
+                          isHovered
+                            ? 'bg-black/90 border-cyan-400 shadow-xl shadow-cyan-500/20 scale-[1.03]'
+                            : 'bg-black/60 hover:bg-black/80 border-white/10 hover:border-white/30 backdrop-blur-md'
+                        }`}
+                        style={{
+                          borderColor: isHovered ? g.color : undefined,
+                          boxShadow: isHovered ? `0 6px 25px -2px ${g.glow}` : undefined,
+                        }}
+                      >
                         {/* Квадратная иконка с подсветкой */}
                         <div
-                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 overflow-hidden border p-1"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 overflow-hidden border p-0.5"
                           style={{
-                            backgroundColor: `${g.color}25`,
-                            borderColor: `${g.color}50`,
+                            backgroundColor: `${g.color}30`,
+                            borderColor: `${g.color}60`,
                           }}
                         >
-                          <GameIcon game={g.id} className="w-full h-full object-cover rounded-lg" />
+                          <GameIcon game={g.id} className="w-full h-full object-cover rounded" />
                         </div>
 
                         {/* Текстовые данные дисциплины */}
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs sm:text-sm font-bold text-white tracking-tight group-hover:text-cyan-300 transition-colors truncate">
-                              {g.name}
-                            </span>
-                          </div>
+                          <span className={`block text-xs sm:text-sm font-bold tracking-tight truncate transition-colors ${
+                            isHovered ? 'text-white font-black' : 'text-zinc-200 group-hover:text-white'
+                          }`}>
+                            {g.name}
+                          </span>
                           <span
-                            className="block text-[10px] font-semibold tracking-wider uppercase font-mono truncate"
+                            className="block text-[9px] font-semibold tracking-wider uppercase font-mono truncate"
                             style={{ color: g.color }}
                           >
                             {g.tag}
                           </span>
-                          <span className="block text-[10px] font-bold text-zinc-300 group-hover:text-white transition-colors mt-0.5">
-                            {g.fee}
-                          </span>
                         </div>
-                      </div>
-                    </Link>
-                  );
-                })}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
