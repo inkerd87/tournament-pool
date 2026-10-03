@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { GameBadge } from '@/components/GameBadge';
 import { formatDateTime, formatRub, statusLabel } from '@/lib/format';
-import { GAMES } from '@/lib/games';
+import { GAMES, GAME_WALLPAPERS } from '@/lib/games';
 import { ENTRY_FEE_RUB, TOTAL_PRIZES_RUB } from '@/lib/constants';
 import { Tournament } from '@/lib/types';
 import { useTournaments } from '@/context/TournamentContext';
@@ -51,6 +51,9 @@ export const TournamentCard: React.FC<{
     glow: 'rgba(0, 240, 255, 0.3)',
   };
 
+  const wallpaperUrl =
+    GAME_WALLPAPERS[tournament.game] || (game as any)?.wallpaperUrl || (game as any)?.iconUrl;
+
   const isSoon = tournament.status === 'soon';
   const isPremium = Boolean(
     tournament.isPremium || tournament.id === 'pubg-premium-001' || tournament.id === 'pubg-mobile-premium-001'
@@ -69,9 +72,20 @@ export const TournamentCard: React.FC<{
           : 'border-white/[0.1] bg-gradient-to-b from-[#111726] via-[#0e1320] to-[#090d16] hover:border-cyan-500/40 hover:shadow-[0_8px_30px_rgba(0,240,255,0.12)]'
       }`}
     >
+      {/* Фоновая картинка игры при наведении */}
+      {wallpaperUrl && (
+        <div
+          className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out opacity-15 group-hover:opacity-45 group-hover:scale-110"
+          style={{ backgroundImage: `url(${wallpaperUrl})` }}
+        />
+      )}
+
+      {/* Затемняющий градиент поверх фоновой картинки */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#090d16] via-[#0e1320]/80 to-[#111726]/60 group-hover:via-[#0e1320]/65 transition-colors duration-300" />
+
       {/* Верхняя цветная полоска дисциплины */}
       <div
-        className="h-1 w-full transition-opacity duration-300 opacity-80 group-hover:opacity-100"
+        className="relative z-10 h-1 w-full transition-opacity duration-300 opacity-80 group-hover:opacity-100"
         style={{
           background: isPremium
             ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
@@ -79,7 +93,7 @@ export const TournamentCard: React.FC<{
         }}
       />
 
-      <div className="p-4 sm:p-5">
+      <div className="relative z-10 p-4 sm:p-5">
         {/* Хедер карточки: Бейдж игры, Премиум / Режим, Статус */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -253,7 +267,7 @@ export const TournamentCard: React.FC<{
       </div>
 
       {/* Нижняя плашка действий и оргвзноса */}
-      <div className="border-t border-white/[0.08] bg-black/40 px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between gap-3">
+      <div className="relative z-10 border-t border-white/[0.08] bg-black/50 backdrop-blur-sm px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between gap-3">
         <div>
           <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 block">
             Орг. тариф

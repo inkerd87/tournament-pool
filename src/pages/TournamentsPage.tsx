@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { GameId } from '@/lib/types';
 import { BUILTIN_GAMES, GAMES } from '@/lib/games';
 import { useTournaments } from '@/context/TournamentContext';
@@ -7,8 +8,19 @@ import { GameIcon } from '@/components/GameIcons';
 
 export const TournamentsPage: React.FC = () => {
   const { tournaments, customGames } = useTournaments();
-  const [selectedGame, setSelectedGame] = useState<GameId | 'all'>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const gameParam = searchParams.get('game') as GameId | null;
+
+  const [selectedGame, setSelectedGame] = useState<GameId | 'all'>(() => {
+    return gameParam || 'all';
+  });
   const [pubgMode, setPubgMode] = useState<'standard' | 'premium'>('standard');
+
+  useEffect(() => {
+    if (gameParam) {
+      setSelectedGame(gameParam);
+    }
+  }, [gameParam]);
 
   const allGameKeys: GameId[] = [
     ...Object.keys(BUILTIN_GAMES),

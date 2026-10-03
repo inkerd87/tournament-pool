@@ -1,23 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTournaments } from '@/context/TournamentContext';
 import { TournamentCard } from '@/components/TournamentCard';
 import { GameIcon } from '@/components/GameIcons';
 import { VK_GROUP_URL } from '@/lib/constants';
+import { GAME_WALLPAPERS } from '@/lib/games';
 
 const DEFAULT_HERO_GAMES = [
-  { id: 'cs2', name: 'CS2', color: '#f97316', glow: 'rgba(249, 115, 22, 0.45)', tag: '5v5 BO1', fee: '1 500 ₽' },
-  { id: 'dota2', name: 'Dota 2', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.45)', tag: 'Captains Mode', fee: '1 500 ₽' },
-  { id: 'pubg', name: 'PUBG', color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)', tag: 'Battle Royale', fee: '100 / 1 000 ₽' },
-  { id: 'pubg_mobile', name: 'PUBG Mobile', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.45)', tag: 'Mobile BR', fee: '100 / 1 000 ₽' },
-  { id: 'minecraft', name: 'Minecraft', color: '#10b981', glow: 'rgba(16, 185, 129, 0.45)', tag: 'Hunger Games', fee: '500 ₽' },
-  { id: 'apex', name: 'Apex Legends', color: '#f43f5e', glow: 'rgba(244, 63, 94, 0.45)', tag: 'Battle Royale', fee: '100 ₽' },
-  { id: 'warzone', name: 'Warzone', color: '#22c55e', glow: 'rgba(34, 197, 94, 0.45)', tag: 'Resurgence', fee: 'Скоро' },
-  { id: 'fortnite', name: 'Fortnite', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.45)', tag: 'Zero Build', fee: 'Скоро' },
+  { id: 'cs2', name: 'CS2', color: '#f97316', glow: 'rgba(249, 115, 22, 0.45)', tag: '5v5 BO1', fee: '1 500 ₽', wallpaperUrl: GAME_WALLPAPERS.cs2 },
+  { id: 'dota2', name: 'Dota 2', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.45)', tag: 'Captains Mode', fee: '1 500 ₽', wallpaperUrl: GAME_WALLPAPERS.dota2 },
+  { id: 'pubg', name: 'PUBG', color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)', tag: 'Battle Royale', fee: '100 / 1 000 ₽', wallpaperUrl: GAME_WALLPAPERS.pubg },
+  { id: 'pubg_mobile', name: 'PUBG Mobile', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.45)', tag: 'Mobile BR', fee: '100 / 1 000 ₽', wallpaperUrl: GAME_WALLPAPERS.pubg_mobile },
+  { id: 'minecraft', name: 'Minecraft', color: '#10b981', glow: 'rgba(16, 185, 129, 0.45)', tag: 'Hunger Games', fee: '500 ₽', wallpaperUrl: GAME_WALLPAPERS.minecraft },
+  { id: 'apex', name: 'Apex Legends', color: '#f43f5e', glow: 'rgba(244, 63, 94, 0.45)', tag: 'Battle Royale', fee: '100 ₽', wallpaperUrl: GAME_WALLPAPERS.apex },
+  { id: 'warzone', name: 'Warzone', color: '#22c55e', glow: 'rgba(34, 197, 94, 0.45)', tag: 'Resurgence', fee: 'Скоро', wallpaperUrl: GAME_WALLPAPERS.warzone },
+  { id: 'fortnite', name: 'Fortnite', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.45)', tag: 'Zero Build', fee: 'Скоро', wallpaperUrl: GAME_WALLPAPERS.fortnite },
 ] as const;
 
 export const HomePage: React.FC = () => {
   const { tournaments, customGames } = useTournaments();
+  const [hoveredGame, setHoveredGame] = useState<string | null>(null);
 
   const heroGames = [
     ...DEFAULT_HERO_GAMES,
@@ -28,6 +30,7 @@ export const HomePage: React.FC = () => {
       glow: cg.glow || 'rgba(34, 211, 238, 0.45)',
       tag: cg.tag || 'Tournament',
       fee: 'Уточняется',
+      wallpaperUrl: cg.iconUrl,
     })),
   ];
 
@@ -35,13 +38,33 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-12 sm:space-y-16">
-      {/* Главный Hero-блок (Command Center) */}
-      <section className="relative overflow-hidden border-b border-white/[0.08] bg-gradient-to-b from-[#0f1422] via-[#090d16] to-[#06080e] pt-6 pb-12 sm:pt-12 sm:pb-20">
-        {/* Фоновые кибер-лучи и градиенты */}
-        <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-500/10 via-blue-600/5 to-transparent blur-3xl opacity-70" />
-        <div className="pointer-events-none absolute top-1/3 -right-40 w-[500px] h-[350px] bg-amber-500/5 blur-3xl" />
+      {/* Главный Hero-блок (Command Center) с динамическим фоном при наведении */}
+      <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#06080e] pt-6 pb-12 sm:pt-12 sm:pb-20">
+        
+        {/* Динамический кинематографичный фон игры при наведении курсора */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden transition-all duration-700">
+          {Object.entries(GAME_WALLPAPERS).map(([gid, url]) => (
+            <div
+              key={gid}
+              className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out ${
+                hoveredGame === gid ? 'opacity-35 scale-105 filter blur-[1px]' : 'opacity-0 scale-100'
+              }`}
+              style={{
+                backgroundImage: `url(${url})`,
+              }}
+            />
+          ))}
 
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+          {/* Стандартный фоновый кибер-свет */}
+          <div className={`absolute -top-40 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-500/10 via-blue-600/5 to-transparent blur-3xl transition-opacity duration-500 ${hoveredGame ? 'opacity-30' : 'opacity-70'}`} />
+          <div className="absolute top-1/3 -right-40 w-[500px] h-[350px] bg-amber-500/5 blur-3xl" />
+
+          {/* Затемняющие градиенты для сохранения 100% контрастности и читаемости текста */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06080e] via-[#090d16]/85 to-[#0f1422]/80" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#06080e_85%)]" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Левая колонка: Оффер и кнопки */}
@@ -101,45 +124,76 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Правая колонка: Сетка дисциплин */}
+            {/* Правая колонка: Сетка дисциплин с фоновым артом при наведении */}
             <div className="lg:col-span-5">
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3">
-                {heroGames.map((g) => (
-                  <Link
-                    key={g.id}
-                    to={`/tournaments`}
-                    className="group relative flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#101624]/80 backdrop-blur-sm p-3 transition-all duration-300 hover:border-cyan-500/40 hover:bg-[#141c2e] hover:shadow-[0_4px_20px_rgba(0,0,0,0.5)] active:scale-[0.98]"
-                  >
-                    {/* Квадратная иконка с подсветкой */}
-                    <div
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 overflow-hidden border p-1"
+                {heroGames.map((g) => {
+                  const wallpaper = (g as any).wallpaperUrl || GAME_WALLPAPERS[g.id];
+                  const isHovered = hoveredGame === g.id;
+
+                  return (
+                    <Link
+                      key={g.id}
+                      to={`/tournaments?game=${g.id}`}
+                      onMouseEnter={() => setHoveredGame(g.id)}
+                      onMouseLeave={() => setHoveredGame(null)}
+                      className="group relative flex items-center gap-3.5 rounded-2xl border border-white/[0.12] bg-[#0e1320]/90 backdrop-blur-md p-3.5 overflow-hidden transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_10px_35px_rgba(0,0,0,0.8)] active:scale-[0.98]"
                       style={{
-                        backgroundColor: `${g.color}15`,
-                        borderColor: `${g.color}35`,
+                        borderColor: isHovered ? g.color : undefined,
+                        boxShadow: isHovered ? `0 8px 30px -4px ${g.glow}` : undefined,
                       }}
                     >
-                      <GameIcon game={g.id} className="w-full h-full object-cover rounded-lg" />
-                    </div>
+                      {/* Фоновая картинка игры внутри карточки: при наведении красиво проявляется и масштабируется */}
+                      {wallpaper && (
+                        <div
+                          className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out opacity-25 group-hover:opacity-75 group-hover:scale-110"
+                          style={{ backgroundImage: `url(${wallpaper})` }}
+                        />
+                      )}
 
-                    {/* Текстовые данные дисциплины */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs sm:text-sm font-bold text-white tracking-tight group-hover:text-cyan-300 transition-colors truncate">
-                          {g.name}
-                        </span>
+                      {/* Затемняющий градиент для читаемости текста */}
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/45 group-hover:from-black/80 group-hover:via-black/60 group-hover:to-black/30 transition-colors duration-300" />
+
+                      {/* Неоновый акцентный цветной блик */}
+                      <div
+                        className="pointer-events-none absolute -right-6 -bottom-6 h-24 w-24 rounded-full blur-xl opacity-20 group-hover:opacity-60 transition-opacity duration-300"
+                        style={{ backgroundColor: g.color }}
+                      />
+
+                      {/* Контент карточки */}
+                      <div className="relative z-10 flex items-center gap-3 w-full">
+                        {/* Квадратная иконка с подсветкой */}
+                        <div
+                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 overflow-hidden border p-1"
+                          style={{
+                            backgroundColor: `${g.color}25`,
+                            borderColor: `${g.color}50`,
+                          }}
+                        >
+                          <GameIcon game={g.id} className="w-full h-full object-cover rounded-lg" />
+                        </div>
+
+                        {/* Текстовые данные дисциплины */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs sm:text-sm font-bold text-white tracking-tight group-hover:text-cyan-300 transition-colors truncate">
+                              {g.name}
+                            </span>
+                          </div>
+                          <span
+                            className="block text-[10px] font-semibold tracking-wider uppercase font-mono truncate"
+                            style={{ color: g.color }}
+                          >
+                            {g.tag}
+                          </span>
+                          <span className="block text-[10px] font-bold text-zinc-300 group-hover:text-white transition-colors mt-0.5">
+                            {g.fee}
+                          </span>
+                        </div>
                       </div>
-                      <span
-                        className="block text-[10px] font-semibold tracking-wider uppercase font-mono truncate"
-                        style={{ color: g.color }}
-                      >
-                        {g.tag}
-                      </span>
-                      <span className="block text-[10px] font-bold text-zinc-400 mt-0.5">
-                        {g.fee}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 
@@ -167,12 +221,18 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Выделенный блок турнира: Minecraft Hunger Games */}
+      {/* Выделенный блок турнира: Minecraft Hunger Games с атмосферным фоном */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="rounded-3xl border border-emerald-500/35 bg-gradient-to-r from-[#0d1a16] via-[#091411] to-[#0b1714] p-6 sm:p-8 relative overflow-hidden shadow-2xl">
-          <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="group rounded-3xl border border-emerald-500/35 bg-gradient-to-r from-[#0d1a16] via-[#091411] to-[#0b1714] p-6 sm:p-8 relative overflow-hidden shadow-2xl">
+          {/* Фоновая картинка Minecraft */}
+          <div
+            className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-700 opacity-20 group-hover:opacity-40 group-hover:scale-105"
+            style={{ backgroundImage: `url(${GAME_WALLPAPERS.minecraft})` }}
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#091411]/95 via-[#091411]/85 to-[#091411]/60" />
+          <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
           
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div className="max-w-2xl space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -188,15 +248,15 @@ export const HomePage: React.FC = () => {
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                <div className="rounded-xl bg-black/60 border border-white/10 px-3.5 py-2">
+                <div className="rounded-xl bg-black/70 border border-white/10 px-3.5 py-2">
                   <span className="text-[10px] uppercase font-bold text-zinc-400 block">Участники</span>
                   <span className="text-sm font-black text-white font-mono">24 игрока</span>
                 </div>
-                <div className="rounded-xl bg-black/60 border border-white/10 px-3.5 py-2">
+                <div className="rounded-xl bg-black/70 border border-white/10 px-3.5 py-2">
                   <span className="text-[10px] uppercase font-bold text-zinc-400 block">Организационный взнос</span>
                   <span className="text-sm font-black text-cyan-300 font-mono">500 рублей</span>
                 </div>
-                <div className="rounded-xl bg-amber-500/15 border border-amber-500/40 px-3.5 py-2">
+                <div className="rounded-xl bg-amber-500/20 border border-amber-500/50 px-3.5 py-2">
                   <span className="text-[10px] uppercase font-bold text-amber-400 block">Вознаграждение победителя</span>
                   <span className="text-base font-black text-amber-300 font-mono">2 500 рублей</span>
                 </div>

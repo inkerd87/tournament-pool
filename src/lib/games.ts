@@ -6,11 +6,23 @@ export interface GameConfig {
   accent: string;
   glow: string;
   iconUrl?: string;
+  wallpaperUrl?: string;
   tag?: string;
   isCustom?: boolean;
 }
 
 const CUSTOM_GAMES_STORAGE_KEY = "nb_custom_games_v1";
+
+export const GAME_WALLPAPERS: Record<string, string> = {
+  cs2: '/games/wallpapers/cs2.jpg',
+  dota2: '/games/wallpapers/dota2.jpg',
+  pubg: '/games/wallpapers/pubg.jpg',
+  pubg_mobile: '/games/wallpapers/pubg_mobile.jpg',
+  apex: '/games/wallpapers/apex.jpg',
+  minecraft: '/games/wallpapers/minecraft.jpg',
+  warzone: '/games/wallpapers/warzone.jpg',
+  fortnite: '/games/wallpapers/fortnite.jpg',
+};
 
 export const BUILTIN_GAMES: Record<string, GameConfig> = {
   cs2: {
@@ -19,6 +31,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     accent: "#f97316",
     glow: "rgba(249, 115, 22, 0.35)",
     tag: "5v5 BO1",
+    wallpaperUrl: GAME_WALLPAPERS.cs2,
   },
   dota2: {
     name: "Dota 2",
@@ -26,6 +39,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     accent: "#ef4444",
     glow: "rgba(239, 68, 68, 0.35)",
     tag: "5v5 MOBA",
+    wallpaperUrl: GAME_WALLPAPERS.dota2,
   },
   pubg: {
     name: "PUBG: BATTLEGROUNDS",
@@ -33,6 +47,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     accent: "#facc15",
     glow: "rgba(250, 204, 21, 0.3)",
     tag: "Battle Royale",
+    wallpaperUrl: GAME_WALLPAPERS.pubg,
   },
   pubg_mobile: {
     name: "PUBG MOBILE",
@@ -40,6 +55,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     accent: "#f59e0b",
     glow: "rgba(245, 158, 11, 0.35)",
     tag: "Mobile BR",
+    wallpaperUrl: GAME_WALLPAPERS.pubg_mobile,
   },
   warzone: {
     name: "Call of Duty: Warzone",
@@ -47,6 +63,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     accent: "#22c55e",
     glow: "rgba(34, 197, 94, 0.35)",
     tag: "Resurgence",
+    wallpaperUrl: GAME_WALLPAPERS.warzone,
   },
   fortnite: {
     name: "Fortnite",
@@ -54,6 +71,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     accent: "#a855f7",
     glow: "rgba(168, 85, 247, 0.35)",
     tag: "Zero Build",
+    wallpaperUrl: GAME_WALLPAPERS.fortnite,
   },
   apex: {
     name: "Apex Legends",
@@ -61,6 +79,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     accent: "#f43f5e",
     glow: "rgba(244, 63, 94, 0.35)",
     tag: "Battle Royale",
+    wallpaperUrl: GAME_WALLPAPERS.apex,
   },
   minecraft: {
     name: "Minecraft",
@@ -68,6 +87,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     accent: "#10b981",
     glow: "rgba(16, 185, 129, 0.35)",
     tag: "Hunger Games",
+    wallpaperUrl: GAME_WALLPAPERS.minecraft,
   },
 };
 
