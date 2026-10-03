@@ -124,19 +124,58 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Соревнования по Fortnite откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
     entryFeeRub: 100,
   },
+  {
+    id: "minecraft-hg-001",
+    title: "Minecraft Hunger Games",
+    game: "minecraft",
+    maxPlayers: 24,
+    minPlayers: 24,
+    registeredCount: 0,
+    startsAt: "2026-10-05T20:00:00+03:00",
+    status: "recruiting",
+    format: "Hunger Games, 24 участника, 1 сессия",
+    description: "Minecraft: соревнование по режиму Hunger Games. Турнир рассчитан на фиксированное количество участников — ровно 24 человека. Формат проведения предполагает одну игровую сессию, в которой будет определен один победитель. Условия участия: Организационный взнос составляет 500 рублей. Победитель получает денежное вознаграждение в размере 2500 рублей.",
+    entryFeeRub: 500,
+    prizePoolRub: 2500,
+    prizes: { 1: 2500, 2: 0, 3: 0 },
+    winnerPerPlayerRub: 2500,
+  },
+  {
+    id: "apex-solo-001",
+    title: "Apex Legends Trios Showdown",
+    game: "apex",
+    maxPlayers: 60,
+    minPlayers: 30,
+    registeredCount: 0,
+    startsAt: "2026-10-06T19:00:00+03:00",
+    status: "recruiting",
+    format: "Battle Royale, Trios",
+    description: "Королевская битва по Apex Legends. Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победителям 2 200 ₽ учреждено организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.",
+    entryFeeRub: 100,
+    prizePoolRub: 2200,
+    prizes: { 1: 1000, 2: 700, 3: 500 },
+  },
 ];
 
 export function getStoredTournaments(): Tournament[] {
-  const data = localStorage.getItem('nb_tournaments_v18');
+  const data = localStorage.getItem('nb_tournaments_v19');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v18', JSON.stringify(INITIAL_TOURNAMENTS));
+    localStorage.setItem('nb_tournaments_v19', JSON.stringify(INITIAL_TOURNAMENTS));
     return INITIAL_TOURNAMENTS;
   }
   try {
     const list: Tournament[] = JSON.parse(data);
-    return list.map(t => {
+    const existingIds = new Set(list.map((t) => t.id));
+    for (const initT of INITIAL_TOURNAMENTS) {
+      if (!existingIds.has(initT.id)) {
+        list.push(initT);
+      }
+    }
+    return list.map((t) => {
       const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
-      const minPlayers = t.minPlayers || (isCsOrDota ? 10 : 50);
+      const minPlayers =
+        t.minPlayers ||
+        (isCsOrDota ? 10 : t.game === 'minecraft' ? 24 : 50);
       return { ...t, minPlayers };
     });
   } catch {
@@ -145,7 +184,7 @@ export function getStoredTournaments(): Tournament[] {
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v18', JSON.stringify(tournaments));
+  localStorage.setItem('nb_tournaments_v19', JSON.stringify(tournaments));
 }
 
 export function getStoredUser(): User | null {

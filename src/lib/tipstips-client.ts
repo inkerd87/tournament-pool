@@ -124,26 +124,41 @@ export function parseTransactionToPayment(tx: any): TipsTipsPayment | null {
   };
 }
 
+let lastSyncStatus: 'online' | 'local_fallback' = 'local_fallback';
+export function getSyncStatus(): 'online' | 'local_fallback' {
+  return lastSyncStatus;
+}
+
 /**
- * Получение всех платежей из Supabase (таблица transactions) с объединением с LocalStorage
+ * Получение всех платежей из Supabase (таблица transactions) с объединением с LocalStorage.
+ * Предусмотрен строгий таймаут 2.0 секунды: в России без VPN запросы к Supabase
+ * могут зависать, поэтому мы немедленно отдаем локальные данные и снимаем индикатор загрузки.
  */
 export async function fetchTipsTipsPaymentsFromDb(): Promise<TipsTipsPayment[]> {
+  const local = getStoredTipsTipsPayments();
+
+  const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) =>
+    setTimeout(() => resolve({ data: null, error: new Error('TIMEOUT_NO_VPN') }), 2000)
+  );
+
   try {
-    const { data, error } = await supabase
+    const fetchPromise = supabase
       .from('transactions')
       .select('*')
       .order('created_at', { ascending: false });
 
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+
     if (error || !data) {
-      console.warn('Could not fetch transactions from Supabase:', error);
-      return getStoredTipsTipsPayments();
+      lastSyncStatus = 'local_fallback';
+      return local;
     }
 
+    lastSyncStatus = 'online';
     const dbPayments = data
       .map(parseTransactionToPayment)
       .filter((p): p is TipsTipsPayment => p !== null);
 
-    const local = getStoredTipsTipsPayments();
     const map = new Map<string, TipsTipsPayment>();
 
     // Сначала добавляем платежи из базы данных
@@ -167,8 +182,8 @@ export async function fetchTipsTipsPaymentsFromDb(): Promise<TipsTipsPayment[]> 
     saveTipsTipsPayments(merged);
     return merged;
   } catch (err) {
-    console.error('Error fetching payments from Supabase:', err);
-    return getStoredTipsTipsPayments();
+    lastSyncStatus = 'local_fallback';
+    return local;
   }
 }
 
@@ -355,23 +370,27 @@ export async function confirmTipsTipsPayment(
       note: payment.note,
     };
 
-    if (UUID_REGEX.test(payment.id)) {
-      await supabase
-        .from('transactions')
-        .update({
-          status: 'completed',
-          description: JSON.stringify(meta),
-        })
-        .eq('id', payment.id);
-    } else if (payment.code) {
-      await supabase
-        .from('transactions')
-        .update({
-          status: 'completed',
-          description: JSON.stringify(meta),
-        })
-        .ilike('description', `%"code":"${payment.code}"%`);
-    }
+    const updateDb = async () => {
+      if (UUID_REGEX.test(payment.id)) {
+        await supabase
+          .from('transactions')
+          .update({
+            status: 'completed',
+            description: JSON.stringify(meta),
+          })
+          .eq('id', payment.id);
+      } else if (payment.code) {
+        await supabase
+          .from('transactions')
+          .update({
+            status: 'completed',
+            description: JSON.stringify(meta),
+          })
+          .ilike('description', `%"code":"${payment.code}"%`);
+      }
+    };
+
+    await Promise.race([updateDb(), new Promise((res) => setTimeout(res, 2000))]);
   } catch (err) {
     console.warn('Could not update transaction status in Supabase:', err);
   }
@@ -392,7 +411,9 @@ export async function rejectTipsTipsPayment(paymentId: string, note?: string): P
   if (!payment) {
     try {
       if (isUUID) {
-        const { data: dbRow } = await supabase.from('transactions').select('*').eq('id', paymentId).maybeSingle();
+        const fetchDb = supabase.from('transactions').select('*').eq('id', paymentId).maybeSingle();
+        const timeoutRes = new Promise<{ data: null }>((r) => setTimeout(() => r({ data: null }), 1500));
+        const { data: dbRow } = await Promise.race([fetchDb, timeoutRes]);
         if (dbRow) {
           payment = parseTransactionToPayment(dbRow) || undefined;
         }
@@ -440,26 +461,27 @@ export async function rejectTipsTipsPayment(paymentId: string, note?: string): P
       note: note || 'Отклонено администратором',
     };
 
-    // PostgreSQL check constraint "transactions_status_check" требует статус 'failed'
-    if (UUID_REGEX.test(payment.id)) {
-      const { error } = await supabase
-        .from('transactions')
-        .update({
-          status: 'failed',
-          description: JSON.stringify(meta),
-        })
-        .eq('id', payment.id);
-      if (error) console.warn('Supabase reject error:', error);
-    } else if (payment.code) {
-      const { error } = await supabase
-        .from('transactions')
-        .update({
-          status: 'failed',
-          description: JSON.stringify(meta),
-        })
-        .ilike('description', `%"code":"${payment.code}"%`);
-      if (error) console.warn('Supabase reject error by code:', error);
-    }
+    const updateDb = async () => {
+      if (UUID_REGEX.test(payment.id)) {
+        await supabase
+          .from('transactions')
+          .update({
+            status: 'failed',
+            description: JSON.stringify(meta),
+          })
+          .eq('id', payment.id);
+      } else if (payment.code) {
+        await supabase
+          .from('transactions')
+          .update({
+            status: 'failed',
+            description: JSON.stringify(meta),
+          })
+          .ilike('description', `%"code":"${payment.code}"%`);
+      }
+    };
+
+    await Promise.race([updateDb(), new Promise((res) => setTimeout(res, 2000))]);
   } catch (err) {
     console.warn('Network error rejecting payment in Supabase:', err);
   }

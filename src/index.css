@@ -7,18 +7,17 @@
 }
 
 :root {
-  --background: #07090d;
-  --foreground: #e4e4e7;
-  --surface: #0a0d12;
-  --surface-raised: #12161f;
-  --border: rgba(255, 255, 255, 0.1);
+  --background: #090d14;
+  --foreground: #f1f5f9;
+  --surface: #0f1522;
+  --surface-raised: #131a29;
+  --surface-elevated: #182236;
+  --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.15);
-  --accent: #22d3ee;
+  --accent: #00f0ff;
   --accent-dim: #06b6d4;
-  --accent-secondary: #8b5cf6;
-  --accent-foreground: #000000;
-  --gold: #fcd34d;
-  --muted: #71717a;
+  --accent-gold: #f59e0b;
+  --muted: #94a3b8;
 }
 
 html {
@@ -37,29 +36,21 @@ body {
 }
 
 ::selection {
-  background: rgba(34, 211, 238, 0.35);
+  background: rgba(0, 240, 255, 0.25);
   color: #fff;
-}
-
-.page-grid {
-  background-image:
-    linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%);
 }
 
 .surface-card {
   border-radius: 1rem;
-  border: 1px solid var(--border);
-  background: var(--surface-raised);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #131b2a 0%, #0f1523 100%);
   box-sizing: border-box;
   max-width: 100%;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .surface-card:hover {
-  border-color: rgba(34, 211, 238, 0.25);
+  border-color: rgba(0, 240, 255, 0.25);
 }
 
 .btn-primary {

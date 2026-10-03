@@ -55,6 +55,20 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(168, 85, 247, 0.35)",
     tag: "Zero Build",
   },
+  apex: {
+    name: "Apex Legends",
+    short: "Apex",
+    accent: "#f43f5e",
+    glow: "rgba(244, 63, 94, 0.35)",
+    tag: "Battle Royale",
+  },
+  minecraft: {
+    name: "Minecraft",
+    short: "Minecraft",
+    accent: "#10b981",
+    glow: "rgba(16, 185, 129, 0.35)",
+    tag: "Hunger Games",
+  },
 };
 
 const gamesTarget: Record<string, GameConfig> = { ...BUILTIN_GAMES };

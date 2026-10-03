@@ -55,6 +55,22 @@ export const FortniteIcon: React.FC<{ className?: string }> = ({ className = "w-
   />
 );
 
+export const ApexIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <div className={`${className} flex items-center justify-center rounded bg-[#f43f5e]/15 border border-[#f43f5e]/30 p-0.5`}>
+    <svg viewBox="0 0 24 24" className="w-full h-full fill-[#f43f5e]" aria-label="Apex Legends">
+      <path d="M12 2L2 19.5h4.8L12 9.2l5.2 10.3H22L12 2zm0 10.5L9.6 17h4.8L12 12.5z" />
+    </svg>
+  </div>
+);
+
+export const MinecraftIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
+  <div className={`${className} flex items-center justify-center rounded bg-[#10b981]/15 border border-[#10b981]/30 p-0.5`}>
+    <svg viewBox="0 0 24 24" className="w-full h-full fill-[#10b981]" aria-label="Minecraft">
+      <path d="M4 4h16v16H4V4zm3 3v4h2V7H7zm8 0v4h2V7h-2zm-5 6v4h4v-4h-4z" />
+    </svg>
+  </div>
+);
+
 import { GAMES } from '@/lib/games';
 
 export const GameIcon: React.FC<{ game: GameId; className?: string; customIconUrl?: string }> = ({
@@ -87,6 +103,10 @@ export const GameIcon: React.FC<{ game: GameId; className?: string; customIconUr
       return <WarzoneIcon className={className} />;
     case 'fortnite':
       return <FortniteIcon className={className} />;
+    case 'apex':
+      return <ApexIcon className={className} />;
+    case 'minecraft':
+      return <MinecraftIcon className={className} />;
     default:
       return (
         <span
