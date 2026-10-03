@@ -8,7 +8,7 @@ import { WalletTopUpForm } from '@/components/WalletTopUpForm';
 import { RegisteredTournamentsList } from '@/components/RegisteredTournamentsList';
 import { MatchHistoryList } from '@/components/MatchHistoryList';
 import { getStoredHistory } from '@/lib/storage';
-import { getUserTipsTipsPayments, TipsTipsPayment } from '@/lib/tipstips-client';
+import { getUserTipsTipsPayments, fetchTipsTipsPaymentsFromDb, TipsTipsPayment } from '@/lib/tipstips-client';
 import { formatDateTime } from '@/lib/format';
 
 export const AccountPage: React.FC = () => {
@@ -34,12 +34,20 @@ export const AccountPage: React.FC = () => {
   useEffect(() => {
     if (!user?.email) return;
     setUserTips(getUserTipsTipsPayments(user.email));
+
+    // Асинхронно подгружаем актуальные платежи из базы данных
+    fetchTipsTipsPaymentsFromDb().then((all) => {
+      const email = user.email.toLowerCase().trim();
+      const filtered = all.filter((p) => p.email.toLowerCase() === email || p.userId === user.id);
+      setUserTips(filtered);
+    });
+
     const updateTips = () => {
       setUserTips(getUserTipsTipsPayments(user.email));
     };
     window.addEventListener('nb_tipstips_updated', updateTips);
     return () => window.removeEventListener('nb_tipstips_updated', updateTips);
-  }, [user?.email]);
+  }, [user?.email, user?.id]);
 
   if (!user) {
     return <Navigate to="/login" replace />;

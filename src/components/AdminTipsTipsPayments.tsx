@@ -1,30 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { formatRub, formatDateTime } from '@/lib/format';
 import {
   TipsTipsPayment,
   getStoredTipsTipsPayments,
+  fetchTipsTipsPaymentsFromDb,
   confirmTipsTipsPayment,
   rejectTipsTipsPayment,
 } from '@/lib/tipstips-client';
 import { useTournaments } from '@/context/TournamentContext';
+import { supabase } from '@/lib/supabase';
 
 export const AdminTipsTipsPayments: React.FC = () => {
   const { registerForTournament, refreshData } = useTournaments();
   const [payments, setPayments] = useState<TipsTipsPayment[]>(() => getStoredTipsTipsPayments());
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'rejected'>('pending');
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
-  const loadPayments = () => {
-    setPayments(getStoredTipsTipsPayments());
-  };
+  const loadPayments = useCallback(async (showLoading = false) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const all = await fetchTipsTipsPaymentsFromDb();
+      setPayments(all);
+    } finally {
+      if (showLoading) setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    loadPayments();
-    const handleUpdate = () => loadPayments();
+    // 1. Первоначальная загрузка всех платежей из Supabase
+    loadPayments(true);
+
+    // 2. Слушатель локальных событий обновления
+    const handleUpdate = () => loadPayments(false);
     window.addEventListener('nb_tipstips_updated', handleUpdate);
-    return () => window.removeEventListener('nb_tipstips_updated', handleUpdate);
-  }, []);
+
+    // 3. Автоматический опрос каждые 8 секунд для моментального получения новых платежей со всех устройств
+    const interval = setInterval(() => {
+      loadPayments(false);
+    }, 8000);
+
+    // 4. Подписка на Realtime-изменения таблицы transactions в Supabase
+    let channel: any = null;
+    try {
+      channel = supabase
+        .channel('realtime-admin-transactions')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'transactions' },
+          () => {
+            loadPayments(false);
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime subscription notice:', e);
+    }
+
+    return () => {
+      window.removeEventListener('nb_tipstips_updated', handleUpdate);
+      clearInterval(interval);
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [loadPayments]);
 
   const showNotice = (msg: string) => {
     setActionNotice(msg);
@@ -95,10 +134,11 @@ export const AdminTipsTipsPayments: React.FC = () => {
 
         <button
           type="button"
-          onClick={loadPayments}
-          className="self-start sm:self-auto rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:text-white transition"
+          onClick={() => loadPayments(true)}
+          disabled={isLoading}
+          className="self-start sm:self-auto rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:text-white transition disabled:opacity-50"
         >
-          🔄 Обновить список
+          {isLoading ? '🔄 Загрузка...' : '🔄 Обновить список'}
         </button>
       </div>
 
