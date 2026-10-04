@@ -85,7 +85,7 @@ export const TournamentDetailPage: React.FC = () => {
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <GameBadge game={tournament.game} />
+            <GameBadge game={tournament.game} customIconUrl={tournament.customIconUrl} />
             {tournament.isPremium && (
               <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-300 shadow-sm shadow-amber-500/20">
                 ⭐ Премиум

@@ -4,6 +4,7 @@ import { useTournaments } from '@/context/TournamentContext';
 import { formatDateTime, statusLabel } from '@/lib/format';
 import { ENTRY_FEE_RUB, TOTAL_PRIZES_RUB, PRIZE_BY_PLACE } from '@/lib/constants';
 import { GameIcon } from '@/components/GameIcons';
+import { compressGameIconFile, compressGameWallpaperFile } from '@/lib/games';
 
 type Props = {
   tournament: Tournament;
@@ -61,6 +62,8 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
   // Дополнительные параметры
   const [isPremium, setIsPremium] = useState<boolean>(Boolean(tournament.isPremium));
   const [winner, setWinner] = useState<string>(tournament.winner || '');
+  const [customIconUrl, setCustomIconUrl] = useState<string>(tournament.customIconUrl || '');
+  const [wallpaperUrl, setWallpaperUrl] = useState<string>(tournament.wallpaperUrl || '');
 
   // Данные лобби и трансляции
   const [roomId, setRoomId] = useState(initialMatch?.roomId || `NB_${tournament.game.toUpperCase()}_01`);
@@ -93,6 +96,8 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
     setPrizesByPlace({ ...(tournament.prizes || PRIZE_BY_PLACE) });
     setIsPremium(Boolean(tournament.isPremium));
     setWinner(tournament.winner || '');
+    setCustomIconUrl(tournament.customIconUrl || '');
+    setWallpaperUrl(tournament.wallpaperUrl || '');
     setStreamUrl(tournament.streamUrl || initialMatch?.streamUrl || '');
   }, [tournament, initialMatch]);
 
@@ -203,6 +208,8 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
       winnerPerPlayerRub: winnerPerPlayer || undefined,
       streamUrl: streamUrl.trim() || undefined,
       winner: winner.trim() || undefined,
+      customIconUrl: customIconUrl.trim() || undefined,
+      wallpaperUrl: wallpaperUrl.trim() || undefined,
       isPremium: Boolean(isPremium),
     });
     setIsSaving(false);
@@ -255,7 +262,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl border border-white/15 bg-black/60 p-1 flex items-center justify-center overflow-hidden shrink-0">
-            <GameIcon game={game} className="h-full w-full object-cover rounded-lg" />
+            <GameIcon game={game} customIconUrl={customIconUrl} className="h-full w-full object-cover rounded-lg" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -342,6 +349,112 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+          </div>
+        </div>
+
+        {/* ИКОНКА И ОФОРМЛЕНИЕ МАТЧА */}
+        <div className="rounded-xl border border-cyan-500/25 bg-cyan-950/20 p-3.5 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+              <span>🖼️</span>
+              <span>Иконка и фоновый арт этого матча:</span>
+            </span>
+            {customIconUrl ? (
+              <span className="rounded bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-300">
+                ✓ Своя иконка матча
+              </span>
+            ) : (
+              <span className="text-[10px] text-zinc-400">
+                Используется стандартная иконка игры
+              </span>
+            )}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 items-start">
+            {/* Блок иконки матча */}
+            <div className="space-y-2">
+              <label className="block text-[11px] text-zinc-300 font-semibold">
+                Логотип / Иконка матча:
+              </label>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 shrink-0 rounded-xl border border-white/20 bg-black/60 p-1 flex items-center justify-center overflow-hidden shadow-inner">
+                  <GameIcon game={game} customIconUrl={customIconUrl} className="h-full w-full object-contain" />
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 px-3 py-1.5 text-xs font-bold text-cyan-300 transition w-full">
+                    <span>📁 Загрузить иконку с ПК</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const base64 = await compressGameIconFile(file, 160);
+                          setCustomIconUrl(base64);
+                        }
+                      }}
+                    />
+                  </label>
+                  {customIconUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setCustomIconUrl('')}
+                      className="text-[10px] font-semibold text-zinc-400 hover:text-red-400 transition block text-center w-full"
+                    >
+                      ↩ Сбросить к иконке игры
+                    </button>
+                  )}
+                </div>
+              </div>
+              <input
+                type="text"
+                placeholder="Или ссылка на иконку (URL)..."
+                value={customIconUrl}
+                onChange={(e) => setCustomIconUrl(e.target.value)}
+                className="input-field text-xs text-white w-full"
+              />
+            </div>
+
+            {/* Блок фонового изображения / баннера матча */}
+            <div className="space-y-2">
+              <label className="block text-[11px] text-zinc-300 font-semibold">
+                Фоновые обои / арт матча:
+              </label>
+              <div className="space-y-1.5">
+                <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 px-3 py-1.5 text-xs font-bold text-purple-300 transition w-full">
+                  <span>📁 Загрузить фон с ПК</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const base64 = await compressGameWallpaperFile(file, 1280);
+                        setWallpaperUrl(base64);
+                      }
+                    }}
+                  />
+                </label>
+                {wallpaperUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setWallpaperUrl('')}
+                    className="text-[10px] font-semibold text-zinc-400 hover:text-red-400 transition block text-center w-full"
+                  >
+                    ↩ Сбросить фон
+                  </button>
+                )}
+              </div>
+              <input
+                type="text"
+                placeholder="Или ссылка на фон (URL)..."
+                value={wallpaperUrl}
+                onChange={(e) => setWallpaperUrl(e.target.value)}
+                className="input-field text-xs text-white w-full"
+              />
+            </div>
           </div>
         </div>
 

@@ -267,6 +267,8 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 isPremium: isPubgPremium,
                 streamUrl: meta?.streamUrl,
                 winner: meta?.winner,
+                customIconUrl: meta?.customIconUrl,
+                wallpaperUrl: meta?.wallpaperUrl,
                 customGame: meta?.customGame,
               };
             });
@@ -679,7 +681,9 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updates.winnerPerPlayerRub !== undefined ||
         updates.game !== undefined ||
         updates.streamUrl !== undefined ||
-        updates.winner !== undefined
+        updates.winner !== undefined ||
+        updates.customIconUrl !== undefined ||
+        updates.wallpaperUrl !== undefined
       ) {
         const existingT = tournaments.find(t => t.id === tournamentId);
         const desc = updates.description !== undefined ? updates.description : (existingT?.description || '');
@@ -696,6 +700,8 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           winnerPerPlayerRub: updates.winnerPerPlayerRub !== undefined ? updates.winnerPerPlayerRub : existingT?.winnerPerPlayerRub,
           streamUrl: updates.streamUrl !== undefined ? updates.streamUrl : existingT?.streamUrl,
           winner: updates.winner !== undefined ? updates.winner : existingT?.winner,
+          customIconUrl: updates.customIconUrl !== undefined ? updates.customIconUrl : existingT?.customIconUrl,
+          wallpaperUrl: updates.wallpaperUrl !== undefined ? updates.wallpaperUrl : existingT?.wallpaperUrl,
           customGame: customGameObj,
         };
         const cleanDesc = desc.replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
@@ -812,6 +818,8 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       minPlayers: tournamentData.minPlayers,
       isPremium: tournamentData.isPremium,
       winnerPerPlayerRub: tournamentData.winnerPerPlayerRub,
+      customIconUrl: tournamentData.customIconUrl,
+      wallpaperUrl: tournamentData.wallpaperUrl,
       customGame: customGameObj,
     };
     const cleanDesc = (tournamentData.description || '').replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();

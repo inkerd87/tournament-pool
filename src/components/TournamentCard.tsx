@@ -52,7 +52,10 @@ export const TournamentCard: React.FC<{
   };
 
   const wallpaperUrl =
-    GAME_WALLPAPERS[tournament.game] || (game as any)?.wallpaperUrl || (game as any)?.iconUrl;
+    tournament.wallpaperUrl ||
+    GAME_WALLPAPERS[tournament.game] ||
+    (game as any)?.wallpaperUrl ||
+    (game as any)?.iconUrl;
 
   const isSoon = tournament.status === 'soon';
   const isPremium = Boolean(
@@ -97,7 +100,7 @@ export const TournamentCard: React.FC<{
         {/* Хедер карточки: Бейдж игры, Премиум / Режим, Статус */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <GameBadge game={tournament.game} />
+            <GameBadge game={tournament.game} customIconUrl={tournament.customIconUrl} />
             {isPremium && (
               <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/50 bg-amber-500/20 px-2 py-0.5 text-[10px] font-black text-amber-300 tracking-wide shadow-sm">
                 ★ ПРЕМИУМ

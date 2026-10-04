@@ -84,7 +84,7 @@ export const HomePage: React.FC = () => {
               </h1>
 
               <p className="mt-4 max-w-xl text-sm sm:text-base text-zinc-300 leading-relaxed font-normal">
-                Открытые любительские соревнования по CS2, Dota 2, PUBG, PUBG Mobile, Apex Legends, Minecraft, Warzone и Fortnite. Различные форматы соревнований, честное судейство и вознаграждение победителям.
+                Открытые любительские соревнования по CS2, Dota 2, PUBG, PUBG Mobile, Apex Legends, Warzone и Fortnite. Различные форматы соревнований, честное судейство и вознаграждение победителям.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
@@ -230,7 +230,7 @@ export const HomePage: React.FC = () => {
           <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 border-t border-white/[0.08] pt-8">
             <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3 sm:p-4">
               <span className="font-mono text-xl sm:text-2xl font-black text-cyan-400 block">8 Игр</span>
-              <span className="text-xs text-zinc-400 font-medium mt-1 block">CS2, Dota 2, PUBG, Minecraft, Apex...</span>
+              <span className="text-xs text-zinc-400 font-medium mt-1 block">CS2, Dota 2, PUBG, Apex, Warzone...</span>
             </div>
             <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3 sm:p-4">
               <span className="font-mono text-xl sm:text-2xl font-black text-amber-300 block">До 24ч</span>
@@ -347,7 +347,7 @@ export const HomePage: React.FC = () => {
             {
               step: '01',
               title: 'Дисциплины и форматы',
-              text: 'Соревнования по CS2, Dota 2, королевским битвам PUBG, PUBG Mobile, Apex Legends, Warzone, Fortnite, а также турниры по Minecraft.',
+              text: 'Соревнования по CS2, Dota 2, королевским битвам PUBG, PUBG Mobile, Apex Legends, Warzone и Fortnite.',
             },
             {
               step: '02',
@@ -362,7 +362,7 @@ export const HomePage: React.FC = () => {
             {
               step: '04',
               title: 'Вознаграждение победителей',
-              text: 'Фиксированное вознаграждение учреждено организатором соревнований за спортивные достижения (не зависит от взносов). В Minecraft Hunger Games (24 участника, взнос 500 ₽) вознаграждение составляет 2 500 ₽. Выплата через СБП до 24 часов.',
+              text: 'Фиксированное вознаграждение учреждено организатором соревнований за спортивные достижения (не зависит от взносов участников). Выплата через СБП до 24 часов.',
             },
           ].map((item) => (
             <div

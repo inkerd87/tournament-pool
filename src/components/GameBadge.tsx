@@ -3,7 +3,10 @@ import { GameId } from '@/lib/types';
 import { GAMES } from '@/lib/games';
 import { GameIcon } from '@/components/GameIcons';
 
-export const GameBadge: React.FC<{ game: GameId }> = ({ game }) => {
+export const GameBadge: React.FC<{ game: GameId; customIconUrl?: string }> = ({
+  game,
+  customIconUrl,
+}) => {
   const info = GAMES[game];
   return (
     <span
@@ -14,7 +17,7 @@ export const GameBadge: React.FC<{ game: GameId }> = ({ game }) => {
         border: `1px solid ${info.accent}40`,
       }}
     >
-      <GameIcon game={game} className="w-3.5 h-3.5 shrink-0" />
+      <GameIcon game={game} customIconUrl={customIconUrl} className="w-3.5 h-3.5 shrink-0" />
       {info.short}
     </span>
   );

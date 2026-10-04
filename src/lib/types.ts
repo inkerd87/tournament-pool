@@ -48,6 +48,8 @@ export type Tournament = {
   isPremium?: boolean;
   streamUrl?: string;
   winner?: string;
+  customIconUrl?: string;
+  wallpaperUrl?: string;
   customGame?: CustomGame;
 };
 
