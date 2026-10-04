@@ -137,7 +137,9 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 t.id !== SYSTEM_CUSTOM_GAMES_ROW_ID &&
                 t.game !== ('valorant' as any) &&
                 t.id !== 'valorant-skirmish-001' &&
-                !deletedTourneyIds.has(t.id)
+                !deletedTourneyIds.has(t.id) &&
+                !t.id.startsWith('custom_apex') &&
+                !t.id.startsWith('custom_mine')
             )
             .map((t: any) => {
               let cleanDesc = t.description || '';
@@ -245,6 +247,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             prev.forEach(p => {
               if (p.id === SYSTEM_CUSTOM_GAMES_ROW_ID) return;
               if (deleted.has(p.id)) return;
+              if (p.id.startsWith('custom_apex') || p.id.startsWith('custom_mine')) return;
               const exists = merged.some(m => m.id === p.id);
               if (!exists) {
                 merged.push(p);

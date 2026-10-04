@@ -189,7 +189,7 @@ export const AdminTipsTipsPayments: React.FC = () => {
       {/* Верхние информационные карточки / Метрики */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* На проверке */}
-        <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-b from-[#181512] to-[#12100d] p-4.5 relative overflow-hidden">
+        <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-b from-[#181512] to-[#12100d] p-5 relative">
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-extrabold tracking-wider text-amber-400/90">
               На проверке
@@ -213,7 +213,7 @@ export const AdminTipsTipsPayments: React.FC = () => {
         </div>
 
         {/* Подтверждено */}
-        <div className="rounded-2xl border border-emerald-500/25 bg-gradient-to-b from-[#0f1917] to-[#0c1412] p-4.5 relative overflow-hidden">
+        <div className="rounded-2xl border border-emerald-500/25 bg-gradient-to-b from-[#0f1917] to-[#0c1412] p-5 relative">
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-extrabold tracking-wider text-emerald-400/90">
               Подтверждено
@@ -234,14 +234,14 @@ export const AdminTipsTipsPayments: React.FC = () => {
         </div>
 
         {/* Отклонено */}
-        <div className="rounded-2xl border border-red-500/20 bg-gradient-to-b from-[#180f12] to-[#140b0d] p-4.5 relative overflow-hidden">
+        <div className="rounded-2xl border border-red-500/20 bg-gradient-to-b from-[#180f12] to-[#140b0d] p-5 relative">
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-extrabold tracking-wider text-red-400/90">
               Отклонено
             </span>
             <span className="h-2 w-2 rounded-full bg-red-400" />
           </div>
-          <div className="mt-2.5 flex items-baseline justify-between">
+          <div className="mt-2.5 flex items-baseline gap-2">
             <span className="text-2xl font-black text-red-300 font-mono tracking-tight">
               {rejectedCount}
             </span>
@@ -255,7 +255,7 @@ export const AdminTipsTipsPayments: React.FC = () => {
         </div>
 
         {/* Статус соединения */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#131a29] to-[#0f1522] p-4.5 flex flex-col justify-between">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#131a29] to-[#0f1522] p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-extrabold tracking-wider text-zinc-400">
               Статус сети
