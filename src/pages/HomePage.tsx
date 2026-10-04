@@ -265,67 +265,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Выделенный блок турнира: Minecraft Hunger Games с атмосферным фоном */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="group rounded-3xl border border-emerald-500/35 bg-gradient-to-r from-[#0d1a16] via-[#091411] to-[#0b1714] p-6 sm:p-8 relative overflow-hidden shadow-2xl">
-          {/* Фоновая картинка Minecraft */}
-          <div
-            className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-700 opacity-20 group-hover:opacity-40 group-hover:scale-105"
-            style={{ backgroundImage: `url(${GAME_WALLPAPERS.minecraft})` }}
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#091411]/95 via-[#091411]/85 to-[#091411]/60" />
-          <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-            <div className="max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Особый формат соревнований</span>
-              </div>
-
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                Minecraft: соревнование по режиму Hunger Games
-              </h2>
-
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                Турнир рассчитан на фиксированное количество участников — ровно 24 человека. Формат проведения предполагает одну игровую сессию, в которой будет определен один победитель.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <div className="rounded-xl bg-black/70 border border-white/10 px-3.5 py-2">
-                  <span className="text-[10px] uppercase font-bold text-zinc-400 block">Участники</span>
-                  <span className="text-sm font-black text-white font-mono">24 игрока</span>
-                </div>
-                <div className="rounded-xl bg-black/70 border border-white/10 px-3.5 py-2">
-                  <span className="text-[10px] uppercase font-bold text-zinc-400 block">Организационный взнос</span>
-                  <span className="text-sm font-black text-cyan-300 font-mono">500 рублей</span>
-                </div>
-                <div className="rounded-xl bg-amber-500/20 border border-amber-500/50 px-3.5 py-2">
-                  <span className="text-[10px] uppercase font-bold text-amber-400 block">Вознаграждение победителя</span>
-                  <span className="text-base font-black text-amber-300 font-mono">2 500 рублей</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="shrink-0 flex flex-col sm:flex-row lg:flex-col gap-3">
-              <Link
-                to="/tournaments/minecraft-hg-001"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-300 hover:to-emerald-400 px-6 py-3.5 text-sm font-black text-black shadow-lg shadow-emerald-500/25 transition-all duration-200 active:scale-[0.98]"
-              >
-                <span>Участвовать в Hunger Games</span>
-                <span>→</span>
-              </Link>
-              <Link
-                to="/how-it-works"
-                className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 px-5 py-3 text-xs font-bold text-zinc-300 hover:text-white transition"
-              >
-                Регламент матча
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Каталог актуальных турниров */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/[0.08] pb-4">

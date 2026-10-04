@@ -120,26 +120,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const cleanEmail = currentUser.email.toLowerCase();
 
-    // Real-time subscription to changes in 'users' table
-    const userChannel = supabase
-      .channel(`realtime-user-${cleanEmail}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'users',
-        },
-        (payload: any) => {
-          if (payload?.new?.email && payload.new.email.toLowerCase() === cleanEmail) {
-            refreshUser();
+    // 1. Периодический опрос баланса (каждые 10 сек) для надежности при недоступности WebSockets
+    const pollInterval = setInterval(() => {
+      if (!document.hidden) {
+        refreshUser();
+      }
+    }, 10000);
+
+    const handleFocus = () => {
+      if (!document.hidden) {
+        refreshUser();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    window.addEventListener('nb_balance_updated', handleFocus);
+
+    // 2. Real-time subscription to changes in 'users' table
+    let userChannel: any = null;
+    try {
+      userChannel = supabase
+        .channel(`realtime-user-${cleanEmail}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'users',
+          },
+          (payload: any) => {
+            if (payload?.new?.email && payload.new.email.toLowerCase() === cleanEmail) {
+              refreshUser();
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime subscription error in AuthContext:', e);
+    }
 
     return () => {
-      supabase.removeChannel(userChannel);
+      clearInterval(pollInterval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('nb_balance_updated', handleFocus);
+      if (userChannel) {
+        try {
+          supabase.removeChannel(userChannel);
+        } catch {}
+      }
     };
   }, [user?.email]);
 

@@ -323,6 +323,19 @@ export async function confirmTipsTipsPayment(
           .from('users')
           .update({ balance_rub: (Number(dbUser.balance_rub) || 0) + payment.amount })
           .eq('id', dbUser.id);
+      } else if (payment.email) {
+        const cleanEmail = payment.email.toLowerCase().trim();
+        const insertPayload: Record<string, any> = {
+          email: cleanEmail,
+          nickname: payment.nickname || cleanEmail.split('@')[0] || 'Игрок',
+          balance_rub: payment.amount,
+        };
+        if (payment.phone) insertPayload.phone = payment.phone;
+        const { error: insErr } = await supabase.from('users').insert([insertPayload]);
+        if (insErr && (insErr.message?.includes('phone') || (insErr as any).code === '42703')) {
+          delete insertPayload.phone;
+          await supabase.from('users').insert([insertPayload]);
+        }
       }
     } catch (e) {
       console.warn('Could not sync user balance to Supabase:', e);
@@ -342,6 +355,22 @@ export async function confirmTipsTipsPayment(
         );
       } catch (err) {
         console.error('Error auto-registering user after tips.tips payment confirm:', err);
+      }
+    } else {
+      try {
+        await supabase.from('registrations').insert([
+          {
+            id: 'reg_' + Math.random().toString(36).substring(2, 9),
+            tournament_id: payment.tournamentId,
+            nickname: payment.nickname,
+            game_account: payment.gameAccount || '',
+            email: payment.email.toLowerCase().trim(),
+            phone: payment.phone || '',
+            paid_at: new Date().toISOString(),
+          }
+        ]);
+      } catch (e) {
+        console.warn('Fallback direct registration insert error:', e);
       }
     }
   }

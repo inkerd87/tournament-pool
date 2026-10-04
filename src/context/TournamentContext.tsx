@@ -292,43 +292,71 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     refreshData();
 
-    // 1. Supabase Realtime WebSocket subscription
-    const channel = supabase
-      .channel('realtime-tournaments-feed')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'tournaments' },
-        () => {
-          refreshData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'registrations' },
-        () => {
-          refreshData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'matches' },
-        () => {
-          refreshData();
-        }
-      )
-      .subscribe((status, err) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Supabase Realtime connected');
-        } else if (status === 'CHANNEL_ERROR' && err) {
-          const errMsg = String((err as any)?.message || err);
-          if (!errMsg.includes('heartbeat timeout')) {
-            console.warn('Realtime channel notice:', err);
+    // 1. Периодический опрос турниров (каждые 15 сек) для надежности без VPN
+    const pollInterval = setInterval(() => {
+      if (!document.hidden) {
+        refreshData();
+      }
+    }, 15000);
+
+    const handleFocus = () => {
+      if (!document.hidden) {
+        refreshData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    // 2. Supabase Realtime WebSocket subscription
+    let channel: any = null;
+    try {
+      channel = supabase
+        .channel('realtime-tournaments-feed')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'tournaments' },
+          () => {
+            refreshData();
           }
-        }
-      });
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'registrations' },
+          () => {
+            refreshData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'matches' },
+          () => {
+            refreshData();
+          }
+        )
+        .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Supabase Realtime connected');
+          } else if (status === 'CHANNEL_ERROR' && err) {
+            const errMsg = String((err as any)?.message || err);
+            if (!errMsg.includes('heartbeat timeout')) {
+              console.warn('Realtime channel notice:', err);
+            }
+          }
+        });
+    } catch (e) {
+      console.warn('Realtime setup error:', e);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch {}
+      }
     };
   }, [refreshData]);
 

@@ -4,14 +4,15 @@ import { useAuth } from '@/context/AuthContext';
 import { useTournaments } from '@/context/TournamentContext';
 import { formatRub } from '@/lib/format';
 import { getStoredUser } from '@/lib/storage';
+import { createTipsTipsPayment, getStoredTipsTipsPayments } from '@/lib/tipstips-client';
 
 export const PaymentReturnPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const { user, login, updateBalance } = useAuth();
-  const { registerForTournament, tournaments, isUserRegistered } = useTournaments();
+  const { user } = useAuth();
+  const { tournaments } = useTournaments();
 
   const status = searchParams.get('status');
-  const isFailed = status === 'fail';
+  const isFailed = status === 'fail' || status === 'canceled';
 
   const [registeredTournamentTitle, setRegisteredTournamentTitle] = useState<string>('');
   const [registeredTournamentId, setRegisteredTournamentId] = useState<string>('');
@@ -19,11 +20,10 @@ export const PaymentReturnPage: React.FC = () => {
   const [isTopUp, setIsTopUp] = useState<boolean>(false);
   const [topUpAmount, setTopUpAmount] = useState<number>(100);
   const [paidAmount, setPaidAmount] = useState<number>(100);
+  const [pendingCode, setPendingCode] = useState<string>('');
 
-  // Защита от повторного выполнения и зацикливания
   const hasProcessed = useRef<boolean>(false);
 
-  // Helper to extract query parameters from React Router searchParams, window.location.search, and hash
   const getParam = (paramName: string): string | null => {
     let val = searchParams.get(paramName);
     if (val) return val;
@@ -65,7 +65,6 @@ export const PaymentReturnPage: React.FC = () => {
       return;
     }
 
-    // Извлекаем фактическую сумму оплаты из параметров возврата ЮKassa / Moneta
     const rawMntAmount = getFirstParam(
       'amount',
       'AMOUNT',
@@ -84,7 +83,6 @@ export const PaymentReturnPage: React.FC = () => {
       ? parseFloat(rawMntAmount.replace(',', '.').trim())
       : 0;
 
-    // Извлекаем email плательщика из параметров возврата
     const urlEmail = getFirstParam(
       'email',
       'EMAIL',
@@ -97,27 +95,12 @@ export const PaymentReturnPage: React.FC = () => {
       'MNT_CUSTOM1'
     ) || '';
 
-    // Извлекаем ID операции для защиты от повторного зачисления при обновлении страницы
-    const opId = getFirstParam(
-      'orderId',
-      'order_id',
-      'paymentId',
-      'payment_id',
-      'MNT_OPERATION_ID',
-      'mnt_operation_id',
-      'MNT_TRANSACTION_ID',
-      'mnt_transaction_id',
-      'operation_id',
-      'transaction_id'
-    );
-
     // 1. Проверяем регистрацию на турнир
     let tId = getFirstParam('tId', 'tid', 'tournamentId');
     let nick = getFirstParam('nick', 'nickname');
     let acc = getFirstParam('acc', 'gameAccount');
     let email = getFirstParam('email') || urlEmail;
     let phone = getFirstParam('phone') || '';
-    let password = '';
     let pendingTitle = '';
     let pendingFee = 0;
 
@@ -130,7 +113,6 @@ export const PaymentReturnPage: React.FC = () => {
         acc = acc || parsedReg.gameAccount;
         email = email || parsedReg.email;
         phone = phone || parsedReg.phone || '';
-        password = parsedReg.password || '';
         pendingTitle = parsedReg.tournamentTitle || '';
         pendingFee = Number(parsedReg.amount) || 0;
       } catch (e) {
@@ -138,12 +120,9 @@ export const PaymentReturnPage: React.FC = () => {
       }
     }
 
-    if (tId && nick && email) {
-      localStorage.removeItem('nb_pending_registration');
-      localStorage.removeItem('nb_pending_topup');
-
+    if (tId && (nick || email)) {
       setRegisteredTournamentId(tId);
-      setPlayerNickname(nick);
+      setPlayerNickname(nick || 'Игрок');
 
       const targetTourney = tournaments.find((t) => t.id === tId);
       const computedTitle = targetTourney?.title || pendingTitle || tId.replace(/-/g, ' ').toUpperCase();
@@ -152,18 +131,35 @@ export const PaymentReturnPage: React.FC = () => {
       setRegisteredTournamentTitle(computedTitle);
       setPaidAmount(computedFee);
 
-      if (!isUserRegistered(tId, email)) {
-        registerForTournament(tId, nick, acc || '', email, phone);
+      // Проверяем, существует ли уже заявка в tips.tips
+      const existing = getStoredTipsTipsPayments();
+      const matched = existing.find(
+        (p) => p.tournamentId === tId && (p.email.toLowerCase() === (email || '').toLowerCase() || p.nickname === nick)
+      );
+
+      if (matched) {
+        setPendingCode(matched.code);
+      } else if (email) {
+        createTipsTipsPayment({
+          amount: computedFee,
+          type: 'registration',
+          email: email.trim(),
+          phone: phone.trim(),
+          nickname: (nick || 'Игрок').trim(),
+          gameAccount: (acc || '').trim(),
+          tournamentId: tId,
+          tournamentTitle: computedTitle,
+        }).then((created) => {
+          setPendingCode(created.code);
+        });
       }
 
-      if (!user || user.email.toLowerCase() !== email.toLowerCase()) {
-        login(email, password, nick, phone);
-      }
+      localStorage.removeItem('nb_pending_registration');
+      localStorage.removeItem('nb_pending_topup');
       return;
     }
 
     // 2. Пополнение баланса кошелька
-    // Читаем сохраненные данные о пополнении из localStorage
     let savedTopupAmount = 0;
     let savedTopupEmail = '';
     const savedTopupStr = localStorage.getItem('nb_pending_topup');
@@ -177,9 +173,6 @@ export const PaymentReturnPage: React.FC = () => {
       }
     }
 
-    // Определяем сумму зачисления:
-    // 1) Если шлюз PayAnyWay передал фактическую оплаченную сумму в URL (например, MNT_AMOUNT=10.00) — берем её!
-    // 2) Иначе берем сумму, указанную пользователем перед переходом на кассу
     const exactCreditAmount = parsedUrlAmount > 0 ? parsedUrlAmount : savedTopupAmount;
 
     if (exactCreditAmount > 0) {
@@ -194,28 +187,34 @@ export const PaymentReturnPage: React.FC = () => {
       setIsTopUp(true);
       setTopUpAmount(exactCreditAmount);
 
-      // Защита от повторного начисления при перезагрузке страницы (F5) пользователем
-      const dedupeKey = `nb_processed_${opId || ('amt_' + exactCreditAmount + '_' + (savedTopupStr ? 'saved' : 'url'))}`;
-      const isAlreadyCredited = sessionStorage.getItem(dedupeKey) === 'true';
+      const existing = getStoredTipsTipsPayments();
+      const matched = existing.find(
+        (p) => p.type === 'topup' && p.amount === exactCreditAmount && (finalEmail ? p.email.toLowerCase() === finalEmail.toLowerCase() : true)
+      );
 
-      if (!isAlreadyCredited) {
-        sessionStorage.setItem(dedupeKey, 'true');
-        updateBalance(exactCreditAmount, finalEmail);
-
-        if (!user && finalEmail) {
-          login(finalEmail);
-        }
+      if (matched) {
+        setPendingCode(matched.code);
+      } else if (finalEmail) {
+        createTipsTipsPayment({
+          amount: exactCreditAmount,
+          type: 'topup',
+          userId: currentUser?.id,
+          email: finalEmail,
+          phone: currentUser?.phone || '',
+          nickname: currentUser?.nickname || finalEmail.split('@')[0],
+        }).then((created) => {
+          setPendingCode(created.code);
+        });
       }
 
       localStorage.removeItem('nb_pending_topup');
       return;
     }
 
-    // Если нет ни данных турнира, ни суммы пополнения
     localStorage.removeItem('nb_pending_topup');
-  }, []); // Выполняется строго 1 раз при монтировании компонента
+    localStorage.removeItem('nb_pending_registration');
+  }, [isFailed, tournaments, user]);
 
-  // Обновляем название турнира и взнос, если список турниров догрузился позже
   useEffect(() => {
     if (registeredTournamentId && tournaments.length > 0) {
       const targetTourney = tournaments.find((t) => t.id === registeredTournamentId);
@@ -250,20 +249,26 @@ export const PaymentReturnPage: React.FC = () => {
     );
   }
 
-  // Экран успешного пополнения баланса
+  // Экран ожидания подтверждения пополнения баланса
   if (isTopUp) {
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center sm:px-6">
-        <div className="surface-card p-8 border-emerald-500/30">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-3xl text-emerald-400">
-            ✓
+        <div className="surface-card p-8 border-amber-500/30">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20 text-3xl text-amber-400">
+            ⏳
           </div>
-          <h1 className="mt-4 text-2xl font-extrabold text-white">Баланс пополнен!</h1>
+          <h1 className="mt-4 text-2xl font-extrabold text-white">Заявка на проверке</h1>
           <p className="mt-2 text-sm text-zinc-300">
-            Средства успешно зачислены и уже отображаются в вашем личном кабинете.
+            Заявка на пополнение баланса успешно сформирована и ожидает подтверждения администратором.
           </p>
 
           <div className="mt-5 rounded-xl border border-white/5 bg-black/30 p-4 text-left space-y-2 text-xs">
+            {pendingCode && (
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Код заявки:</span>
+                <span className="font-mono font-extrabold text-amber-300">{pendingCode}</span>
+              </div>
+            )}
             {(user || getStoredUser()) && (
               <div className="flex justify-between">
                 <span className="text-zinc-500">Пользователь:</span>
@@ -271,26 +276,18 @@ export const PaymentReturnPage: React.FC = () => {
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-zinc-500">Сумма зачисления:</span>
-              <span className="font-bold text-emerald-400">+{formatRub(topUpAmount)}</span>
+              <span className="text-zinc-500">Сумма к зачислению:</span>
+              <span className="font-bold text-white font-mono">{formatRub(topUpAmount)}</span>
             </div>
-            {(user || getStoredUser()) && (
-              <div className="flex justify-between border-t border-white/5 pt-2">
-                <span className="text-zinc-500">Текущий баланс:</span>
-                <span className="font-extrabold text-white">
-                  {formatRub((user?.balanceRub ?? getStoredUser()?.balanceRub) || topUpAmount)}
-                </span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Статус:</span>
-              <span className="font-semibold text-cyan-400">Зачислено (СБП / Карта РФ)</span>
+            <div className="flex justify-between border-t border-white/5 pt-2">
+              <span className="text-zinc-500">Статус зачисления:</span>
+              <span className="font-semibold text-amber-400">⏳ Ожидает одобрения</span>
             </div>
           </div>
 
-          <p className="mt-4 text-xs text-zinc-500">
-            Теперь вы можете оплачивать организационные услуги соревнований моментально в один клик.
-          </p>
+          <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-950/20 p-3 text-[11px] text-amber-200/90 text-left leading-relaxed">
+            💡 Зачисление средств производится администратором после ручной сверки поступившего перевода в tips.tips. Обычно проверка занимает от 1 до 5 минут.
+          </div>
 
           <div className="mt-8 flex flex-col gap-3">
             <Link to="/account" className="btn-primary">
@@ -305,21 +302,27 @@ export const PaymentReturnPage: React.FC = () => {
     );
   }
 
-  // Экран успешной регистрации на турнир
+  // Экран ожидания подтверждения регистрации на турнир
   if (registeredTournamentId || registeredTournamentTitle) {
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center sm:px-6">
-        <div className="surface-card p-8 border-emerald-500/30">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-3xl text-emerald-400">
-            ✓
+        <div className="surface-card p-8 border-amber-500/30">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20 text-3xl text-amber-400">
+            ⏳
           </div>
-          <h1 className="mt-4 text-2xl font-extrabold text-white">Оплата прошла успешно!</h1>
+          <h1 className="mt-4 text-2xl font-extrabold text-white">Заявка на проверке</h1>
           <p className="mt-2 text-sm text-zinc-300">
-            Вы успешно оплатили организационные услуги и зарегистрированы на соревнование
-            {registeredTournamentTitle ? ` «${registeredTournamentTitle}»` : ''}!
+            Заявка на участие в соревновании
+            {registeredTournamentTitle ? ` «${registeredTournamentTitle}»` : ''} ожидает подтверждения администратором.
           </p>
 
           <div className="mt-5 rounded-xl border border-white/5 bg-black/30 p-4 text-left space-y-2 text-xs">
+            {pendingCode && (
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Код заявки:</span>
+                <span className="font-mono font-extrabold text-amber-300">{pendingCode}</span>
+              </div>
+            )}
             {playerNickname && (
               <div className="flex justify-between">
                 <span className="text-zinc-500">Участник:</span>
@@ -328,17 +331,17 @@ export const PaymentReturnPage: React.FC = () => {
             )}
             <div className="flex justify-between">
               <span className="text-zinc-500">Организационные услуги:</span>
-              <span className="font-bold text-emerald-400">{formatRub(paidAmount)}</span>
+              <span className="font-bold text-white font-mono">{formatRub(paidAmount)}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between border-t border-white/5 pt-2">
               <span className="text-zinc-500">Статус:</span>
-              <span className="font-semibold text-cyan-400">Оплачено (СБП / Карта РФ)</span>
+              <span className="font-semibold text-amber-400">⏳ Ожидает одобрения</span>
             </div>
           </div>
 
-          <p className="mt-4 text-xs text-zinc-500">
-            Все данные для входа, комната и пароль станут доступны в вашем личном кабинете.
-          </p>
+          <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-950/20 p-3 text-[11px] text-amber-200/90 text-left leading-relaxed">
+            💡 Администратор сверит поступление оргвзноса по коду заявки. Сразу после подтверждения соревнование и данные закрытого лобби станут доступны в вашем личном кабинете.
+          </div>
 
           <div className="mt-8 flex flex-col gap-3">
             <Link to="/account" className="btn-primary">
@@ -346,7 +349,7 @@ export const PaymentReturnPage: React.FC = () => {
             </Link>
             {registeredTournamentId && (
               <Link to={`/tournaments/${registeredTournamentId}`} className="btn-secondary">
-                Перейти на страницу соревнования
+                Страница соревнования
               </Link>
             )}
             <Link to="/tournaments" className="btn-secondary">
@@ -358,16 +361,16 @@ export const PaymentReturnPage: React.FC = () => {
     );
   }
 
-  // Если страница открыта без подтверждённого платежа
+  // Общий экран статуса платежей
   return (
     <div className="mx-auto max-w-md px-4 py-20 text-center sm:px-6">
       <div className="surface-card p-8 border-cyan-500/20">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/20 text-3xl text-cyan-400">
           ℹ
         </div>
-        <h1 className="mt-4 text-2xl font-extrabold text-white">Статус платежа</h1>
+        <h1 className="mt-4 text-2xl font-extrabold text-white">Касса соревнований</h1>
         <p className="mt-2 text-sm text-zinc-300">
-          Информация об оплате ожидает подтверждения от платёжного шлюза. Проверьте актуальный баланс в личном кабинете.
+          Все платежи зачисляются строго после проверки администратором. Проверить статус ваших заявок можно в личном кабинете.
         </p>
 
         <div className="mt-8 flex flex-col gap-3">

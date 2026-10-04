@@ -33,21 +33,45 @@ export const AccountPage: React.FC = () => {
 
   useEffect(() => {
     if (!user?.email) return;
-    setUserTips(getUserTipsTipsPayments(user.email));
 
-    // Асинхронно подгружаем актуальные платежи из базы данных
-    fetchTipsTipsPaymentsFromDb().then((all) => {
-      const email = user.email.toLowerCase().trim();
-      const filtered = all.filter((p) => p.email.toLowerCase() === email || p.userId === user.id);
-      setUserTips(filtered);
-    });
-
-    const updateTips = () => {
+    const loadUserTipsAndBalance = () => {
       setUserTips(getUserTipsTipsPayments(user.email));
+      fetchTipsTipsPaymentsFromDb().then((all) => {
+        const email = user.email.toLowerCase().trim();
+        const filtered = all.filter((p) => p.email.toLowerCase() === email || p.userId === user.id);
+        setUserTips(filtered);
+      });
+      refreshUser();
     };
-    window.addEventListener('nb_tipstips_updated', updateTips);
-    return () => window.removeEventListener('nb_tipstips_updated', updateTips);
-  }, [user?.email, user?.id]);
+
+    loadUserTipsAndBalance();
+
+    // Опрос каждые 7 секунд в активной вкладке для моментального отображения подтверждения кассы
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        loadUserTipsAndBalance();
+      }
+    }, 7000);
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        loadUserTipsAndBalance();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+    window.addEventListener('nb_tipstips_updated', loadUserTipsAndBalance);
+    window.addEventListener('nb_balance_updated', loadUserTipsAndBalance);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+      window.removeEventListener('nb_tipstips_updated', loadUserTipsAndBalance);
+      window.removeEventListener('nb_balance_updated', loadUserTipsAndBalance);
+    };
+  }, [user?.email, user?.id, refreshUser]);
 
   if (!user) {
     return <Navigate to="/login" replace />;
