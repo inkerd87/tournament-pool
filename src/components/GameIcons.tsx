@@ -78,14 +78,21 @@ export const GameIcon: React.FC<{ game: GameId; className?: string; customIconUr
   className = "w-5 h-5",
   customIconUrl,
 }) => {
+  const [loadFailed, setLoadFailed] = React.useState(false);
   const iconUrl = customIconUrl || GAMES[game]?.iconUrl;
-  if (iconUrl) {
+
+  React.useEffect(() => {
+    setLoadFailed(false);
+  }, [iconUrl, game]);
+
+  if (iconUrl && !loadFailed) {
     return (
       <img
         src={iconUrl}
         alt={GAMES[game]?.name || String(game)}
         className={`${className} object-cover rounded`}
         loading="lazy"
+        onError={() => setLoadFailed(true)}
       />
     );
   }

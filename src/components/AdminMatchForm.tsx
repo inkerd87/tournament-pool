@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Tournament, TournamentMatchAccess, TournamentStatus } from '@/lib/types';
 import { useTournaments } from '@/context/TournamentContext';
-import { formatDateTime, formatRub, statusLabel } from '@/lib/format';
+import { formatDateTime, statusLabel } from '@/lib/format';
 import { ENTRY_FEE_RUB, TOTAL_PRIZES_RUB, PRIZE_BY_PLACE } from '@/lib/constants';
+import { GameIcon } from '@/components/GameIcons';
 
 type Props = {
   tournament: Tournament;
@@ -32,15 +33,18 @@ function getInitialWinningPlacesCount(t: Tournament): number {
 }
 
 export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) => {
-  const { updateMatch, updateTournament, deleteTournament } = useTournaments();
+  const { updateMatch, updateTournament, deleteTournament, allGames } = useTournaments();
 
   // Основные параметры матча
-  const [startsAtLocal, setStartsAtLocal] = useState(() => toDateTimeLocal(tournament.startsAt));
-  const [status, setStatus] = useState<TournamentStatus>(tournament.status);
+  const [game, setGame] = useState(tournament.game);
   const [title, setTitle] = useState(tournament.title);
   const [format, setFormat] = useState(tournament.format);
+  const [description, setDescription] = useState(tournament.description || '');
+  const [startsAtLocal, setStartsAtLocal] = useState(() => toDateTimeLocal(tournament.startsAt));
+  const [status, setStatus] = useState<TournamentStatus>(tournament.status);
 
-  // Места (Макс и Мин)
+  // Участники
+  const [registeredCount, setRegisteredCount] = useState<number>(tournament.registeredCount || 0);
   const [maxPlayers, setMaxPlayers] = useState<number>(tournament.maxPlayers || 100);
   const [minPlayers, setMinPlayers] = useState<number>(tournament.minPlayers ?? 50);
 
@@ -54,55 +58,52 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
     ...(tournament.prizes || PRIZE_BY_PLACE),
   }));
 
-  // Синхронизация при обновлении данных из Supabase
-  useEffect(() => {
-    setStartsAtLocal(toDateTimeLocal(tournament.startsAt));
-  }, [tournament.startsAt]);
+  // Дополнительные параметры
+  const [isPremium, setIsPremium] = useState<boolean>(Boolean(tournament.isPremium));
+  const [winner, setWinner] = useState<string>(tournament.winner || '');
 
-  useEffect(() => {
-    setStatus(tournament.status);
-  }, [tournament.status]);
-
-  useEffect(() => {
-    setTitle(tournament.title);
-    setFormat(tournament.format);
-    setMaxPlayers(tournament.maxPlayers || 100);
-    setMinPlayers(tournament.minPlayers ?? 50);
-    setEntryFeeRub(tournament.entryFeeRub ?? ENTRY_FEE_RUB);
-    setPrizePoolRub(tournament.prizePoolRub ?? TOTAL_PRIZES_RUB);
-    setWinningPlacesCount(getInitialWinningPlacesCount(tournament));
-    setPrizesByPlace({ ...(tournament.prizes || PRIZE_BY_PLACE) });
-  }, [
-    tournament.title,
-    tournament.format,
-    tournament.maxPlayers,
-    tournament.minPlayers,
-    tournament.entryFeeRub,
-    tournament.prizePoolRub,
-    tournament.winningPlacesCount,
-    tournament.prizes,
-  ]);
-
-  // Данные лобби
+  // Данные лобби и трансляции
   const [roomId, setRoomId] = useState(initialMatch?.roomId || `NB_${tournament.game.toUpperCase()}_01`);
   const [password, setPassword] = useState(
     initialMatch?.password || 'NB' + Math.floor(1000 + Math.random() * 9000)
   );
   const [joinUrl, setJoinUrl] = useState(initialMatch?.joinUrl || '');
-
-  useEffect(() => {
-    if (initialMatch) {
-      setRoomId(initialMatch.roomId);
-      setPassword(initialMatch.password);
-      setJoinUrl(initialMatch.joinUrl || '');
-    }
-  }, [initialMatch]);
+  const [streamUrl, setStreamUrl] = useState(tournament.streamUrl || initialMatch?.streamUrl || '');
 
   // Статусы сохранения
   const [isSaving, setIsSaving] = useState(false);
   const [savedTime, setSavedTime] = useState(false);
   const [savedLobby, setSavedLobby] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Синхронизация при обновлении данных
+  useEffect(() => {
+    setGame(tournament.game);
+    setTitle(tournament.title);
+    setFormat(tournament.format);
+    setDescription(tournament.description || '');
+    setStartsAtLocal(toDateTimeLocal(tournament.startsAt));
+    setStatus(tournament.status);
+    setRegisteredCount(tournament.registeredCount || 0);
+    setMaxPlayers(tournament.maxPlayers || 100);
+    setMinPlayers(tournament.minPlayers ?? 50);
+    setEntryFeeRub(tournament.entryFeeRub ?? ENTRY_FEE_RUB);
+    setPrizePoolRub(tournament.prizePoolRub ?? TOTAL_PRIZES_RUB);
+    setWinningPlacesCount(getInitialWinningPlacesCount(tournament));
+    setPrizesByPlace({ ...(tournament.prizes || PRIZE_BY_PLACE) });
+    setIsPremium(Boolean(tournament.isPremium));
+    setWinner(tournament.winner || '');
+    setStreamUrl(tournament.streamUrl || initialMatch?.streamUrl || '');
+  }, [tournament, initialMatch]);
+
+  useEffect(() => {
+    if (initialMatch) {
+      setRoomId(initialMatch.roomId);
+      setPassword(initialMatch.password);
+      setJoinUrl(initialMatch.joinUrl || '');
+      if (initialMatch.streamUrl) setStreamUrl(initialMatch.streamUrl);
+    }
+  }, [initialMatch]);
 
   // Изменение количества призовых мест
   const handleWinningPlacesCountChange = (newCountRaw: number) => {
@@ -135,7 +136,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
     });
   };
 
-  // Авто-распределение общего призового фонда по выбранному числу мест
+  // Авто-распределение призового фонда
   const handleDistributePool = (totalPool: number, count = winningPlacesCount) => {
     const cleanTotal = Math.max(0, Number(totalPool) || 0);
     setPrizePoolRub(cleanTotal);
@@ -154,7 +155,6 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
       setPrizesByPlace({ 1: p1, 2: p2, 3: cleanTotal - p1 - p2 });
       return;
     }
-    // Для 4+ мест распределяем убывающими весами
     const weights = Array.from({ length: count }, (_, i) => count - i);
     const totalWeight = weights.reduce((a, b) => a + b, 0);
     const next: Record<number, number> = {};
@@ -171,7 +171,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
     setPrizesByPlace(next);
   };
 
-  // Сохранение всех параметров матча (время, статус, места, взнос, призовые)
+  // Сохранение всех параметров матча
   const handleSaveMatchDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!startsAtLocal) return;
@@ -182,22 +182,28 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
       cleanPrizes[i] = Number(prizesByPlace[i]) || 0;
     }
 
-    const isTeam5v5 = (tournament.game === 'cs2' || tournament.game === 'dota2') && winningPlacesCount === 1;
+    const isTeam5v5 = (game === 'cs2' || game === 'dota2') && winningPlacesCount === 1;
     const winnerPerPlayer = isTeam5v5 ? Math.round((Number(prizePoolRub) || 0) / 5) : 0;
 
     setIsSaving(true);
     const ok = await updateTournament(tournament.id, {
+      game,
       title: title.trim() || tournament.title,
       format: format.trim() || tournament.format,
+      description: description.trim(),
       startsAt: isoStartsAt,
       status: status,
       maxPlayers: Math.max(2, Number(maxPlayers) || 10),
       minPlayers: Math.max(0, Number(minPlayers) || 0),
+      registeredCount: Math.max(0, Number(registeredCount) || 0),
       entryFeeRub: Math.max(0, Number(entryFeeRub) || 0),
       prizePoolRub: Math.max(0, Number(prizePoolRub) || 0),
       winningPlacesCount: winningPlacesCount,
       prizes: cleanPrizes,
       winnerPerPlayerRub: winnerPerPlayer || undefined,
+      streamUrl: streamUrl.trim() || undefined,
+      winner: winner.trim() || undefined,
+      isPremium: Boolean(isPremium),
     });
     setIsSaving(false);
 
@@ -226,45 +232,60 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
   // Сохранение доступов к лобби
   const handleSaveLobby = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateMatch(tournament.id, roomId, password, joinUrl);
+    await updateMatch(tournament.id, roomId, password, joinUrl, streamUrl);
     setSavedLobby(true);
     setTimeout(() => setSavedLobby(false), 3000);
   };
 
   const handleDelete = async () => {
-    if (window.confirm(`Вы уверены, что хотите удалить соревнование "${tournament.title}"?`)) {
+    if (window.confirm(`Вы уверены, что хотите удалить матч «${tournament.title}»?`)) {
       setIsDeleting(true);
       await deleteTournament(tournament.id);
     }
   };
 
+  const generateRandomPassword = () => {
+    const code = 'NB' + Math.floor(1000 + Math.random() * 9000);
+    setPassword(code);
+  };
+
   return (
-    <div className="surface-card p-6 space-y-6 border border-white/10 relative">
+    <div className="surface-card p-5 sm:p-6 space-y-6 border border-white/10 relative">
       {/* Шапка карточки со статусом и игрой */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-extrabold uppercase text-cyan-400">
-              {tournament.game}
-            </span>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                status === 'live'
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  : status === 'full'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-              }`}
-            >
-              {statusLabel(status)}
-            </span>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl border border-white/15 bg-black/60 p-1 flex items-center justify-center overflow-hidden shrink-0">
+            <GameIcon game={game} className="h-full w-full object-cover rounded-lg" />
           </div>
-          <h3 className="mt-1 font-bold text-white text-base">{tournament.title}</h3>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-extrabold uppercase text-cyan-400">
+                {game}
+              </span>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  status === 'live'
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    : status === 'full'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                }`}
+              >
+                {statusLabel(status)}
+              </span>
+              {isPremium && (
+                <span className="rounded-full bg-amber-400/20 border border-amber-400/40 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                  ★ Премиум
+                </span>
+              )}
+            </div>
+            <h3 className="mt-0.5 font-bold text-white text-base">{tournament.title}</h3>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <span className="text-xs text-zinc-400 font-medium">
-            👥 {tournament.registeredCount} / {tournament.maxPlayers} (мин. {tournament.minPlayers ?? 0})
+            👥 {tournament.registeredCount} / {tournament.maxPlayers}
           </span>
           <button
             type="button"
@@ -274,27 +295,46 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             title="Удалить турнир"
           >
             <span>🗑️</span>
-            <span>{isDeleting ? 'Удаление...' : 'Удалить матч'}</span>
+            <span>{isDeleting ? 'Удаление...' : 'Удалить'}</span>
           </button>
         </div>
       </div>
 
-      {/* СЕКЦИЯ 1: РЕДАКТИРОВАНИЕ ВСЕХ ПАРАМЕТРОВ МАТЧА, МЕСТ И ПРИЗОВЫХ */}
+      {/* СЕКЦИЯ 1: ПОЛНОЕ РЕДАКТИРОВАНИЕ ВСЕХ ПАРАМЕТРОВ МАТЧА */}
       <form onSubmit={handleSaveMatchDetails} className="space-y-4 bg-black/30 p-4 rounded-xl border border-white/5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
             <span>⚙️</span>
-            <span>Настройки матча, мест и призового фонда</span>
+            <span>Параметры матча, регламент и призовые</span>
           </label>
           <span className="text-[11px] text-zinc-400">
             Старт: <strong>{formatDateTime(tournament.startsAt)}</strong>
           </span>
         </div>
 
-        {/* Название и формат */}
-        <div className="grid gap-3 sm:grid-cols-2">
+        {/* Выбор игры и название */}
+        <div className="grid gap-3 sm:grid-cols-3">
           <div>
-            <label className="block text-[11px] text-zinc-400 mb-1">Название турнира:</label>
+            <label className="block text-[11px] text-zinc-400 mb-1 font-semibold">
+              Дисциплина / Игра:
+            </label>
+            <select
+              value={game}
+              onChange={(e) => setGame(e.target.value)}
+              className="input-field text-xs bg-zinc-900 border-white/15 text-white w-full font-bold"
+            >
+              {allGames.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name} ({g.short})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-[11px] text-zinc-400 mb-1 font-semibold">
+              Название турнира:
+            </label>
             <input
               type="text"
               required
@@ -303,39 +343,35 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
+        </div>
+
+        {/* Формат и статус */}
+        <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="block text-[11px] text-zinc-400 mb-1">Формат соревнования:</label>
+            <label className="block text-[11px] text-zinc-400 mb-1 font-semibold">
+              Формат соревнования:
+            </label>
             <input
               type="text"
               required
+              placeholder="5v5 BO1, Solo Hunger Games..."
               className="input-field text-xs text-white w-full"
               value={format}
               onChange={(e) => setFormat(e.target.value)}
             />
           </div>
-        </div>
-
-        {/* Время и статус */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-[11px] text-zinc-400 mb-1">Дата и время начала:</label>
-            <input
-              type="datetime-local"
-              required
-              className="input-field text-xs font-mono font-bold text-white bg-black/60 border-amber-500/30 focus:border-amber-400 w-full"
-              value={startsAtLocal}
-              onChange={(e) => setStartsAtLocal(e.target.value)}
-            />
-          </div>
 
           <div>
-            <label className="block text-[11px] text-zinc-400 mb-1">Статус соревнования:</label>
+            <label className="block text-[11px] text-zinc-400 mb-1 font-semibold">
+              Статус соревнования:
+            </label>
             <select
-              className="input-field text-xs bg-zinc-900 border-white/10 text-white w-full"
+              className="input-field text-xs bg-zinc-900 border-white/10 text-white w-full font-bold"
               value={status}
               onChange={(e) => setStatus(e.target.value as TournamentStatus)}
             >
               <option value="recruiting">🟢 Набор игроков (recruiting)</option>
+              <option value="full">🟡 Заполнен (full)</option>
               <option value="live">🔴 Идет матч (live)</option>
               <option value="soon">⏳ Скоро (soon)</option>
               <option value="finished">🏁 Завершено (finished)</option>
@@ -343,50 +379,90 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
           </div>
         </div>
 
-        {/* Быстрые пресеты времени */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] text-zinc-500">Быстро время:</span>
-          <button
-            type="button"
-            onClick={() => handleAddHours(1)}
-            className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 hover:text-white border border-white/5"
-          >
-            +1 час
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddHours(2)}
-            className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 hover:text-white border border-white/5"
-          >
-            +2 часа
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAddHours(24)}
-            className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 hover:text-white border border-white/5"
-          >
-            +1 день
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSetTimeTodayTomorrow(false)}
-            className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20"
-          >
-            Сегодня 20:00
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSetTimeTodayTomorrow(true)}
-            className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20"
-          >
-            Завтра 20:00
-          </button>
+        {/* Описание и правила турнира */}
+        <div>
+          <label className="block text-[11px] text-zinc-400 mb-1 font-semibold">
+            Описание и регламент турнира (отображается на странице деталей):
+          </label>
+          <textarea
+            rows={4}
+            placeholder="Подробный регламент матча, правила лобби, условия участия и победы..."
+            className="input-field text-xs text-zinc-200 w-full resize-y font-sans leading-relaxed"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </div>
 
-        {/* Количество мест (Макс и Мин) и Взнос */}
+        {/* Время и быстрые пресеты */}
+        <div>
+          <label className="block text-[11px] text-zinc-400 mb-1 font-semibold">
+            Дата и время начала:
+          </label>
+          <input
+            type="datetime-local"
+            required
+            className="input-field text-xs font-mono font-bold text-white bg-black/60 border-amber-500/30 focus:border-amber-400 w-full"
+            value={startsAtLocal}
+            onChange={(e) => setStartsAtLocal(e.target.value)}
+          />
+
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            <span className="text-[10px] text-zinc-500">Пресеты:</span>
+            <button
+              type="button"
+              onClick={() => handleAddHours(1)}
+              className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 hover:text-white border border-white/5"
+            >
+              +1 час
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAddHours(2)}
+              className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 hover:text-white border border-white/5"
+            >
+              +2 часа
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAddHours(24)}
+              className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 hover:text-white border border-white/5"
+            >
+              +1 день
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSetTimeTodayTomorrow(false)}
+              className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20"
+            >
+              Сегодня 20:00
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSetTimeTodayTomorrow(true)}
+              className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20"
+            >
+              Завтра 20:00
+            </button>
+          </div>
+        </div>
+
+        {/* Количество мест и участников */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-white/10">
           <div>
-            <label className="block text-[11px] text-zinc-300 font-semibold mb-1 truncate">
+            <label className="block text-[11px] text-emerald-400 font-semibold mb-1">
+              👤 Записано игроков:
+            </label>
+            <input
+              type="number"
+              min={0}
+              className="input-field text-xs font-mono font-bold text-emerald-400 border-emerald-500/30 w-full"
+              value={registeredCount}
+              onChange={(e) => setRegisteredCount(Number(e.target.value))}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] text-zinc-300 font-semibold mb-1">
               👥 Макс. мест:
             </label>
             <input
@@ -400,7 +476,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
           </div>
 
           <div>
-            <label className="block text-[11px] text-red-300 font-semibold mb-1 truncate">
+            <label className="block text-[11px] text-red-300 font-semibold mb-1">
               🎯 Мин. для старта:
             </label>
             <input
@@ -412,27 +488,27 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
               onChange={(e) => setMinPlayers(Number(e.target.value))}
             />
           </div>
-
-          <div>
-            <label className="block text-[11px] text-cyan-300 font-semibold mb-1 truncate">
-              💳 Взнос (₽):
-            </label>
-            <input
-              type="number"
-              min={0}
-              className="input-field text-xs font-mono font-bold text-cyan-300 border-cyan-500/30 w-full"
-              value={entryFeeRub}
-              onChange={(e) => setEntryFeeRub(Number(e.target.value))}
-            />
-          </div>
         </div>
 
-        {/* Общий призовой фонд и количество призовых мест */}
+        {/* Взнос, призовой фонд и премиум */}
         <div className="rounded-xl border border-amber-500/25 bg-amber-950/10 p-3.5 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div>
+              <label className="block text-[11px] text-cyan-300 font-bold mb-1">
+                💳 Оргвзнос (₽):
+              </label>
+              <input
+                type="number"
+                min={0}
+                className="input-field text-xs font-mono font-bold text-cyan-300 border-cyan-500/30 w-full"
+                value={entryFeeRub}
+                onChange={(e) => setEntryFeeRub(Number(e.target.value))}
+              />
+            </div>
+
             <div>
               <label className="block text-[11px] text-amber-300 font-bold mb-1">
-                🏆 Общий призовой фонд (₽):
+                🏆 Призовой фонд (₽):
               </label>
               <div className="flex items-center gap-2">
                 <input
@@ -445,10 +521,9 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
                 <button
                   type="button"
                   onClick={() => handleDistributePool(prizePoolRub, winningPlacesCount)}
-                  title="Автоматически распределить сумму по призовым местам"
-                  className="shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/20 px-3 py-2 text-[10px] font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition whitespace-nowrap"
+                  className="shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/20 px-2.5 py-2 text-[10px] font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition"
                 >
-                  Распределить
+                  Авто
                 </button>
               </div>
             </div>
@@ -484,7 +559,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             </div>
           </div>
 
-          {/* Выплаты по каждому призовому месту */}
+          {/* Призы по местам */}
           <div>
             <label className="block text-[10px] uppercase tracking-wider text-zinc-400 font-semibold mb-1.5">
               Сумма призовых по местам (₽):
@@ -506,19 +581,43 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
               ))}
             </div>
           </div>
+
+          {/* Премиум режим и победитель */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/10">
+            <div>
+              <label className="block text-[11px] text-zinc-400 mb-1">
+                🏆 Победитель / Итог матча:
+              </label>
+              <input
+                type="text"
+                placeholder="Никнейм победителя или счет..."
+                className="input-field text-xs text-white w-full"
+                value={winner}
+                onChange={(e) => setWinner(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center pt-5">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-zinc-300">
+                <input
+                  type="checkbox"
+                  checked={isPremium}
+                  onChange={(e) => setIsPremium(e.target.checked)}
+                  className="h-4 w-4 rounded border-white/20 bg-black text-amber-400 accent-amber-400"
+                />
+                <span className="font-semibold text-amber-300">⭐ Премиум-соревнование (отдельный режим)</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-between pt-1">
           <button
             type="submit"
             disabled={isSaving}
-            className="rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs px-4 py-2 font-extrabold transition shadow-sm shadow-amber-500/20 disabled:opacity-50"
+            className="rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs px-5 py-2.5 font-extrabold transition shadow-md shadow-amber-500/20 disabled:opacity-50"
           >
-            {isSaving
-              ? '⏳ Сохранение в базу...'
-              : savedTime
-              ? '✓ Все параметры матча сохранены!'
-              : '💾 Сохранить параметры матча, места и призовые'}
+            {isSaving ? '⏳ Сохранение...' : '💾 Сохранить все параметры матча'}
           </button>
           {savedTime && (
             <span className="text-xs text-amber-400 font-semibold animate-pulse">
@@ -528,12 +627,21 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
         </div>
       </form>
 
-      {/* СЕКЦИЯ 2: ДОСТУП К ЛОББИ */}
-      <form onSubmit={handleSaveLobby} className="space-y-3.5">
-        <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
-          <span>🔑</span>
-          <span>Доступ к лобби матча для игроков</span>
-        </label>
+      {/* СЕКЦИЯ 2: ДОСТУП К ЛОББИ И ТРАНСЛЯЦИИ */}
+      <form onSubmit={handleSaveLobby} className="space-y-3.5 bg-black/20 p-4 rounded-xl border border-white/5">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
+            <span>🔑</span>
+            <span>Доступ к лобби и прямая трансляция</span>
+          </label>
+          <button
+            type="button"
+            onClick={generateRandomPassword}
+            className="text-[10px] text-cyan-400 hover:underline"
+          >
+            Случайный пароль
+          </button>
+        </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
@@ -541,7 +649,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             <input
               type="text"
               required
-              className="input-field text-xs font-mono"
+              className="input-field text-xs font-mono w-full"
               value={roomId}
               onChange={(e) => setRoomId(e.target.value)}
             />
@@ -551,22 +659,34 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             <input
               type="text"
               required
-              className="input-field text-xs font-mono"
+              className="input-field text-xs font-mono w-full"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
         </div>
 
-        <div>
-          <label className="block text-[11px] text-zinc-400 mb-1">Ссылка на стрим / Discord (опционально)</label>
-          <input
-            type="url"
-            className="input-field text-xs"
-            placeholder="https://discord.gg/..."
-            value={joinUrl}
-            onChange={(e) => setJoinUrl(e.target.value)}
-          />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="block text-[11px] text-zinc-400 mb-1">Ссылка на лобби / сервер / Discord</label>
+            <input
+              type="url"
+              className="input-field text-xs w-full"
+              placeholder="steam://connect/... или https://..."
+              value={joinUrl}
+              onChange={(e) => setJoinUrl(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-zinc-400 mb-1">Прямая трансляция (Twitch / YouTube / VK Play)</label>
+            <input
+              type="url"
+              className="input-field text-xs w-full"
+              placeholder="https://twitch.tv/... или https://youtube.com/live/..."
+              value={streamUrl}
+              onChange={(e) => setStreamUrl(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="flex items-center justify-between pt-1">
@@ -574,7 +694,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             {savedLobby ? '✓ Данные лобби сохранены!' : 'Опубликовать доступы в ЛК игроков'}
           </button>
           {initialMatch && !savedLobby && (
-            <span className="text-xs text-emerald-400">✓ Доступы активны</span>
+            <span className="text-xs text-emerald-400 font-semibold">✓ Доступы активны</span>
           )}
         </div>
       </form>

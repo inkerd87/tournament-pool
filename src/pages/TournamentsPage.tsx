@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GameId } from '@/lib/types';
-import { BUILTIN_GAMES, GAMES } from '@/lib/games';
 import { useTournaments } from '@/context/TournamentContext';
 import { TournamentCard } from '@/components/TournamentCard';
 import { GameIcon } from '@/components/GameIcons';
 
 export const TournamentsPage: React.FC = () => {
-  const { tournaments, customGames } = useTournaments();
+  const { tournaments, allGames } = useTournaments();
   const [searchParams, setSearchParams] = useSearchParams();
   const gameParam = searchParams.get('game') as GameId | null;
 
@@ -21,11 +20,6 @@ export const TournamentsPage: React.FC = () => {
       setSelectedGame(gameParam);
     }
   }, [gameParam]);
-
-  const allGameKeys: GameId[] = [
-    ...Object.keys(BUILTIN_GAMES),
-    ...customGames.map((cg) => cg.id),
-  ];
 
   const filtered = tournaments.filter((t) => {
     if (selectedGame !== 'all' && t.game !== selectedGame) {
@@ -63,8 +57,8 @@ export const TournamentsPage: React.FC = () => {
         >
           Все игры
         </button>
-        {allGameKeys.map((game) => {
-          const info = GAMES[game];
+        {allGames.map((info) => {
+          const game = info.id;
           const isSelected = selectedGame === game;
           return (
             <button

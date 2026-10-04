@@ -1,4 +1,12 @@
-export type BuiltinGameId = "cs2" | "dota2" | "pubg" | "pubg_mobile" | "warzone" | "fortnite";
+export type BuiltinGameId =
+  | "cs2"
+  | "dota2"
+  | "pubg"
+  | "pubg_mobile"
+  | "warzone"
+  | "fortnite"
+  | "apex"
+  | "minecraft";
 
 export type GameId = BuiltinGameId | (string & {});
 
@@ -8,8 +16,10 @@ export type CustomGame = {
   short: string;
   accent: string;
   glow: string;
-  iconUrl: string;
+  iconUrl?: string;
+  wallpaperUrl?: string;
   tag?: string;
+  isBuiltin?: boolean;
 };
 
 export type TournamentStatus =
@@ -36,6 +46,8 @@ export type Tournament = {
   prizes?: Record<number, number>;
   winnerPerPlayerRub?: number;
   isPremium?: boolean;
+  streamUrl?: string;
+  winner?: string;
   customGame?: CustomGame;
 };
 
@@ -72,8 +84,10 @@ export type TournamentMatchAccess = {
   tournamentId: string;
   roomId: string;
   password: string;
-  /** Необязательная ссылка (Discord, стрим, инструкция) */
+  /** Необязательная ссылка (Discord, лобби, инструкция) */
   joinUrl?: string;
+  /** Ссылка на прямую трансляцию / стрим (Twitch, YouTube, VK Play) */
+  streamUrl?: string;
   updatedAt: string;
 };
 

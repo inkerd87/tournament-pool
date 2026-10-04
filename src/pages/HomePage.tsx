@@ -6,43 +6,26 @@ import { GameIcon } from '@/components/GameIcons';
 import { VK_GROUP_URL } from '@/lib/constants';
 import { GAME_WALLPAPERS } from '@/lib/games';
 
-const DEFAULT_HERO_GAMES = [
-  { id: 'cs2', name: 'CS2', color: '#f97316', glow: 'rgba(249, 115, 22, 0.45)', tag: '5v5 BO1', fee: '1 500 ₽', wallpaperUrl: GAME_WALLPAPERS.cs2 },
-  { id: 'dota2', name: 'Dota 2', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.45)', tag: 'Captains Mode', fee: '1 500 ₽', wallpaperUrl: GAME_WALLPAPERS.dota2 },
-  { id: 'pubg', name: 'PUBG', color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)', tag: 'Battle Royale', fee: '100 / 1 000 ₽', wallpaperUrl: GAME_WALLPAPERS.pubg },
-  { id: 'pubg_mobile', name: 'PUBG Mobile', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.45)', tag: 'Mobile BR', fee: '100 / 1 000 ₽', wallpaperUrl: GAME_WALLPAPERS.pubg_mobile },
-  { id: 'minecraft', name: 'Minecraft', color: '#10b981', glow: 'rgba(16, 185, 129, 0.45)', tag: 'Hunger Games', fee: '500 ₽', wallpaperUrl: GAME_WALLPAPERS.minecraft },
-  { id: 'apex', name: 'Apex Legends', color: '#f43f5e', glow: 'rgba(244, 63, 94, 0.45)', tag: 'Battle Royale', fee: '100 ₽', wallpaperUrl: GAME_WALLPAPERS.apex },
-  { id: 'warzone', name: 'Warzone', color: '#22c55e', glow: 'rgba(34, 197, 94, 0.45)', tag: 'Resurgence', fee: '100 ₽', wallpaperUrl: GAME_WALLPAPERS.warzone },
-  { id: 'fortnite', name: 'Fortnite', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.45)', tag: 'Zero Build', fee: '100 ₽', wallpaperUrl: GAME_WALLPAPERS.fortnite },
-] as const;
-
 export const HomePage: React.FC = () => {
-  const { tournaments, customGames } = useTournaments();
+  const { tournaments, customGames, allGames } = useTournaments();
   const [activeGameId, setActiveGameId] = useState<string>('cs2');
 
-  const filteredCustomGames = customGames.filter(
-    (cg) =>
-      !DEFAULT_HERO_GAMES.some(
-        (dg) =>
-          dg.id === cg.id ||
-          dg.name.toLowerCase() === (cg.name || '').toLowerCase() ||
-          dg.name.toLowerCase() === (cg.short || '').toLowerCase()
-      )
-  );
-
-  const heroGames = [
-    ...DEFAULT_HERO_GAMES,
-    ...filteredCustomGames.map((cg) => ({
-      id: cg.id,
-      name: cg.short || cg.name,
-      color: cg.accent || '#22d3ee',
-      glow: cg.glow || 'rgba(34, 211, 238, 0.45)',
-      tag: cg.tag || 'Tournament',
-      fee: '100 ₽',
-      wallpaperUrl: cg.iconUrl,
-    })),
-  ];
+  const heroGames = (allGames && allGames.length > 0 ? allGames : []).map((g) => ({
+    id: g.id,
+    name: g.short || g.name,
+    color: g.accent,
+    glow: g.glow || `${g.accent}66`,
+    tag: g.tag,
+    fee:
+      g.id === 'cs2' || g.id === 'dota2'
+        ? '1 500 ₽'
+        : g.id === 'minecraft'
+        ? '500 ₽'
+        : g.id === 'pubg' || g.id === 'pubg_mobile'
+        ? '100 / 1 000 ₽'
+        : '100 ₽',
+    wallpaperUrl: g.wallpaperUrl || GAME_WALLPAPERS[g.id] || g.iconUrl,
+  }));
 
   const activeGameConfig = heroGames.find((g) => g.id === activeGameId) || heroGames[0];
   const featured = tournaments.filter((t) => !t.isPremium).slice(0, Math.max(6, 6 + customGames.length));
