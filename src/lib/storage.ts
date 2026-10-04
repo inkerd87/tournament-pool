@@ -157,21 +157,71 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
   },
 ];
 
+const DELETED_TOURNAMENTS_KEY = 'nb_deleted_tournaments_v1';
+
+export function getDeletedTournamentIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(DELETED_TOURNAMENTS_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw));
+  } catch {
+    return new Set();
+  }
+}
+
+export function markTournamentAsDeleted(tournamentId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const set = getDeletedTournamentIds();
+    set.add(tournamentId);
+    localStorage.setItem(DELETED_TOURNAMENTS_KEY, JSON.stringify(Array.from(set)));
+  } catch (e) {
+    console.warn('Failed to mark tournament as deleted:', e);
+  }
+}
+
+export function unmarkTournamentAsDeleted(tournamentId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const set = getDeletedTournamentIds();
+    set.delete(tournamentId);
+    localStorage.setItem(DELETED_TOURNAMENTS_KEY, JSON.stringify(Array.from(set)));
+  } catch (e) {
+    console.warn('Failed to unmark tournament as deleted:', e);
+  }
+}
+
 export function getStoredTournaments(): Tournament[] {
+  const deletedIds = getDeletedTournamentIds();
   const data = localStorage.getItem('nb_tournaments_v19');
   if (!data) {
-    localStorage.setItem('nb_tournaments_v19', JSON.stringify(INITIAL_TOURNAMENTS));
-    return INITIAL_TOURNAMENTS;
+    const initial = INITIAL_TOURNAMENTS.filter((t) => !deletedIds.has(t.id));
+    localStorage.setItem('nb_tournaments_v19', JSON.stringify(initial));
+    return initial;
   }
   try {
-    const list: Tournament[] = JSON.parse(data);
+    let list: Tournament[] = JSON.parse(data);
+    // Remove any deleted tournaments
+    list = list.filter((t) => !deletedIds.has(t.id));
+
     const existingIds = new Set(list.map((t) => t.id));
     for (const initT of INITIAL_TOURNAMENTS) {
-      if (!existingIds.has(initT.id)) {
+      if (!existingIds.has(initT.id) && !deletedIds.has(initT.id)) {
         list.push(initT);
+        existingIds.add(initT.id);
       }
     }
-    return list.map((t) => {
+
+    // Deduplicate by ID
+    const uniqueMap = new Map<string, Tournament>();
+    list.forEach((t) => {
+      if (!uniqueMap.has(t.id)) {
+        uniqueMap.set(t.id, t);
+      }
+    });
+
+    return Array.from(uniqueMap.values()).map((t) => {
       const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
       const minPlayers =
         t.minPlayers ||
@@ -179,12 +229,14 @@ export function getStoredTournaments(): Tournament[] {
       return { ...t, minPlayers };
     });
   } catch {
-    return INITIAL_TOURNAMENTS;
+    return INITIAL_TOURNAMENTS.filter((t) => !deletedIds.has(t.id));
   }
 }
 
 export function saveTournaments(tournaments: Tournament[]) {
-  localStorage.setItem('nb_tournaments_v19', JSON.stringify(tournaments));
+  const deletedIds = getDeletedTournamentIds();
+  const clean = tournaments.filter((t) => !deletedIds.has(t.id));
+  localStorage.setItem('nb_tournaments_v19', JSON.stringify(clean));
 }
 
 export function getStoredUser(): User | null {

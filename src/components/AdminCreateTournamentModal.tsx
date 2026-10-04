@@ -79,6 +79,26 @@ const BUILTIN_GAME_OPTIONS: {
     defaultDesc:
       'Соревнования по Fortnite Zero Build. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям.',
   },
+  {
+    id: 'minecraft',
+    name: 'Minecraft (Hunger Games)',
+    defaultMax: 24,
+    defaultFee: 500,
+    defaultPrize: 2500,
+    defaultFormat: 'Hunger Games, 24 участника, 1 сессия',
+    defaultDesc:
+      'Minecraft: соревнование по режиму Hunger Games. Турнир рассчитан на фиксированное количество участников — ровно 24 человека. Формат проведения предполагает одну игровую сессию, в которой будет определен один победитель. Условия участия: Организационный взнос составляет 500 рублей. Победитель получает денежное вознаграждение в размере 2500 рублей.',
+  },
+  {
+    id: 'apex',
+    name: 'Apex Legends',
+    defaultMax: 60,
+    defaultFee: 100,
+    defaultPrize: 2200,
+    defaultFormat: 'Battle Royale, Trios',
+    defaultDesc:
+      'Королевская битва в Apex Legends. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 2 200 ₽ учреждено организатором (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽).',
+  },
 ];
 
 const COLOR_PRESETS = [
@@ -148,16 +168,18 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
 
   const allGameOptions = [
     ...BUILTIN_GAME_OPTIONS,
-    ...customGames.map((cg) => ({
-      id: cg.id as GameId,
-      name: cg.name,
-      defaultMax: 100,
-      defaultFee: 100,
-      defaultPrize: 2200,
-      defaultFormat: `${cg.tag || 'Solo'}, 1 соревнование`,
-      defaultDesc: `Соревнования по дисциплине ${cg.name}. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям от организатора.`,
-      isCustom: true,
-    })),
+    ...customGames
+      .filter((cg) => !BUILTIN_GAME_OPTIONS.some((bg) => bg.id === cg.id || bg.name.toLowerCase() === cg.name.toLowerCase()))
+      .map((cg) => ({
+        id: cg.id as GameId,
+        name: cg.name,
+        defaultMax: 100,
+        defaultFee: 100,
+        defaultPrize: 2200,
+        defaultFormat: `${cg.tag || 'Solo'}, 1 соревнование`,
+        defaultDesc: `Соревнования по дисциплине ${cg.name}. Оплата организационных услуг 100 ₽. Фиксированное вознаграждение победителям от организатора.`,
+        isCustom: true,
+      })),
   ];
 
   const handleWinningPlacesCountChange = (newCountRaw: number) => {
@@ -192,14 +214,21 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
     const opt = allGameOptions.find((g) => g.id === gameId);
     if (opt) {
       const isTeam = gameId === 'cs2' || gameId === 'dota2';
+      const isMinecraft = gameId === 'minecraft';
       setTitle(`${opt.name} Cup`);
       setFormat(opt.defaultFormat);
       setMaxPlayers(opt.defaultMax);
-      setMinPlayers(isTeam ? 10 : 50);
+      setMinPlayers(isTeam ? 10 : isMinecraft ? 24 : (gameId === 'apex' ? 30 : 50));
       setEntryFeeRub(opt.defaultFee);
       setPrizePoolRub(opt.defaultPrize);
-      setWinningPlacesCount(isTeam ? 1 : 3);
-      setPrizesByPlace(isTeam ? { 1: opt.defaultPrize } : { 1: 1000, 2: 700, 3: 500 });
+      setWinningPlacesCount(isTeam || isMinecraft ? 1 : 3);
+      setPrizesByPlace(
+        isTeam
+          ? { 1: opt.defaultPrize }
+          : isMinecraft
+          ? { 1: 2500 }
+          : { 1: 1000, 2: 700, 3: 500 }
+      );
       setDescription(opt.defaultDesc);
     }
   };
@@ -306,7 +335,7 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
         cleanPrizes[i] = Number(prizesByPlace[i]) || 0;
       }
 
-      const success = await createTournament({
+      await createTournament({
         id: newId,
         title: title.trim(),
         game: selectedGame,
@@ -322,10 +351,6 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
         prizes: cleanPrizes,
         customGame: customGameObj,
       });
-
-      if (!success) {
-        throw new Error('Не удалось сохранить соревнование в базу данных Supabase. Проверьте соединение.');
-      }
 
       onClose();
     } catch (err: any) {

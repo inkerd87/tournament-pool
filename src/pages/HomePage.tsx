@@ -13,23 +13,33 @@ const DEFAULT_HERO_GAMES = [
   { id: 'pubg_mobile', name: 'PUBG Mobile', color: '#f59e0b', glow: 'rgba(245, 158, 11, 0.45)', tag: 'Mobile BR', fee: '100 / 1 000 ₽', wallpaperUrl: GAME_WALLPAPERS.pubg_mobile },
   { id: 'minecraft', name: 'Minecraft', color: '#10b981', glow: 'rgba(16, 185, 129, 0.45)', tag: 'Hunger Games', fee: '500 ₽', wallpaperUrl: GAME_WALLPAPERS.minecraft },
   { id: 'apex', name: 'Apex Legends', color: '#f43f5e', glow: 'rgba(244, 63, 94, 0.45)', tag: 'Battle Royale', fee: '100 ₽', wallpaperUrl: GAME_WALLPAPERS.apex },
-  { id: 'warzone', name: 'Warzone', color: '#22c55e', glow: 'rgba(34, 197, 94, 0.45)', tag: 'Resurgence', fee: 'Скоро', wallpaperUrl: GAME_WALLPAPERS.warzone },
-  { id: 'fortnite', name: 'Fortnite', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.45)', tag: 'Zero Build', fee: 'Скоро', wallpaperUrl: GAME_WALLPAPERS.fortnite },
+  { id: 'warzone', name: 'Warzone', color: '#22c55e', glow: 'rgba(34, 197, 94, 0.45)', tag: 'Resurgence', fee: '100 ₽', wallpaperUrl: GAME_WALLPAPERS.warzone },
+  { id: 'fortnite', name: 'Fortnite', color: '#a855f7', glow: 'rgba(168, 85, 247, 0.45)', tag: 'Zero Build', fee: '100 ₽', wallpaperUrl: GAME_WALLPAPERS.fortnite },
 ] as const;
 
 export const HomePage: React.FC = () => {
   const { tournaments, customGames } = useTournaments();
   const [activeGameId, setActiveGameId] = useState<string>('cs2');
 
+  const filteredCustomGames = customGames.filter(
+    (cg) =>
+      !DEFAULT_HERO_GAMES.some(
+        (dg) =>
+          dg.id === cg.id ||
+          dg.name.toLowerCase() === (cg.name || '').toLowerCase() ||
+          dg.name.toLowerCase() === (cg.short || '').toLowerCase()
+      )
+  );
+
   const heroGames = [
     ...DEFAULT_HERO_GAMES,
-    ...customGames.map((cg) => ({
+    ...filteredCustomGames.map((cg) => ({
       id: cg.id,
       name: cg.short || cg.name,
       color: cg.accent || '#22d3ee',
       glow: cg.glow || 'rgba(34, 211, 238, 0.45)',
       tag: cg.tag || 'Tournament',
-      fee: 'Уточняется',
+      fee: '100 ₽',
       wallpaperUrl: cg.iconUrl,
     })),
   ];
@@ -51,7 +61,7 @@ export const HomePage: React.FC = () => {
               <div
                 key={g.id}
                 className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out ${
-                  isCurrent ? 'opacity-40 scale-100 filter blur-[1px]' : 'opacity-0 scale-105 pointer-events-none'
+                  isCurrent ? 'opacity-40 scale-100' : 'opacity-0 scale-105 pointer-events-none'
                 }`}
                 style={{
                   backgroundImage: `url(${wallpaper})`,
@@ -131,7 +141,7 @@ export const HomePage: React.FC = () => {
 
             {/* Правая колонка: БОЛЬШАЯ КАРТИНКА ИГРЫ НА ЗАДНЕМ ФОНЕ ВСЕХ ИГР */}
             <div className="lg:col-span-5 relative">
-              <div className="relative rounded-3xl border border-white/20 p-4 sm:p-5 overflow-hidden shadow-2xl backdrop-blur-xl bg-black/40">
+              <div className="relative rounded-3xl border border-white/20 p-4 sm:p-5 overflow-hidden shadow-2xl bg-black/60">
                 
                 {/* БОЛЬШАЯ КАРТИНКА ИГРЫ ПРЯМО НА ЗАДНЕМ ФОНЕ ВСЕХ ПЛИТОК */}
                 <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -191,8 +201,8 @@ export const HomePage: React.FC = () => {
                         onMouseEnter={() => setActiveGameId(g.id)}
                         className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 transition-all duration-200 active:scale-[0.98] ${
                           isHovered
-                            ? 'bg-black/90 border-cyan-400 shadow-xl shadow-cyan-500/20 scale-[1.03]'
-                            : 'bg-black/60 hover:bg-black/80 border-white/10 hover:border-white/30 backdrop-blur-md'
+                            ? 'bg-black/95 border-cyan-400 shadow-xl shadow-cyan-500/20 scale-[1.03]'
+                            : 'bg-black/75 hover:bg-black/90 border-white/10 hover:border-white/30'
                         }`}
                         style={{
                           borderColor: isHovered ? g.color : undefined,

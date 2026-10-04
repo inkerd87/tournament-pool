@@ -111,7 +111,20 @@ export function getStoredCustomGames(): CustomGame[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return parsed;
+      const builtinKeys = new Set(Object.keys(BUILTIN_GAMES));
+      const filtered = parsed.filter((cg: CustomGame) => {
+        if (!cg || !cg.id) return false;
+        const normId = cg.id.toLowerCase().trim();
+        const normName = (cg.name || '').toLowerCase().trim();
+        if (builtinKeys.has(normId)) return false;
+        if (normId.includes('minecraft') || normId.includes('apex')) return false;
+        if (normName === 'minecraft' || normName.includes('apex legends')) return false;
+        return true;
+      });
+      if (filtered.length !== parsed.length) {
+        localStorage.setItem(CUSTOM_GAMES_STORAGE_KEY, JSON.stringify(filtered));
+      }
+      return filtered;
     }
   } catch (e) {
     console.warn("Failed to parse stored custom games:", e);
@@ -129,6 +142,7 @@ export function syncCustomGamesRegistry(customGames: CustomGame[]): void {
   // Add current custom games
   for (const cg of customGames) {
     if (!cg || !cg.id) continue;
+    if (cg.id in BUILTIN_GAMES) continue;
     gamesTarget[cg.id] = {
       name: cg.name,
       short: cg.short || cg.name,
@@ -142,10 +156,20 @@ export function syncCustomGamesRegistry(customGames: CustomGame[]): void {
 }
 
 export function saveStoredCustomGames(customGames: CustomGame[]): void {
-  syncCustomGamesRegistry(customGames);
+  const builtinKeys = new Set(Object.keys(BUILTIN_GAMES));
+  const filtered = customGames.filter((cg) => {
+    if (!cg || !cg.id) return false;
+    const normId = cg.id.toLowerCase().trim();
+    const normName = (cg.name || '').toLowerCase().trim();
+    if (builtinKeys.has(normId)) return false;
+    if (normId.includes('minecraft') || normId.includes('apex')) return false;
+    if (normName === 'minecraft' || normName.includes('apex legends')) return false;
+    return true;
+  });
+  syncCustomGamesRegistry(filtered);
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(CUSTOM_GAMES_STORAGE_KEY, JSON.stringify(customGames));
+    localStorage.setItem(CUSTOM_GAMES_STORAGE_KEY, JSON.stringify(filtered));
   } catch (e) {
     console.warn("Failed to save custom games to localStorage:", e);
   }

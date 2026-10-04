@@ -270,17 +270,18 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="rounded-lg bg-red-500/10 border border-red-500/20 px-2.5 py-1 text-[11px] font-semibold text-red-400 hover:bg-red-500/20 transition"
+            className="rounded-lg bg-red-500/15 border border-red-500/30 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500 hover:text-white transition flex items-center gap-1.5 shrink-0"
             title="Удалить турнир"
           >
-            {isDeleting ? 'Удаление...' : 'Удалить'}
+            <span>🗑️</span>
+            <span>{isDeleting ? 'Удаление...' : 'Удалить матч'}</span>
           </button>
         </div>
       </div>
 
       {/* СЕКЦИЯ 1: РЕДАКТИРОВАНИЕ ВСЕХ ПАРАМЕТРОВ МАТЧА, МЕСТ И ПРИЗОВЫХ */}
       <form onSubmit={handleSaveMatchDetails} className="space-y-4 bg-black/30 p-4 rounded-xl border border-white/5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
             <span>⚙️</span>
             <span>Настройки матча, мест и призового фонда</span>
@@ -297,7 +298,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             <input
               type="text"
               required
-              className="input-field text-xs font-bold text-white"
+              className="input-field text-xs font-bold text-white w-full"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -307,7 +308,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             <input
               type="text"
               required
-              className="input-field text-xs text-white"
+              className="input-field text-xs text-white w-full"
               value={format}
               onChange={(e) => setFormat(e.target.value)}
             />
@@ -321,7 +322,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
             <input
               type="datetime-local"
               required
-              className="input-field text-xs font-mono font-bold text-white bg-black/60 border-amber-500/30 focus:border-amber-400"
+              className="input-field text-xs font-mono font-bold text-white bg-black/60 border-amber-500/30 focus:border-amber-400 w-full"
               value={startsAtLocal}
               onChange={(e) => setStartsAtLocal(e.target.value)}
             />
@@ -330,7 +331,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
           <div>
             <label className="block text-[11px] text-zinc-400 mb-1">Статус соревнования:</label>
             <select
-              className="input-field text-xs bg-zinc-900 border-white/10 text-white"
+              className="input-field text-xs bg-zinc-900 border-white/10 text-white w-full"
               value={status}
               onChange={(e) => setStatus(e.target.value as TournamentStatus)}
             >
@@ -383,43 +384,43 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
         </div>
 
         {/* Количество мест (Макс и Мин) и Взнос */}
-        <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-white/10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-white/10">
           <div>
-            <label className="block text-[11px] text-zinc-300 font-semibold mb-1">
+            <label className="block text-[11px] text-zinc-300 font-semibold mb-1 truncate">
               👥 Макс. мест:
             </label>
             <input
               type="number"
               min={2}
               max={500}
-              className="input-field text-xs font-mono font-bold text-white"
+              className="input-field text-xs font-mono font-bold text-white w-full"
               value={maxPlayers}
               onChange={(e) => setMaxPlayers(Number(e.target.value))}
             />
           </div>
 
           <div>
-            <label className="block text-[11px] text-red-300 font-semibold mb-1">
-              🎯 Мин. мест (старт):
+            <label className="block text-[11px] text-red-300 font-semibold mb-1 truncate">
+              🎯 Мин. для старта:
             </label>
             <input
               type="number"
               min={0}
               max={500}
-              className="input-field text-xs font-mono font-bold text-red-300 border-red-500/30"
+              className="input-field text-xs font-mono font-bold text-red-300 border-red-500/30 w-full"
               value={minPlayers}
               onChange={(e) => setMinPlayers(Number(e.target.value))}
             />
           </div>
 
           <div>
-            <label className="block text-[11px] text-cyan-300 font-semibold mb-1">
+            <label className="block text-[11px] text-cyan-300 font-semibold mb-1 truncate">
               💳 Взнос (₽):
             </label>
             <input
               type="number"
               min={0}
-              className="input-field text-xs font-mono font-bold text-cyan-300 border-cyan-500/30"
+              className="input-field text-xs font-mono font-bold text-cyan-300 border-cyan-500/30 w-full"
               value={entryFeeRub}
               onChange={(e) => setEntryFeeRub(Number(e.target.value))}
             />
@@ -428,16 +429,16 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
 
         {/* Общий призовой фонд и количество призовых мест */}
         <div className="rounded-xl border border-amber-500/25 bg-amber-950/10 p-3.5 space-y-3">
-          <div className="grid grid-cols-2 gap-3 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
             <div>
               <label className="block text-[11px] text-amber-300 font-bold mb-1">
-                🏆 Общая сумма призовых (₽):
+                🏆 Общий призовой фонд (₽):
               </label>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <input
                   type="number"
                   min={0}
-                  className="input-field text-xs font-mono font-extrabold text-amber-300 border-amber-500/40"
+                  className="input-field text-xs font-mono font-extrabold text-amber-300 border-amber-500/40 flex-1 min-w-0"
                   value={prizePoolRub}
                   onChange={(e) => setPrizePoolRub(Number(e.target.value))}
                 />
@@ -445,7 +446,7 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
                   type="button"
                   onClick={() => handleDistributePool(prizePoolRub, winningPlacesCount)}
                   title="Автоматически распределить сумму по призовым местам"
-                  className="shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/20 px-2.5 py-2 text-[10px] font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition"
+                  className="shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/20 px-3 py-2 text-[10px] font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition whitespace-nowrap"
                 >
                   Распределить
                 </button>
@@ -454,13 +455,13 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
 
             <div>
               <label className="block text-[11px] text-zinc-300 font-bold mb-1">
-                🥇 Кол-во выигрышных мест:
+                🥇 Призовых мест:
               </label>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => handleWinningPlacesCountChange(winningPlacesCount - 1)}
-                  className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1.5 text-xs font-extrabold text-zinc-300 hover:bg-white/15"
+                  className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-extrabold text-zinc-300 hover:bg-white/15 shrink-0"
                 >
                   −
                 </button>
@@ -468,14 +469,14 @@ export const AdminMatchForm: React.FC<Props> = ({ tournament, initialMatch }) =>
                   type="number"
                   min={1}
                   max={20}
-                  className="input-field text-center text-xs font-mono font-extrabold text-white"
+                  className="input-field text-center text-xs font-mono font-extrabold text-white flex-1 min-w-0"
                   value={winningPlacesCount}
                   onChange={(e) => handleWinningPlacesCountChange(Number(e.target.value))}
                 />
                 <button
                   type="button"
                   onClick={() => handleWinningPlacesCountChange(winningPlacesCount + 1)}
-                  className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-1.5 text-xs font-extrabold text-zinc-300 hover:bg-white/15"
+                  className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-extrabold text-zinc-300 hover:bg-white/15 shrink-0"
                 >
                   +
                 </button>

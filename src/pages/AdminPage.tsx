@@ -209,7 +209,7 @@ export const AdminPage: React.FC = () => {
               </div>
             )}
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
               {tournaments.map((tournament) => (
                 <AdminMatchForm
                   key={tournament.id}
