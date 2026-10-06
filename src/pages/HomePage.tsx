@@ -16,14 +16,6 @@ export const HomePage: React.FC = () => {
     color: g.accent,
     glow: g.glow || `${g.accent}66`,
     tag: g.tag,
-    fee:
-      g.id === 'cs2' || g.id === 'dota2'
-        ? '1 500 ₽'
-        : g.id === 'minecraft'
-        ? '500 ₽'
-        : g.id === 'pubg' || g.id === 'pubg_mobile'
-        ? '100 / 1 000 ₽'
-        : '100 ₽',
     wallpaperUrl: g.wallpaperUrl || GAME_WALLPAPERS[g.id] || g.iconUrl,
   }));
 
@@ -123,11 +115,17 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Правая колонка: БОЛЬШАЯ КАРТИНКА ИГРЫ НА ЗАДНЕМ ФОНЕ ВСЕХ ИГР */}
+            {/* Правая колонка: ИНТЕРАКТИВНЫЙ КОМАНДНЫЙ ЦЕНТР ДИСЦИПЛИН */}
             <div className="lg:col-span-5 relative">
-              <div className="relative rounded-3xl border border-white/20 p-4 sm:p-5 overflow-hidden shadow-2xl bg-black/60">
+              <div
+                className="relative rounded-3xl border p-4 sm:p-5 overflow-hidden shadow-2xl bg-[#070b14]/90 backdrop-blur-xl transition-all duration-300"
+                style={{
+                  boxShadow: `0 20px 50px -15px ${activeGameConfig.glow}`,
+                  borderColor: `${activeGameConfig.color}40`,
+                }}
+              >
                 
-                {/* БОЛЬШАЯ КАРТИНКА ИГРЫ ПРЯМО НА ЗАДНЕМ ФОНЕ ВСЕХ ПЛИТОК */}
+                {/* Кинематографичный фон активной дисциплины */}
                 <div className="pointer-events-none absolute inset-0 overflow-hidden">
                   {heroGames.map((g) => {
                     const wallpaper = (g as any).wallpaperUrl || GAME_WALLPAPERS[g.id];
@@ -135,8 +133,8 @@ export const HomePage: React.FC = () => {
                     return (
                       <div
                         key={g.id}
-                        className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out ${
-                          isCurrent ? 'opacity-85 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+                        className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out ${
+                          isCurrent ? 'opacity-35 scale-100' : 'opacity-0 scale-105 pointer-events-none'
                         }`}
                         style={{
                           backgroundImage: `url(${wallpaper})`,
@@ -145,83 +143,134 @@ export const HomePage: React.FC = () => {
                     );
                   })}
 
-                  {/* Затемняющий градиент поверх большой картинки */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/55 to-black/35" />
-                  <div className="absolute inset-0 bg-black/20" />
+                  {/* Затемняющий градиент поверх картинки */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#070b14] via-[#070b14]/85 to-[#070b14]/65" />
+                  <div className="absolute inset-0 bg-black/35" />
                 </div>
 
-                {/* Верхний статус-бар над играми с подсветкой активной игры */}
-                <div className="relative z-10 mb-3.5 flex items-center justify-between border-b border-white/15 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-2 w-2 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+                {/* Верхний статус-бар: Дисциплины платформы */}
+                <div className="relative z-10 mb-4 flex items-center justify-between border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-2.5 w-2.5 relative">
+                      <span
+                        className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                        style={{ backgroundColor: activeGameConfig.color }}
+                      />
+                      <span
+                        className="relative inline-flex rounded-full h-2.5 w-2.5"
+                        style={{ backgroundColor: activeGameConfig.color }}
+                      />
                     </span>
-                    <span className="text-xs font-black uppercase tracking-wider text-white">
-                      {activeGameConfig.name}
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                      Дисциплины платформы
+                    </span>
+                    <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-bold text-zinc-300">
+                      {heroGames.length} Игр
                     </span>
                   </div>
-                  <span
-                    className="rounded-lg px-2.5 py-1 font-mono text-[10px] font-black uppercase shadow-sm"
-                    style={{
-                      backgroundColor: `${activeGameConfig.color}35`,
-                      color: activeGameConfig.color,
-                      border: `1px solid ${activeGameConfig.color}70`,
-                    }}
-                  >
-                    {activeGameConfig.tag} • {activeGameConfig.fee}
-                  </span>
+
+                  <div className="flex items-center gap-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-1 text-[11px] font-bold text-cyan-300 backdrop-blur-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Сезон 2026</span>
+                  </div>
                 </div>
 
-                {/* Сетка карточек всех игр прямо поверх большой картинки игры */}
-                <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2.5">
+                {/* Сетка карточек всех дисциплин */}
+                <div className="relative z-10 grid grid-cols-2 gap-2.5">
                   {heroGames.map((g) => {
-                    const isHovered = activeGameId === g.id;
+                    const isSelected = activeGameId === g.id;
 
                     return (
-                      <Link
+                      <button
                         key={g.id}
-                        to={`/tournaments?game=${g.id}`}
+                        type="button"
+                        onClick={() => setActiveGameId(g.id)}
                         onMouseEnter={() => setActiveGameId(g.id)}
-                        className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 transition-all duration-200 active:scale-[0.98] ${
-                          isHovered
-                            ? 'bg-black/95 border-cyan-400 shadow-xl shadow-cyan-500/20 scale-[1.03]'
-                            : 'bg-black/75 hover:bg-black/90 border-white/10 hover:border-white/30'
+                        className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-all duration-200 active:scale-[0.98] ${
+                          isSelected
+                            ? 'bg-black/90 shadow-lg scale-[1.02]'
+                            : 'bg-black/60 hover:bg-black/80 border-white/10 hover:border-white/25'
                         }`}
                         style={{
-                          borderColor: isHovered ? g.color : undefined,
-                          boxShadow: isHovered ? `0 6px 25px -2px ${g.glow}` : undefined,
+                          borderColor: isSelected ? g.color : undefined,
+                          boxShadow: isSelected ? `0 4px 20px -2px ${g.glow}` : undefined,
                         }}
                       >
-                        {/* Квадратная иконка с подсветкой */}
+                        {/* Иконка игры с цветной рамкой */}
                         <div
                           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 overflow-hidden border p-0.5"
                           style={{
-                            backgroundColor: `${g.color}30`,
+                            backgroundColor: `${g.color}25`,
                             borderColor: `${g.color}60`,
                           }}
                         >
                           <GameIcon game={g.id} className="w-full h-full object-cover rounded" />
                         </div>
 
-                        {/* Текстовые данные дисциплины */}
+                        {/* Название и формат */}
                         <div className="min-w-0 flex-1">
-                          <span className={`block text-xs sm:text-sm font-bold tracking-tight truncate transition-colors ${
-                            isHovered ? 'text-white font-black' : 'text-zinc-200 group-hover:text-white'
+                          <span className={`block text-xs sm:text-sm font-black tracking-tight truncate transition-colors ${
+                            isSelected ? 'text-white' : 'text-zinc-200 group-hover:text-white'
                           }`}>
                             {g.name}
                           </span>
                           <span
-                            className="block text-[9px] font-semibold tracking-wider uppercase font-mono truncate"
+                            className="block text-[9px] font-bold tracking-wider uppercase font-mono truncate"
                             style={{ color: g.color }}
                           >
                             {g.tag}
                           </span>
                         </div>
-                      </Link>
+
+                        {/* Индикатор выбора */}
+                        {isSelected && (
+                          <span
+                            className="h-1.5 w-1.5 rounded-full shrink-0 shadow-sm"
+                            style={{ backgroundColor: g.color }}
+                          />
+                        )}
+                      </button>
                     );
                   })}
                 </div>
+
+                {/* Интерактивный нижний лаунчер выбранной игры */}
+                <div className="relative z-10 mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-3 bg-black/40 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-3 sm:p-4 rounded-b-3xl">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className="h-8 w-8 rounded-lg border p-0.5 shrink-0 flex items-center justify-center overflow-hidden"
+                      style={{
+                        backgroundColor: `${activeGameConfig.color}20`,
+                        borderColor: `${activeGameConfig.color}50`,
+                      }}
+                    >
+                      <GameIcon game={activeGameConfig.id} className="w-full h-full object-contain rounded" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-black text-white truncate">
+                        {activeGameConfig.name}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 font-medium truncate">
+                        {activeGameConfig.tag} • Открытые соревнования
+                      </div>
+                    </div>
+                  </div>
+
+                  <Link
+                    to={`/tournaments?game=${activeGameConfig.id}`}
+                    className="shrink-0 inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-black text-black transition-all hover:scale-105 active:scale-95 shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, ${activeGameConfig.color}, #ffffff)`,
+                      boxShadow: `0 4px 15px -2px ${activeGameConfig.glow}`,
+                    }}
+                  >
+                    <span>К турнирам</span>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+
               </div>
             </div>
 

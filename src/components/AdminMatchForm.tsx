@@ -39,7 +39,14 @@ export const AdminMatchForm: React.FC<Props> = ({
   initialMatch,
   initiallyExpanded = false,
 }) => {
-  const { updateMatch, updateTournament, deleteTournament, allGames, registrations } = useTournaments();
+  const {
+    updateMatch,
+    updateTournament,
+    updateTournamentStartsAt,
+    deleteTournament,
+    allGames,
+    registrations,
+  } = useTournaments();
 
   // Состояние развернутости формы
   const [isExpanded, setIsExpanded] = useState<boolean>(initiallyExpanded);
@@ -84,6 +91,8 @@ export const AdminMatchForm: React.FC<Props> = ({
 
   // Статусы сохранения
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingTime, setIsSavingTime] = useState(false);
+  const [timeSaveSuccess, setTimeSaveSuccess] = useState(false);
   const [savedTime, setSavedTime] = useState(false);
   const [savedLobby, setSavedLobby] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -92,7 +101,7 @@ export const AdminMatchForm: React.FC<Props> = ({
   // Список зарегистрированных участников этого матча
   const tournamentRegs = registrations.filter((r) => r.tournamentId === tournament.id);
 
-  // Синхронизация при обновлении данных
+  // Синхронизация при смене ID турнира (не сбрасывать данные во время редактирования каждые 4 секунды)
   useEffect(() => {
     setGame(tournament.game);
     setTitle(tournament.title);
@@ -112,7 +121,14 @@ export const AdminMatchForm: React.FC<Props> = ({
     setCustomIconUrl(tournament.customIconUrl || '');
     setWallpaperUrl(tournament.wallpaperUrl || '');
     setStreamUrl(tournament.streamUrl || initialMatch?.streamUrl || '');
-  }, [tournament, initialMatch]);
+  }, [tournament.id]);
+
+  // Синхронизация времени старта, если оно обновилось из базы/контекста
+  useEffect(() => {
+    if (tournament.startsAt) {
+      setStartsAtLocal(toDateTimeLocal(tournament.startsAt));
+    }
+  }, [tournament.startsAt]);
 
   useEffect(() => {
     if (initialMatch) {
@@ -251,18 +267,38 @@ export const AdminMatchForm: React.FC<Props> = ({
     }
   };
 
-  // Быстрые кнопки времени
-  const handleAddHours = (hoursToAdd: number) => {
-    const current = startsAtLocal ? new Date(startsAtLocal) : new Date();
-    current.setHours(current.getHours() + hoursToAdd);
-    setStartsAtLocal(toDateTimeLocal(current.toISOString()));
+  // Немедленное сохранение времени матча
+  const handleApplyStartsAt = async (customIso?: string) => {
+    const targetIso = customIso || (startsAtLocal ? new Date(startsAtLocal).toISOString() : null);
+    if (!targetIso || isNaN(new Date(targetIso).getTime())) {
+      alert('Укажите корректные дату и время');
+      return;
+    }
+    setIsSavingTime(true);
+    setStartsAtLocal(toDateTimeLocal(targetIso));
+    const ok = await updateTournamentStartsAt(tournament.id, targetIso);
+    setIsSavingTime(false);
+    if (ok) {
+      setTimeSaveSuccess(true);
+      setTimeout(() => setTimeSaveSuccess(false), 3000);
+    }
   };
 
-  const handleSetTimeTodayTomorrow = (isTomorrow = false) => {
+  // Быстрые кнопки времени со мгновенным сохранением
+  const handleAddHours = async (hoursToAdd: number) => {
+    const base = startsAtLocal ? new Date(startsAtLocal) : new Date(tournament.startsAt || Date.now());
+    const d = isNaN(base.getTime()) ? new Date() : new Date(base.getTime());
+    d.setHours(d.getHours() + hoursToAdd);
+    const iso = d.toISOString();
+    await handleApplyStartsAt(iso);
+  };
+
+  const handleSetTimeTodayTomorrow = async (isTomorrow = false) => {
     const d = new Date();
     if (isTomorrow) d.setDate(d.getDate() + 1);
     d.setHours(20, 0, 0, 0);
-    setStartsAtLocal(toDateTimeLocal(d.toISOString()));
+    const iso = d.toISOString();
+    await handleApplyStartsAt(iso);
   };
 
   // Сохранение доступов к лобби
@@ -620,52 +656,80 @@ export const AdminMatchForm: React.FC<Props> = ({
               </div>
 
               {/* Время старта и быстрые пресеты */}
-              <div className="bg-black/30 p-3.5 rounded-xl border border-white/5 space-y-2">
-                <label className="block text-[11px] text-amber-300 mb-1 font-bold">
-                  📅 Дата и время начала матча:
-                </label>
-                <input
-                  type="datetime-local"
-                  required
-                  className="input-field text-xs font-mono font-bold text-white bg-black/60 border-amber-500/30 focus:border-amber-400 w-full"
-                  value={startsAtLocal}
-                  onChange={(e) => setStartsAtLocal(e.target.value)}
-                />
+              <div className="bg-black/40 p-4 rounded-xl border border-amber-500/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs text-amber-300 font-extrabold flex items-center gap-1.5">
+                    <span>📅</span>
+                    <span>Дата и время начала матча:</span>
+                  </label>
+                  {timeSaveSuccess && (
+                    <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md animate-fade-in">
+                      ✓ Время сохранено!
+                    </span>
+                  )}
+                </div>
 
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="text-[10px] text-zinc-500 font-semibold">Быстро сдвинуть:</span>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <input
+                    type="datetime-local"
+                    required
+                    className="input-field text-xs font-mono font-bold text-white bg-black/70 border-amber-500/40 focus:border-amber-400 flex-1 py-2.5"
+                    value={startsAtLocal}
+                    onChange={(e) => setStartsAtLocal(e.target.value)}
+                  />
                   <button
                     type="button"
+                    disabled={isSavingTime}
+                    onClick={() => handleApplyStartsAt()}
+                    className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-black shadow-md transition active:scale-95 whitespace-nowrap shrink-0 ${
+                      timeSaveSuccess
+                        ? 'bg-emerald-500 text-black shadow-emerald-500/25'
+                        : 'bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-black shadow-amber-400/25'
+                    }`}
+                  >
+                    {isSavingTime ? 'Сохранение...' : timeSaveSuccess ? '✓ Сохранено!' : '💾 Сохранить время'}
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/5">
+                  <span className="text-[10px] text-zinc-400 font-bold">Быстро сдвинуть и сохранить:</span>
+                  <button
+                    type="button"
+                    disabled={isSavingTime}
                     onClick={() => handleAddHours(1)}
-                    className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-300 hover:text-white border border-white/10"
+                    className="rounded-lg bg-white/5 hover:bg-white/15 px-2.5 py-1 text-[10px] font-bold text-zinc-300 hover:text-white border border-white/10 active:scale-95 transition"
                   >
                     +1 час
                   </button>
                   <button
                     type="button"
+                    disabled={isSavingTime}
                     onClick={() => handleAddHours(2)}
-                    className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-300 hover:text-white border border-white/10"
+                    className="rounded-lg bg-white/5 hover:bg-white/15 px-2.5 py-1 text-[10px] font-bold text-zinc-300 hover:text-white border border-white/10 active:scale-95 transition"
                   >
                     +2 часа
                   </button>
                   <button
                     type="button"
+                    disabled={isSavingTime}
                     onClick={() => handleAddHours(24)}
-                    className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-zinc-300 hover:text-white border border-white/10"
+                    className="rounded-lg bg-white/5 hover:bg-white/15 px-2.5 py-1 text-[10px] font-bold text-zinc-300 hover:text-white border border-white/10 active:scale-95 transition"
                   >
                     +1 день
                   </button>
                   <button
                     type="button"
+                    disabled={isSavingTime}
                     onClick={() => handleSetTimeTodayTomorrow(false)}
-                    className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20"
+                    className="rounded-lg bg-amber-400/10 hover:bg-amber-400/25 px-2.5 py-1 text-[10px] font-bold text-amber-300 border border-amber-500/30 active:scale-95 transition"
                   >
                     Сегодня 20:00
                   </button>
                   <button
                     type="button"
+                    disabled={isSavingTime}
                     onClick={() => handleSetTimeTodayTomorrow(true)}
-                    className="rounded bg-white/5 px-2 py-0.5 text-[10px] text-amber-400 hover:text-amber-300 border border-amber-500/20"
+                    className="rounded-lg bg-amber-400/10 hover:bg-amber-400/25 px-2.5 py-1 text-[10px] font-bold text-amber-300 border border-amber-500/30 active:scale-95 transition"
                   >
                     Завтра 20:00
                   </button>

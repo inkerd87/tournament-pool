@@ -700,15 +700,38 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const updatePromise = supabase
         .from('tournaments')
         .update({ starts_at: startsAt })
-        .eq('id', tournamentId);
+        .eq('id', tournamentId)
+        .select();
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Supabase update timeout')), 8000)
       );
 
-      await Promise.race([updatePromise, timeoutPromise]);
+      const res: any = await Promise.race([updatePromise, timeoutPromise]);
+      if (!res?.data || res.data.length === 0) {
+        // Tournament row may not yet exist in Supabase (e.g. initial template), upsert it!
+        const fullT = tournaments.find(t => t.id === tournamentId);
+        if (fullT) {
+          const dbGame = DB_ALLOWED_GAMES.has(fullT.game) ? fullT.game : 'pubg';
+          await supabase.from('tournaments').upsert(
+            {
+              id: fullT.id,
+              title: fullT.title,
+              game: dbGame,
+              max_players: fullT.maxPlayers,
+              registered_count: fullT.registeredCount || 0,
+              starts_at: startsAt,
+              status: fullT.status,
+              format: fullT.format,
+              description: fullT.description || '',
+            },
+            { onConflict: 'id' }
+          );
+        }
+      }
     } catch (e) {
       console.warn('Could not sync tournament starts_at to Supabase (saved locally):', e);
     }
+    notifyAllClients();
     return true;
   };
 
@@ -777,11 +800,33 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const updatePromise = supabase
           .from('tournaments')
           .update(dbPayload)
-          .eq('id', tournamentId);
+          .eq('id', tournamentId)
+          .select();
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Supabase update timeout')), 8000)
         );
-        await Promise.race([updatePromise, timeoutPromise]);
+        const res: any = await Promise.race([updatePromise, timeoutPromise]);
+        if (!res?.data || res.data.length === 0) {
+          // Row may not exist yet, upsert it
+          const existingT = tournaments.find(t => t.id === tournamentId);
+          if (existingT) {
+            const dbGame = DB_ALLOWED_GAMES.has(existingT.game) ? existingT.game : 'pubg';
+            await supabase.from('tournaments').upsert(
+              {
+                id: existingT.id,
+                title: dbPayload.title || existingT.title,
+                game: dbPayload.game || dbGame,
+                max_players: dbPayload.max_players || existingT.maxPlayers,
+                registered_count: dbPayload.registered_count || existingT.registeredCount || 0,
+                starts_at: dbPayload.starts_at || existingT.startsAt,
+                status: dbPayload.status || existingT.status,
+                format: dbPayload.format || existingT.format,
+                description: dbPayload.description || existingT.description || '',
+              },
+              { onConflict: 'id' }
+            );
+          }
+        }
       }
     } catch (e) {
       console.warn('Could not sync tournament update to Supabase (saved locally):', e);

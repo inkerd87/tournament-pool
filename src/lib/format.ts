@@ -7,12 +7,15 @@ export function formatRub(amount: number): string {
 }
 
 export function formatDateTime(iso: string): string {
+  if (!iso) return "Скоро";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "Скоро";
   return new Intl.DateTimeFormat("ru-RU", {
     day: "numeric",
     month: "long",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(iso));
+  }).format(d);
 }
 
 export function formatDateShort(iso: string): string {
