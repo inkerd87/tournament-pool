@@ -7,7 +7,9 @@ DirectoryIndex index.html index.php
     # Direct access to notification & payment scripts
     RewriteCond %{REQUEST_URI} ^/yookassa-notification\.php [NC,OR]
     RewriteCond %{REQUEST_URI} ^/yookassa-create\.php [NC,OR]
-    RewriteCond %{REQUEST_URI} ^/payanyway-notification\.php [NC]
+    RewriteCond %{REQUEST_URI} ^/payanyway-notification\.php [NC,OR]
+    RewriteCond %{REQUEST_URI} ^/p2p-webhook\.php [NC,OR]
+    RewriteCond %{REQUEST_URI} ^/api/ [NC]
     RewriteRule ^ - [L]
 
     # Don't rewrite real existing files or directories
