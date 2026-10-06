@@ -10,6 +10,7 @@ import {
   getDeletedTournamentIds,
   markTournamentAsDeleted,
   unmarkTournamentAsDeleted,
+  deduplicateTournaments,
 } from '@/lib/storage';
 import {
   getStoredCustomGames,
@@ -61,6 +62,32 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [customGames, setCustomGames] = useState<CustomGame[]>(() => getStoredCustomGames());
   const [allGames, setAllGames] = useState<FullGameInfo[]>(() => getAllGamesList());
   const [gameOverrides, setGameOverrides] = useState<Record<string, GameOverride>>(() => getStoredGameOverrides());
+
+  const realtimeChannelRef = React.useRef<any>(null);
+
+  const notifyAllClients = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('nb_tournaments_sync_channel');
+        bc.postMessage({ type: 'sync', timestamp: Date.now() });
+        bc.close();
+      }
+    } catch {}
+
+    try {
+      localStorage.setItem('nb_last_sync_time', String(Date.now()));
+    } catch {}
+
+    try {
+      if (realtimeChannelRef.current) {
+        realtimeChannelRef.current.send({
+          type: 'broadcast',
+          event: 'tournaments_updated',
+          payload: { timestamp: Date.now() },
+        });
+      }
+    } catch {}
+  }, []);
 
   // Save to local storage as fallback cache
   useEffect(() => {
@@ -183,7 +210,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               if (metaMatch) {
                 try {
                   meta = JSON.parse(metaMatch[1]);
-                  cleanDesc = cleanDesc.replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
+                  cleanDesc = cleanDesc.replace(/\n?<!--nb_meta:[\s\S]*?-->/g, '').trim();
                 } catch (e) {
                   console.warn('Failed to parse metadata from tournament description:', e);
                 }
@@ -282,19 +309,22 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
           setTournaments(prev => {
             const deleted = getDeletedTournamentIds();
-            const merged = mapped.filter(m => !deleted.has(m.id));
-            // Only add local tournaments that are not yet in Supabase mapped results and not deleted
+            const supabaseTourneys = mapped.filter(m => !deleted.has(m.id));
+            const merged = [...supabaseTourneys];
+            // Only add local tournaments that are not yet in Supabase mapped results, not deleted, and not legacy seeds
             prev.forEach(p => {
               if (p.id === SYSTEM_CUSTOM_GAMES_ROW_ID) return;
               if (deleted.has(p.id)) return;
               if (p.id.startsWith('custom_apex') || p.id.startsWith('custom_mine')) return;
               const exists = merged.some(m => m.id === p.id);
-              if (!exists) {
+              const isLegacySeed = p.id === 'pubg-solo-001' || p.id === 'pubg-mobile-solo-001' || p.id === 'minecraft-hg-001' || p.id === 'apex-solo-001';
+              if (!exists && !isLegacySeed) {
                 merged.push(p);
               }
             });
-            saveTournaments(merged);
-            return merged;
+            const deduplicated = deduplicateTournaments(merged);
+            saveTournaments(deduplicated);
+            return deduplicated;
           });
         }
       } catch (e) {
@@ -332,12 +362,12 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     refreshData();
 
-    // 1. Периодический опрос турниров (каждые 15 сек) для надежности без VPN
+    // 1. Быстрый опрос турниров (каждые 4 сек на активной вкладке)
     const pollInterval = setInterval(() => {
       if (!document.hidden) {
         refreshData();
       }
-    }, 15000);
+    }, 4000);
 
     const handleFocus = () => {
       if (!document.hidden) {
@@ -348,11 +378,36 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleFocus);
 
-    // 2. Supabase Realtime WebSocket subscription
+    // 2. Межвкладочная синхронизация через BroadcastChannel и storage event
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        bc = new BroadcastChannel('nb_tournaments_sync_channel');
+        bc.onmessage = () => {
+          refreshData();
+        };
+      }
+    } catch {}
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'nb_tournaments_v20' || e.key === 'nb_last_sync_time') {
+        refreshData();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // 3. Supabase Realtime WebSocket с поддержкой broadcast и postgres_changes
     let channel: any = null;
     try {
       channel = supabase
         .channel('realtime-tournaments-feed')
+        .on(
+          'broadcast',
+          { event: 'tournaments_updated' },
+          () => {
+            refreshData();
+          }
+        )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'tournaments' },
@@ -384,6 +439,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             }
           }
         });
+      realtimeChannelRef.current = channel;
     } catch (e) {
       console.warn('Realtime setup error:', e);
     }
@@ -392,6 +448,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       clearInterval(pollInterval);
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('storage', handleStorage);
+      if (bc) {
+        try {
+          bc.close();
+        } catch {}
+      }
+      realtimeChannelRef.current = null;
       if (channel) {
         try {
           supabase.removeChannel(channel);
@@ -607,6 +670,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       saveMatches(updated);
       return updated;
     });
+    notifyAllClients();
 
     try {
       const { error } = await supabase.from('matches').upsert({
@@ -630,6 +694,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       saveTournaments(updated);
       return updated;
     });
+    notifyAllClients();
 
     try {
       const updatePromise = supabase
@@ -637,7 +702,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .update({ starts_at: startsAt })
         .eq('id', tournamentId);
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Supabase update timeout')), 3000)
+        setTimeout(() => reject(new Error('Supabase update timeout')), 8000)
       );
 
       await Promise.race([updatePromise, timeoutPromise]);
@@ -704,7 +769,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           wallpaperUrl: updates.wallpaperUrl !== undefined ? updates.wallpaperUrl : existingT?.wallpaperUrl,
           customGame: customGameObj,
         };
-        const cleanDesc = desc.replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
+        const cleanDesc = desc.replace(/\n?<!--nb_meta:[\s\S]*?-->/g, '').trim();
         dbPayload.description = `${cleanDesc}\n<!--nb_meta:${JSON.stringify(meta)}-->`;
       }
 
@@ -714,13 +779,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           .update(dbPayload)
           .eq('id', tournamentId);
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Supabase update timeout')), 3000)
+          setTimeout(() => reject(new Error('Supabase update timeout')), 8000)
         );
         await Promise.race([updatePromise, timeoutPromise]);
       }
     } catch (e) {
       console.warn('Could not sync tournament update to Supabase (saved locally):', e);
     }
+    notifyAllClients();
     return true;
   };
 
@@ -822,7 +888,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       wallpaperUrl: tournamentData.wallpaperUrl,
       customGame: customGameObj,
     };
-    const cleanDesc = (tournamentData.description || '').replace(/\n?<!--nb_meta:.*?-->/gs, '').trim();
+    const cleanDesc = (tournamentData.description || '').replace(/\n?<!--nb_meta:[\s\S]*?-->/g, '').trim();
     const fullDescription = `${cleanDesc}\n<!--nb_meta:${JSON.stringify(meta)}-->`;
 
     const newTournament: Tournament = {
@@ -834,10 +900,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     setTournaments(prev => {
-      const updated = [newTournament, ...prev.filter(t => t.id !== newId)];
+      const updated = deduplicateTournaments([newTournament, ...prev.filter(t => t.id !== newId)]);
       saveTournaments(updated);
       return updated;
     });
+    notifyAllClients();
 
     try {
       const dbGame = DB_ALLOWED_GAMES.has(newTournament.game) ? newTournament.game : 'pubg';
@@ -853,13 +920,14 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         description: fullDescription,
       });
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Supabase insert timeout')), 3000)
+        setTimeout(() => reject(new Error('Supabase insert timeout')), 8000)
       );
 
       await Promise.race([insertPromise, timeoutPromise]);
     } catch (e) {
       console.warn('Could not sync tournament creation to Supabase, preserved locally:', e);
     }
+    notifyAllClients();
 
     return true;
   };
@@ -878,6 +946,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       saveRegistrations(updated);
       return updated;
     });
+    notifyAllClients();
 
     try {
       const deletePromise = Promise.all([
@@ -886,12 +955,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         supabase.from('registrations').delete().eq('tournament_id', tournamentId),
       ]);
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Supabase delete timeout')), 3000)
+        setTimeout(() => reject(new Error('Supabase delete timeout')), 8000)
       );
       await Promise.race([deletePromise, timeoutPromise]);
     } catch (e) {
       console.warn('Could not sync tournament deletion to Supabase (deleted locally):', e);
     }
+    notifyAllClients();
 
     return true;
   };

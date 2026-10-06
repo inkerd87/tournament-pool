@@ -147,7 +147,7 @@ export async function fetchTipsTipsPaymentsFromDb(): Promise<TipsTipsPayment[]> 
       .select('*')
       .order('created_at', { ascending: false });
 
-    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+    const { data, error } = (await Promise.race([fetchPromise, timeoutPromise])) as any;
 
     if (error || !data) {
       lastSyncStatus = 'local_fallback';
@@ -155,14 +155,14 @@ export async function fetchTipsTipsPaymentsFromDb(): Promise<TipsTipsPayment[]> 
     }
 
     lastSyncStatus = 'online';
-    const dbPayments = data
+    const dbPayments = (data as any[])
       .map(parseTransactionToPayment)
-      .filter((p): p is TipsTipsPayment => p !== null);
+      .filter((p: any): p is TipsTipsPayment => p !== null);
 
     const map = new Map<string, TipsTipsPayment>();
 
     // Сначала добавляем платежи из базы данных
-    dbPayments.forEach((p) => {
+    dbPayments.forEach((p: TipsTipsPayment) => {
       map.set(p.id, p);
       if (p.code) map.set(p.code, p);
     });

@@ -28,7 +28,8 @@ export const HomePage: React.FC = () => {
   }));
 
   const activeGameConfig = heroGames.find((g) => g.id === activeGameId) || heroGames[0];
-  const featured = tournaments.filter((t) => !t.isPremium).slice(0, Math.max(6, 6 + customGames.length));
+  const activeCount = tournaments.filter((t) => t.status === 'recruiting' || t.status === 'live').length;
+  const featured = tournaments.filter((t) => !t.isPremium);
 
   return (
     <div className="space-y-12 sm:space-y-16">
@@ -257,7 +258,7 @@ export const HomePage: React.FC = () => {
                 Ближайшие соревнования
               </h2>
               <span className="rounded-full bg-cyan-500/15 border border-cyan-500/40 px-2.5 py-0.5 text-xs font-bold text-cyan-300 font-mono">
-                {featured.length} активных
+                {activeCount} активных
               </span>
             </div>
             <p className="mt-1 text-xs sm:text-sm text-zinc-400">

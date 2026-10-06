@@ -156,6 +156,11 @@ export const TournamentCard: React.FC<{
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
               Скоро
             </span>
+          ) : tournament.status === 'finished' ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/40 bg-purple-500/20 px-2.5 py-0.5 text-[11px] font-bold text-purple-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+              Завершён
+            </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -173,6 +178,21 @@ export const TournamentCard: React.FC<{
             {tournament.format}
           </p>
         </div>
+
+        {/* Блок победителя турнира */}
+        {tournament.winner && (
+          <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-amber-400/50 bg-gradient-to-r from-amber-500/25 via-yellow-500/15 to-transparent px-3 py-2 shadow-md shadow-amber-500/15">
+            <span className="text-lg">🏆</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-amber-400">
+                Победитель соревнований
+              </div>
+              <div className="truncate text-xs font-black text-amber-200 font-mono">
+                {tournament.winner}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Блок призового вознаграждения */}
         <div className="mt-4 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent p-3 relative overflow-hidden">
@@ -283,6 +303,11 @@ export const TournamentCard: React.FC<{
         {isSoon ? (
           <div className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-xs font-bold text-amber-300">
             <span>Анонс</span>
+          </div>
+        ) : tournament.status === 'finished' ? (
+          <div className="inline-flex items-center gap-2 rounded-xl bg-purple-500/20 border border-purple-500/40 hover:bg-purple-500 hover:text-black px-4 py-2 text-xs font-extrabold text-purple-300 transition-all duration-200 group-hover:scale-[1.02]">
+            <span>Матч завершён</span>
+            <span className="transition-transform duration-200 group-hover:translate-x-0.5">→</span>
           </div>
         ) : isPremium ? (
           <div className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 px-4 py-2 text-xs font-black text-black shadow-md shadow-amber-500/20 transition-all duration-200 group-hover:scale-[1.02]">

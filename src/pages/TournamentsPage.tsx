@@ -39,7 +39,12 @@ export const TournamentsPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-12 sm:px-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Список соревнований</h1>
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Список соревнований</h1>
+          <span className="rounded-full bg-cyan-500/15 border border-cyan-500/40 px-2.5 py-0.5 text-xs font-bold text-cyan-300 font-mono">
+            {tournaments.filter((t) => t.status === 'recruiting' || t.status === 'live').length} активных
+          </span>
+        </div>
         <p className="mt-1 text-xs sm:text-sm text-zinc-400">
           Разные форматы соревнований · Честное судейство · Вознаграждение победителям · Выплаты до суток
         </p>

@@ -15,6 +15,10 @@ export const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'tipstips' | 'matches' | 'games' | 'registrations'>('tipstips');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [openWithCustomGame, setOpenWithCustomGame] = useState(false);
+  const [matchStatusFilter, setMatchStatusFilter] = useState<'all' | 'recruiting' | 'live' | 'finished' | 'soon'>('all');
+  const [matchGameFilter, setMatchGameFilter] = useState<string>('all');
+  const [matchSearchQuery, setMatchSearchQuery] = useState<string>('');
+  const [expandAllMatches, setExpandAllMatches] = useState<boolean>(false);
   const [pendingTipsCount, setPendingTipsCount] = useState<number>(() => {
     return getStoredTipsTipsPayments().filter((p) => p.status === 'pending').length;
   });
@@ -161,7 +165,7 @@ export const AdminPage: React.FC = () => {
               <div>
                 <h2 className="text-xl font-bold text-white">Управление матчами и турнирами</h2>
                 <p className="mt-0.5 text-xs text-zinc-400">
-                  Полное редактирование: названия, дисциплины, описания и регламента, времени старта, доступов к лобби и трансляций.
+                  Полное редактирование: названия, дисциплины, описания и регламента, времени старта, доступов к лобби и победителей.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2.5">
@@ -187,15 +191,186 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
-              {tournaments.map((tournament) => (
-                <AdminMatchForm
-                  key={tournament.id}
-                  tournament={tournament}
-                  initialMatch={matches[tournament.id] || null}
-                />
-              ))}
+            {/* ПАНЕЛЬ ФИЛЬТРОВ И ПОИСКА МАТЧЕЙ */}
+            <div className="rounded-2xl border border-white/10 bg-[#0c1018] p-4 space-y-3.5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                {/* Фильтр по статусу */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setMatchStatusFilter('all')}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                      matchStatusFilter === 'all'
+                        ? 'bg-cyan-500 text-black shadow-sm font-black'
+                        : 'bg-white/5 text-zinc-400 hover:text-white border border-white/5'
+                    }`}
+                  >
+                    Все ({tournaments.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMatchStatusFilter('recruiting')}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
+                      matchStatusFilter === 'recruiting'
+                        ? 'bg-emerald-500 text-black shadow-sm font-black'
+                        : 'bg-white/5 text-emerald-400/80 hover:text-emerald-300 border border-white/5'
+                    }`}
+                  >
+                    <span>🟢</span>
+                    <span>Набор ({tournaments.filter((t) => t.status === 'recruiting').length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMatchStatusFilter('live')}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
+                      matchStatusFilter === 'live'
+                        ? 'bg-red-500 text-white shadow-sm font-black'
+                        : 'bg-white/5 text-red-400/80 hover:text-red-300 border border-white/5'
+                    }`}
+                  >
+                    <span>🔴</span>
+                    <span>В эфире ({tournaments.filter((t) => t.status === 'live').length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMatchStatusFilter('finished')}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
+                      matchStatusFilter === 'finished'
+                        ? 'bg-purple-500 text-white shadow-sm font-black'
+                        : 'bg-white/5 text-purple-400/80 hover:text-purple-300 border border-white/5'
+                    }`}
+                  >
+                    <span>🏆</span>
+                    <span>Завершены ({tournaments.filter((t) => t.status === 'finished').length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMatchStatusFilter('soon')}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
+                      matchStatusFilter === 'soon'
+                        ? 'bg-cyan-400 text-black shadow-sm font-black'
+                        : 'bg-white/5 text-cyan-300/80 hover:text-cyan-200 border border-white/5'
+                    }`}
+                  >
+                    <span>⏳</span>
+                    <span>Скоро ({tournaments.filter((t) => t.status === 'soon').length})</span>
+                  </button>
+                </div>
+
+                {/* Кнопка свернуть / развернуть все */}
+                <button
+                  type="button"
+                  onClick={() => setExpandAllMatches(!expandAllMatches)}
+                  className="self-start md:self-auto rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition"
+                >
+                  {expandAllMatches ? '▲ Свернуть все карточки' : '▼ Развернуть все карточки'}
+                </button>
+              </div>
+
+              {/* Поиск и фильтр по дисциплине */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2 border-t border-white/5">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Поиск по названию матча, победителю или ID..."
+                    className="input-field text-xs text-white w-full pl-8"
+                    value={matchSearchQuery}
+                    onChange={(e) => setMatchSearchQuery(e.target.value)}
+                  />
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500 text-xs">
+                    🔍
+                  </span>
+                  {matchSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setMatchSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-zinc-400 shrink-0 font-medium">Игра:</span>
+                  <select
+                    value={matchGameFilter}
+                    onChange={(e) => setMatchGameFilter(e.target.value)}
+                    className="input-field text-xs bg-zinc-900 border-white/15 text-white font-bold"
+                  >
+                    <option value="all">Все дисциплины</option>
+                    {allGames.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.short || g.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
+
+            {/* СПИСОК МАТЧЕЙ */}
+            {(() => {
+              const filtered = tournaments.filter((t) => {
+                if (matchStatusFilter !== 'all' && t.status !== matchStatusFilter) {
+                  return false;
+                }
+                if (matchGameFilter !== 'all' && t.game !== matchGameFilter) {
+                  return false;
+                }
+                if (matchSearchQuery.trim()) {
+                  const q = matchSearchQuery.trim().toLowerCase();
+                  const matchTitle = (t.title || '').toLowerCase().includes(q);
+                  const matchGame = (t.game || '').toLowerCase().includes(q);
+                  const matchWinner = (t.winner || '').toLowerCase().includes(q);
+                  const matchId = (t.id || '').toLowerCase().includes(q);
+                  if (!matchTitle && !matchGame && !matchWinner && !matchId) {
+                    return false;
+                  }
+                }
+                return true;
+              });
+
+              if (filtered.length === 0) {
+                return (
+                  <div className="surface-card p-10 text-center rounded-2xl border border-white/10">
+                    <span className="text-3xl">🔍</span>
+                    <h3 className="mt-2 text-base font-bold text-white">Матчи не найдены</h3>
+                    <p className="mt-1 text-xs text-zinc-400">
+                      По выбранным фильтрам или запросу «{matchSearchQuery}» ничего не найдено.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMatchStatusFilter('all');
+                        setMatchGameFilter('all');
+                        setMatchSearchQuery('');
+                      }}
+                      className="mt-3 text-xs text-cyan-400 hover:underline font-bold"
+                    >
+                      Сбросить все фильтры
+                    </button>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="flex flex-col gap-3.5">
+                  {filtered.map((tournament) => (
+                    <AdminMatchForm
+                      key={tournament.id + (expandAllMatches ? '-expanded' : '-collapsed')}
+                      tournament={tournament}
+                      initialMatch={matches[tournament.id] || null}
+                      initiallyExpanded={expandAllMatches}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Модальное окно создания нового матча/турнира */}
             <AdminCreateTournamentModal

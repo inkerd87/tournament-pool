@@ -192,66 +192,85 @@ export function unmarkTournamentAsDeleted(tournamentId: string): void {
   }
 }
 
-export function getStoredTournaments(): Tournament[] {
+export function deduplicateTournaments(tournaments: Tournament[]): Tournament[] {
   const deletedIds = getDeletedTournamentIds();
-  const data = localStorage.getItem('nb_tournaments_v19');
-  if (!data) {
-    const initial = INITIAL_TOURNAMENTS.filter((t) => !deletedIds.has(t.id));
-    localStorage.setItem('nb_tournaments_v19', JSON.stringify(initial));
-    return initial;
-  }
-  try {
-    let list: Tournament[] = JSON.parse(data);
-    // Remove any deleted tournaments or old custom duplicates
-    list = list.filter((t) => {
-      if (!t || !t.id) return false;
-      if (deletedIds.has(t.id)) return false;
-      if (t.id.startsWith('custom_apex') || t.id.startsWith('custom_mine')) return false;
-      return true;
-    });
-
-    const existingIds = new Set(list.map((t) => t.id));
-    for (const initT of INITIAL_TOURNAMENTS) {
-      if (!existingIds.has(initT.id) && !deletedIds.has(initT.id)) {
-        list.push(initT);
-        existingIds.add(initT.id);
-      }
-    }
-
-    // Deduplicate by ID
-    const uniqueMap = new Map<string, Tournament>();
-    list.forEach((t) => {
-      if (!uniqueMap.has(t.id)) {
-        uniqueMap.set(t.id, t);
-      }
-    });
-
-    const cleaned = Array.from(uniqueMap.values()).map((t) => {
-      const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
-      const minPlayers =
-        t.minPlayers ||
-        (isCsOrDota ? 10 : t.game === 'minecraft' ? 24 : 50);
-      return { ...t, minPlayers };
-    });
-
-    if (cleaned.length !== list.length) {
-      localStorage.setItem('nb_tournaments_v19', JSON.stringify(cleaned));
-    }
-    return cleaned;
-  } catch {
-    return INITIAL_TOURNAMENTS.filter((t) => !deletedIds.has(t.id));
-  }
-}
-
-export function saveTournaments(tournaments: Tournament[]) {
-  const deletedIds = getDeletedTournamentIds();
-  const clean = tournaments.filter((t) => {
+  const valid = tournaments.filter((t) => {
     if (!t || !t.id) return false;
     if (deletedIds.has(t.id)) return false;
     if (t.id.startsWith('custom_apex') || t.id.startsWith('custom_mine')) return false;
     return true;
   });
-  localStorage.setItem('nb_tournaments_v19', JSON.stringify(clean));
+
+  // Check if user/custom tournaments exist that supersede initial legacy seeds
+  const hasCustomPubg = valid.some((t) => t.game === 'pubg' && !t.isPremium && t.id !== 'pubg-solo-001');
+  const hasCustomPubgMobile = valid.some((t) => t.game === 'pubg_mobile' && !t.isPremium && t.id !== 'pubg-mobile-solo-001');
+  const hasCustomApex = valid.some((t) => t.game === 'apex' && t.id !== 'apex-solo-001');
+  const hasCustomMinecraft = valid.some((t) => t.game === 'minecraft' && t.id !== 'minecraft-hg-001');
+
+  const filtered = valid.filter((t) => {
+    if (hasCustomPubg && t.id === 'pubg-solo-001') return false;
+    if (hasCustomPubgMobile && t.id === 'pubg-mobile-solo-001') return false;
+    if (hasCustomApex && t.id === 'apex-solo-001') return false;
+    if (hasCustomMinecraft && t.id === 'minecraft-hg-001') return false;
+    return true;
+  });
+
+  // 1. Deduplicate by unique tournament ID
+  const uniqueMap = new Map<string, Tournament>();
+  filtered.forEach((t) => {
+    if (!uniqueMap.has(t.id)) {
+      uniqueMap.set(t.id, t);
+    }
+  });
+
+  // 2. Deduplicate by game and normalized title to eliminate duplicate matches
+  const result: Tournament[] = [];
+  const seenGameTitle = new Set<string>();
+  for (const t of Array.from(uniqueMap.values())) {
+    const key = `${t.game}:${(t.title || '').trim().toLowerCase()}`;
+    if (!seenGameTitle.has(key)) {
+      seenGameTitle.add(key);
+      const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
+      const minPlayers =
+        t.minPlayers ||
+        (isCsOrDota ? 10 : t.game === 'minecraft' ? 24 : 50);
+      result.push({ ...t, minPlayers });
+    }
+  }
+
+  return result;
+}
+
+const STORAGE_TOURNAMENTS_KEY = 'nb_tournaments_v20';
+
+export function getStoredTournaments(): Tournament[] {
+  const deletedIds = getDeletedTournamentIds();
+  let rawData = localStorage.getItem(STORAGE_TOURNAMENTS_KEY);
+  if (!rawData) {
+    // Migration from old v19 cache
+    rawData = localStorage.getItem('nb_tournaments_v19');
+  }
+
+  if (!rawData) {
+    const initial = deduplicateTournaments(INITIAL_TOURNAMENTS.filter((t) => !deletedIds.has(t.id)));
+    localStorage.setItem(STORAGE_TOURNAMENTS_KEY, JSON.stringify(initial));
+    return initial;
+  }
+
+  try {
+    const parsed: Tournament[] = JSON.parse(rawData);
+    const cleaned = deduplicateTournaments(parsed);
+    localStorage.setItem(STORAGE_TOURNAMENTS_KEY, JSON.stringify(cleaned));
+    return cleaned;
+  } catch {
+    return deduplicateTournaments(INITIAL_TOURNAMENTS.filter((t) => !deletedIds.has(t.id)));
+  }
+}
+
+export function saveTournaments(tournaments: Tournament[]) {
+  const clean = deduplicateTournaments(tournaments);
+  localStorage.setItem(STORAGE_TOURNAMENTS_KEY, JSON.stringify(clean));
+  localStorage.setItem('nb_last_sync_time', String(Date.now()));
 }
 
 export function getStoredUser(): User | null {

@@ -97,6 +97,22 @@ export const TournamentDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {tournament.winner && (
+        <div className="mt-4 flex items-center gap-3.5 rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-transparent p-4 sm:p-5 shadow-xl shadow-amber-500/10">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-400/20 text-2xl border border-amber-400/40">
+            🏆
+          </div>
+          <div>
+            <div className="text-xs font-black uppercase tracking-wider text-amber-400">
+              Итог матча · Победитель
+            </div>
+            <div className="mt-0.5 text-base sm:text-lg font-black text-white font-mono">
+              {tournament.winner}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mt-6 sm:mt-8 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           <div className="surface-card p-5 sm:p-6">
