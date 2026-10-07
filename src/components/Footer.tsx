@@ -33,7 +33,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm">
               <Link to="/tournaments" className="link-accent">
-                Соревнованияй
+                Соревнования
               </Link>
               <Link
                 to="/how-it-works"
