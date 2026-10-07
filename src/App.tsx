@@ -26,7 +26,17 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#07090d] text-zinc-100 selection:bg-cyan-500/30 selection:text-white">
-      <div className="fixed inset-0 pointer-events-none page-grid z-0" />
+      {/* Атмосферный задний фон киберспортивной арены */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 scale-105"
+          style={{ backgroundImage: "url('/bg-esports.jpg')" }}
+        />
+        {/* Мягкие затемняющие градиенты и неоновые акценты для 100% читаемости интерфейса */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#07090d]/60 via-[#07090d]/85 to-[#07090d]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_0%,#07090d_85%)]" />
+        <div className="absolute inset-0 page-grid opacity-30" />
+      </div>
       <div className="relative z-10 flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
         <Header />
         <main className="flex-1 w-full max-w-full overflow-x-hidden">
