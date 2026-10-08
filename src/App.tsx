@@ -29,13 +29,13 @@ export const App: React.FC = () => {
       {/* Атмосферный задний фон киберспортивной арены */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 scale-105"
-          style={{ backgroundImage: "url('/bg-esports.jpg')" }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-75 scale-100 transform-gpu"
+          style={{ backgroundImage: "url('/bg-esports.jpg?v=2')" }}
         />
-        {/* Мягкие затемняющие градиенты и неоновые акценты для 100% читаемости интерфейса */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#07090d]/60 via-[#07090d]/85 to-[#07090d]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_0%,#07090d_85%)]" />
-        <div className="absolute inset-0 page-grid opacity-30" />
+        {/* Полупрозрачные затемняющие градиенты: сохраняют картинку видимой и сочной, при этом весь текст 100% читается */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#07090d]/40 via-[#07090d]/60 to-[#07090d]/85" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(7,9,13,0.85)_90%)]" />
+        <div className="absolute inset-0 page-grid opacity-25" />
       </div>
       <div className="relative z-10 flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
         <Header />

@@ -25,8 +25,8 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-12 sm:space-y-16">
-      {/* Главный Hero-блок (Command Center) с большой фоновой картинкой активной игры */}
-      <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#06080e] pt-6 pb-12 sm:pt-12 sm:pb-20">
+      {/* Главный Hero-блок (Command Center) с фоновыми картинками и кибер-ареной */}
+      <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#06080e]/60 pt-6 pb-12 sm:pt-12 sm:pb-20">
         
         {/* Большая кинематографичная картинка игры на заднем фоне всей верхней секции */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden transition-all duration-700">
@@ -51,8 +51,8 @@ export const HomePage: React.FC = () => {
           <div className="absolute top-1/3 -right-40 w-[500px] h-[350px] bg-amber-500/5 blur-3xl" />
 
           {/* Затемняющие градиенты для сохранения 100% контрастности и читаемости текста */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#06080e] via-[#090d16]/80 to-[#06080e]/70" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#06080e_85%)]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06080e]/90 via-[#090d16]/50 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(6,8,14,0.75)_85%)]" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
