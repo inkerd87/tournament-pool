@@ -1,26 +1,26 @@
-import React, { useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { HomePage } from '@/pages/HomePage';
-import { TournamentsPage } from '@/pages/TournamentsPage';
-import { TournamentDetailPage } from '@/pages/TournamentDetailPage';
-import { AccountPage } from '@/pages/AccountPage';
-import { AdminPage } from '@/pages/AdminPage';
-import { HowItWorksPage } from '@/pages/HowItWorksPage';
-import { PrivacyPage } from '@/pages/PrivacyPage';
-import { OfferPage } from '@/pages/OfferPage';
-import { LoginPage } from '@/pages/LoginPage';
-import { PaymentReturnPage } from '@/pages/PaymentReturnPage';
-import { AuthModal } from '@/components/AuthModal';
+import React, { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { HomePage } from "@/pages/HomePage";
+import { TournamentsPage } from "@/pages/TournamentsPage";
+import { TournamentDetailPage } from "@/pages/TournamentDetailPage";
+import { AccountPage } from "@/pages/AccountPage";
+import { AdminPage } from "@/pages/AdminPage";
+import { HowItWorksPage } from "@/pages/HowItWorksPage";
+import { PrivacyPage } from "@/pages/PrivacyPage";
+import { OfferPage } from "@/pages/OfferPage";
+import { LoginPage } from "@/pages/LoginPage";
+import { PaymentReturnPage } from "@/pages/PaymentReturnPage";
+import { AuthModal } from "@/components/AuthModal";
 
 export const App: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
     // Отправка хита в Яндекс.Метрику при смене страницы внутри SPA
-    if (typeof (window as any).ym === 'function') {
-      (window as any).ym(112434134, 'hit', window.location.href);
+    if (typeof (window as any).ym === "function") {
+      (window as any).ym(112434134, "hit", window.location.href);
     }
   }, [location.pathname, location.search]);
 
@@ -34,7 +34,7 @@ export const App: React.FC = () => {
         />
         {/* Мягкие затемняющие градиенты: сохраняют картинку сочной и лазеры яркими, при этом текст 100% читается */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#07090d]/30 via-[#07090d]/50 to-[#07090d]/80" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(7,9,13,0.75)_95%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(2, 2, 2, 0.75)_95%)]" />
       </div>
       <div className="relative z-10 flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
         <Header />
