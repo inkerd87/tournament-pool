@@ -52,7 +52,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forcedOpen, onClose }) => 
     }
   }, [user, location.pathname]);
 
-  // Поддержка принудительного открытия
+  // Поддержка принудительного открытия и закрытия по Escape
   useEffect(() => {
     if (forcedOpen !== undefined) {
       setIsOpen(forcedOpen);
@@ -62,12 +62,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forcedOpen, onClose }) => 
       setError(null);
       setSuccessMsg(null);
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleDismiss();
+      }
+    };
+
     window.addEventListener('nb_open_auth_modal', handleOpen);
-    return () => window.removeEventListener('nb_open_auth_modal', handleOpen);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('nb_open_auth_modal', handleOpen);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [forcedOpen]);
 
   const handleDismiss = () => {
-    localStorage.setItem('nb_auth_modal_seen', 'true');
+    try {
+      localStorage.setItem('nb_auth_modal_seen', 'true');
+    } catch {}
     setIsOpen(false);
     onClose?.();
   };
@@ -140,25 +152,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({ forcedOpen, onClose }) => 
   if (!isOpen || user) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in overflow-y-auto cursor-pointer"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          handleDismiss();
+        }
+      }}
+    >
       <div
-        className="relative w-full max-w-md rounded-3xl border border-cyan-500/30 bg-[#0a0e17] p-6 sm:p-7 shadow-2xl overflow-hidden text-left my-8"
+        className="relative w-full max-w-md rounded-3xl border border-cyan-500/30 bg-[#0a0e17] p-6 sm:p-7 shadow-2xl overflow-hidden text-left my-8 cursor-default"
         style={{
           boxShadow: '0 25px 60px -15px rgba(0, 240, 255, 0.2)',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Фоновые градиенты */}
         <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-cyan-500/15 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-blue-600/15 blur-3xl" />
 
-        {/* Кнопка закрытия */}
+        {/* Кнопка закрытия (поверх всех слоев) */}
         <button
           type="button"
-          onClick={handleDismiss}
-          className="absolute right-4 top-4 rounded-xl p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleDismiss();
+          }}
+          className="absolute right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-zinc-300 hover:text-white transition cursor-pointer shadow-md"
           aria-label="Закрыть"
+          title="Закрыть окно"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg className="w-5 h-5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
