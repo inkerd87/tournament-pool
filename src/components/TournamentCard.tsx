@@ -11,38 +11,61 @@ export const TournamentCard: React.FC<{
   tournament: Tournament;
   onPubgModeChange?: (mode: 'standard' | 'premium') => void;
 }> = ({ tournament: propTournament, onPubgModeChange }) => {
-  const { tournaments } = useTournaments();
-  const isPubgFamily = (g: string) => g === 'pubg' || g === 'pubg_mobile';
+  const { tournaments, allGames } = useTournaments();
 
-  const [pubgMode, setPubgMode] = useState<'standard' | 'premium'>(
+  const isPremiumSupported = (g: string) => {
+    const conf = allGames?.find((x) => x.id === g);
+    if (conf?.hasPremiumMode) return true;
+    if (g === 'pubg' || g === 'pubg_mobile' || g === 'apex') return true;
+    return tournaments.some((t) => t.game === g && (t.isPremium || t.id.toLowerCase().includes('premium')));
+  };
+
+  const hasToggle = isPremiumSupported(propTournament.game);
+
+  const [cardMode, setCardMode] = useState<'standard' | 'premium'>(
     propTournament.isPremium ? 'premium' : 'standard'
   );
 
   useEffect(() => {
     if (propTournament.isPremium) {
-      setPubgMode('premium');
-    } else if (isPubgFamily(propTournament.game)) {
-      setPubgMode('standard');
+      setCardMode('premium');
+    } else if (hasToggle) {
+      setCardMode('standard');
     }
-  }, [propTournament.id, propTournament.isPremium, propTournament.game]);
+  }, [propTournament.id, propTournament.isPremium, propTournament.game, hasToggle]);
 
   const tournament = useMemo(() => {
-    if (!isPubgFamily(propTournament.game)) return propTournament;
+    if (!hasToggle) return propTournament;
     const targetGame = propTournament.game;
-    if (pubgMode === 'premium') {
-      return (
-        tournaments.find(
-          (t) => t.game === targetGame && (t.isPremium || t.id === 'pubg-premium-001' || t.id === 'pubg-mobile-premium-001')
-        ) || propTournament
+    if (cardMode === 'premium') {
+      const prem = tournaments.find(
+        (t) =>
+          t.game === targetGame &&
+          (t.isPremium || t.id.toLowerCase().includes('premium') || t.title.toLowerCase().includes('premium'))
       );
+      if (prem) return prem;
+      return {
+        ...propTournament,
+        id: `${propTournament.id}-premium`,
+        title: `${propTournament.title} Premium`,
+        isPremium: true,
+        entryFeeRub: 1000,
+        prizePoolRub: 28000,
+        prizes: { 1: 15000, 2: 8000, 3: 5000 },
+        description: `Премиум соревнование. Оплата организационных услуг 1 000 ₽. Фиксированное вознаграждение 28 000 ₽ учреждено организатором соревнований.`,
+      };
     } else {
       return (
         tournaments.find(
-          (t) => t.game === targetGame && !t.isPremium && t.id !== 'pubg-premium-001' && t.id !== 'pubg-mobile-premium-001'
+          (t) =>
+            t.game === targetGame &&
+            !t.isPremium &&
+            !t.id.toLowerCase().includes('premium') &&
+            !t.title.toLowerCase().includes('premium')
         ) || propTournament
       );
     }
-  }, [propTournament, pubgMode, tournaments]);
+  }, [propTournament, cardMode, tournaments, hasToggle]);
 
   const game = GAMES[tournament.game] || {
     name: tournament.game,
@@ -108,7 +131,7 @@ export const TournamentCard: React.FC<{
             )}
           </div>
 
-          {isPubgFamily(tournament.game) ? (
+          {hasToggle ? (
             <div
               className="flex items-center rounded-xl bg-black/80 p-0.5 border border-white/15 text-[10px] font-extrabold shrink-0"
               onClick={(e) => {
@@ -121,11 +144,11 @@ export const TournamentCard: React.FC<{
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setPubgMode('standard');
+                  setCardMode('standard');
                   onPubgModeChange?.('standard');
                 }}
                 className={`rounded-lg px-2.5 py-1 transition-all ${
-                  pubgMode === 'standard'
+                  cardMode === 'standard'
                     ? 'bg-cyan-400 text-black shadow-sm font-black'
                     : 'text-zinc-400 hover:text-white'
                 }`}
@@ -138,11 +161,11 @@ export const TournamentCard: React.FC<{
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setPubgMode('premium');
+                  setCardMode('premium');
                   onPubgModeChange?.('premium');
                 }}
                 className={`rounded-lg px-2.5 py-1 flex items-center gap-0.5 transition-all ${
-                  pubgMode === 'premium'
+                  cardMode === 'premium'
                     ? 'bg-amber-400 text-black shadow-sm font-black'
                     : 'text-zinc-400 hover:text-white'
                 }`}

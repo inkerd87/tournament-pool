@@ -21,12 +21,24 @@ export const TournamentsPage: React.FC = () => {
     }
   }, [gameParam]);
 
+  const isPremiumSupportedGame = (g: string) => {
+    const conf = allGames?.find((x) => x.id === g);
+    if (conf?.hasPremiumMode) return true;
+    if (g === 'pubg' || g === 'pubg_mobile' || g === 'apex') return true;
+    return tournaments.some((t) => t.game === g && (t.isPremium || t.id.toLowerCase().includes('premium')));
+  };
+
   const filtered = tournaments.filter((t) => {
     if (selectedGame !== 'all' && t.game !== selectedGame) {
       return false;
     }
-    if (t.game === 'pubg' || t.game === 'pubg_mobile') {
-      const isPrem = Boolean(t.isPremium || t.id === 'pubg-premium-001' || t.id === 'pubg-mobile-premium-001');
+    const supportsPrem = isPremiumSupportedGame(t.game);
+    if (supportsPrem) {
+      const isPrem = Boolean(
+        t.isPremium ||
+        t.id.toLowerCase().includes('premium') ||
+        t.title.toLowerCase().includes('premium')
+      );
       if (pubgMode === 'premium') {
         return isPrem;
       } else {
@@ -86,55 +98,59 @@ export const TournamentsPage: React.FC = () => {
         })}
       </div>
 
-      {/* Ползунок / Переключатель: Премиум соревнования (PUBG и PUBG Mobile) */}
-      <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/25 bg-[#141210] p-3.5 sm:p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold text-base">
-            <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-white tracking-tight">Режим: Премиум соревнования</span>
-              <span className="rounded-md bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
-                PUBG & PUBG Mobile
-              </span>
+      {/* Ползунок / Переключатель: Премиум соревнования */}
+      {(selectedGame === 'all' || isPremiumSupportedGame(selectedGame)) && (
+        <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/25 bg-[#141210] p-3.5 sm:p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold text-base">
+              <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
             </div>
-            <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
-              {pubgMode === 'premium'
-                ? 'Премиум PUBG & PUBG Mobile: орг. услуги 1 000 ₽ (судейство, лобби, платформа) · вознаграждение от организатора 28 000 ₽'
-                : 'Обычный PUBG & PUBG Mobile: орг. услуги 100 ₽ (судейство, платформа, подбор оппонентов) · вознаграждение от организатора 2 200 ₽'}
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-bold text-white tracking-tight">Режим: Премиум соревнования</span>
+                <span className="rounded-md bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                  {selectedGame !== 'all'
+                    ? (allGames.find((g) => g.id === selectedGame)?.name || selectedGame)
+                    : 'PUBG, Apex Legends и др.'}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
+                {pubgMode === 'premium'
+                  ? 'Премиум соревнования: орг. услуги 1 000 ₽ (судейство, лобби, платформа) · повышенное вознаграждение от организатора'
+                  : 'Обычные соревнования: орг. услуги 100 ₽ (судейство, платформа, подбор оппонентов) · вознаграждение победителям'}
+              </p>
+            </div>
+          </div>
+
+          {/* Sliding toggle switch (Ползунок) */}
+          <div className="relative inline-flex items-center rounded-xl bg-black/60 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setPubgMode('standard')}
+              className={`relative z-10 flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                pubgMode === 'standard'
+                  ? 'bg-cyan-400 text-black shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <span>Стандарт 100 ₽</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPubgMode('premium')}
+              className={`relative z-10 flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
+                pubgMode === 'premium'
+                  ? 'bg-amber-400 text-black shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <span>Премиум 1 000 ₽</span>
+            </button>
           </div>
         </div>
-
-        {/* Sliding toggle switch (Ползунок) */}
-        <div className="relative inline-flex items-center rounded-xl bg-black/60 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setPubgMode('standard')}
-            className={`relative z-10 flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-              pubgMode === 'standard'
-                ? 'bg-cyan-400 text-black shadow-sm'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <span>Стандарт 100 ₽</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setPubgMode('premium')}
-            className={`relative z-10 flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-              pubgMode === 'premium'
-                ? 'bg-amber-400 text-black shadow-sm'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <span>Премиум 1 000 ₽</span>
-          </button>
-        </div>
-      </div>
+      )}
 
       <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((t) => (

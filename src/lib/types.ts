@@ -20,6 +20,7 @@ export type CustomGame = {
   wallpaperUrl?: string;
   tag?: string;
   isBuiltin?: boolean;
+  hasPremiumMode?: boolean;
 };
 
 export type TournamentStatus =

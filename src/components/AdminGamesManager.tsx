@@ -465,6 +465,7 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
   const [accent, setAccent] = useState(game.accent);
   const [iconUrl, setIconUrl] = useState(game.iconUrl || '');
   const [wallpaperUrl, setWallpaperUrl] = useState(game.wallpaperUrl || '');
+  const [hasPremiumMode, setHasPremiumMode] = useState<boolean>(Boolean(game.hasPremiumMode));
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingIcon, setIsUploadingIcon] = useState(false);
   const [isUploadingWall, setIsUploadingWall] = useState(false);
@@ -480,6 +481,7 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
     setAccent(game.accent);
     setIconUrl(game.iconUrl || '');
     setWallpaperUrl(game.wallpaperUrl || '');
+    setHasPremiumMode(Boolean(game.hasPremiumMode));
   }, [game]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -493,6 +495,7 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
         accent: accent.trim(),
         iconUrl: iconUrl.trim(),
         wallpaperUrl: wallpaperUrl.trim(),
+        hasPremiumMode,
       });
     } finally {
       setIsSaving(false);
@@ -837,6 +840,46 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
               </span>
             </div>
           )}
+        </div>
+
+        {/* Блок 5: Премиум ползунок (100 ₽ / 1 000 ₽) */}
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3.5 flex items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-400 font-bold text-sm">★</span>
+              <span className="text-xs font-bold text-white">Премиум ползунок (100 ₽ / 1 000 ₽)</span>
+              <span
+                className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
+                  hasPremiumMode
+                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                    : 'bg-white/10 text-zinc-400'
+                }`}
+              >
+                {hasPremiumMode ? 'ВКЛЮЧЕН' : 'ВЫКЛЮЧЕН'}
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400 leading-tight">
+              Добавляет интерактивный переключатель «100 ₽ / 1 000 ₽» на карточки соревнований этой игры на сайте
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              const nextVal = !hasPremiumMode;
+              setHasPremiumMode(nextVal);
+              await onUpdate({ hasPremiumMode: nextVal });
+            }}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+              hasPremiumMode ? 'bg-amber-400' : 'bg-zinc-700'
+            }`}
+            title={hasPremiumMode ? 'Выключить премиум ползунок' : 'Включить премиум ползунок'}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-black shadow-lg ring-0 transition duration-200 ease-in-out ${
+                hasPremiumMode ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
         </div>
 
         {/* Кнопка сохранения */}
