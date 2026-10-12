@@ -41,16 +41,16 @@ body {
 }
 
 .surface-card {
-  border-radius: 1rem;
+  border-radius: 0.875rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, #131b2a 0%, #0f1523 100%);
+  background: #0e121a;
   box-sizing: border-box;
   max-width: 100%;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .surface-card:hover {
-  border-color: rgba(0, 240, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .btn-primary {
@@ -60,18 +60,19 @@ body {
   box-sizing: border-box;
   max-width: 100%;
   border-radius: 0.625rem;
-  background-color: #06b6d4;
+  background-color: #00d4ff;
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #000000;
   transition: all 0.2s ease;
   user-select: none;
   text-align: center;
+  letter-spacing: -0.01em;
 }
 
 .btn-primary:hover {
-  background-color: #22d3ee;
+  background-color: #22e1ff;
 }
 
 .btn-primary:active {
@@ -79,7 +80,7 @@ body {
 }
 
 .btn-primary:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
 }
