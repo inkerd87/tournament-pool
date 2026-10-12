@@ -6,15 +6,33 @@ import { GameBadge } from '@/components/GameBadge';
 import { PrizeBreakdown } from '@/components/PrizeBreakdown';
 import { RegisterForm } from '@/components/RegisterForm';
 import { MatchAccessPanel } from '@/components/MatchAccessPanel';
-import { formatDateTime, statusLabel } from '@/lib/format';
+import { formatDateTime, formatRub, statusLabel } from '@/lib/format';
 import { GAMES } from '@/lib/games';
 
 export const TournamentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { tournaments, isUserRegistered, matches } = useTournaments();
+  const { tournaments, isUserRegistered, matches, allGames } = useTournaments();
   const { user } = useAuth();
 
-  const tournament = tournaments.find((t) => t.id === id);
+  // Find tournament by ID, with fallback for virtual "-premium" IDs
+  let tournament = tournaments.find((t) => t.id === id);
+  if (!tournament && id?.endsWith('-premium')) {
+    const baseId = id.replace(/-premium$/, '');
+    const baseTournament = tournaments.find((t) => t.id === baseId);
+    if (baseTournament) {
+      const gameConfig = allGames?.find((g) => g.id === baseTournament.game);
+      const premFee = gameConfig?.premiumFee || 1000;
+      tournament = {
+        ...baseTournament,
+        id,
+        title: `${baseTournament.title} (Премиум)`,
+        isPremium: true,
+        entryFeeRub: premFee,
+        prizePoolRub: premFee * 28,
+        prizes: { 1: premFee * 15, 2: premFee * 8, 3: premFee * 5 },
+      };
+    }
+  }
 
   if (!tournament) {
     return (
@@ -27,10 +45,32 @@ export const TournamentDetailPage: React.FC = () => {
     );
   }
 
-  const game = GAMES[tournament.game];
+  const game = allGames?.find((g) => g.id === tournament.game) || GAMES[tournament.game] || {
+    name: tournament.game,
+    short: tournament.game,
+    accent: '#00f0ff',
+  };
   const isRegistered = user ? isUserRegistered(tournament.id, user.email) : false;
   const matchAccess = matches[tournament.id];
   const canRegister = tournament.status === 'recruiting' && tournament.registeredCount < tournament.maxPlayers && !isRegistered;
+
+  const gameConfig = allGames?.find((g) => g.id === tournament.game);
+  const isPremiumSupported = Boolean(
+    gameConfig?.hasPremiumMode ||
+    tournament.game === 'pubg' ||
+    tournament.game === 'pubg_mobile' ||
+    tournament.game === 'apex' ||
+    tournament.isPremium
+  );
+
+  const standardTournament = tournaments.find((t) => t.game === tournament?.game && !t.isPremium);
+  const premiumTournament = tournaments.find((t) => t.game === tournament?.game && t.isPremium);
+
+  const standardLink = standardTournament ? `/tournaments/${standardTournament.id}` : `/tournaments/${tournament.id.replace(/-premium$/, '')}`;
+  const premiumLink = premiumTournament ? `/tournaments/${premiumTournament.id}` : `/tournaments/${tournament.id}-premium`;
+
+  const standardFeeText = `${formatRub(gameConfig?.standardFee ?? 100)}`;
+  const premiumFeeText = `${formatRub(gameConfig?.premiumFee ?? 1000)}`;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-12 sm:px-6">
@@ -38,7 +78,7 @@ export const TournamentDetailPage: React.FC = () => {
         ← Ко всем соревнованиям
       </Link>
 
-      {(tournament.game === 'pubg' || tournament.game === 'pubg_mobile') && (
+      {isPremiumSupported && (
         <div className="my-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-[#12161f] to-amber-500/5 p-3.5 sm:p-4 shadow-lg shadow-amber-500/5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-black font-extrabold text-base shadow-md shadow-amber-500/20">
@@ -52,31 +92,31 @@ export const TournamentDetailPage: React.FC = () => {
                 </span>
               </div>
               <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
-                Переключайтесь между обычным соревнованием (орг. услуги 100 ₽) и премиум-соревнованиями (орг. услуги 1 000 ₽, вознаграждение от организатора 28 000 ₽).
+                Переключайтесь между обычным соревнованием (взнос {standardFeeText}) и премиум-соревнованием (взнос {premiumFeeText}).
               </p>
             </div>
           </div>
 
           <div className="relative inline-flex items-center rounded-xl bg-black/60 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
             <Link
-              to={tournament.game === 'pubg_mobile' ? '/tournaments/pubg-mobile-solo-001' : '/tournaments/pubg-solo-001'}
+              to={standardLink}
               className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
                 !tournament.isPremium
                   ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              🎮 Орг. тариф (100 ₽)
+              🎮 Орг. тариф ({standardFeeText})
             </Link>
             <Link
-              to={tournament.game === 'pubg_mobile' ? '/tournaments/pubg-mobile-premium-001' : '/tournaments/pubg-premium-001'}
+              to={premiumLink}
               className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
                 tournament.isPremium
                   ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-black shadow-md shadow-amber-400/30'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <span>⭐ Премиум тариф (1 000 ₽)</span>
+              <span>⭐ Премиум ({premiumFeeText})</span>
             </Link>
           </div>
         </div>

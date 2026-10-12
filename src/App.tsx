@@ -25,20 +25,18 @@ export const App: React.FC = () => {
   }, [location.pathname, location.search]);
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#07090d] text-zinc-100 selection:bg-cyan-500/30 selection:text-white">
-      {/* Атмосферный тёмный киберспортивный фон */}
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#06070a] text-zinc-100 selection:bg-[#ff1e44]/40 selection:text-white">
+      {/* Атмосферный тёмный киберспортивный фон в стиле Nexus */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-45 scale-105"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 scale-105"
           style={{ backgroundImage: "url('/bg-esports.jpg?v=5')" }}
         />
-        {/* Глубокие тёмные градиенты и фирменная кибер-сетка */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#07090d]/45 via-[#07090d]/75 to-[#07090d]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_0%,#07090d_80%)]" />
-        <div className="absolute inset-0 page-grid opacity-35" />
-        {/* Мягкие киберспортивные световые акценты по краям */}
-        <div className="absolute -top-40 left-1/4 h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[140px]" />
-        <div className="absolute top-1/3 -right-20 h-[500px] w-[500px] rounded-full bg-indigo-500/10 blur-[160px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#06070a]/70 via-[#06070a]/90 to-[#06070a]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_0%,#06070a_85%)]" />
+        {/* Двойная неоновая подсветка Nexus (Красный + Циан) */}
+        <div className="absolute -top-40 right-1/4 h-[550px] w-[550px] rounded-full bg-[#ff1e44]/12 blur-[160px]" />
+        <div className="absolute top-1/4 -left-20 h-[500px] w-[500px] rounded-full bg-[#00f0ff]/10 blur-[160px]" />
       </div>
       <div className="relative z-10 flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
         <Header />

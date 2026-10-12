@@ -154,6 +154,23 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     entryFeeRub: 100,
     prizePoolRub: 2200,
     prizes: { 1: 1000, 2: 700, 3: 500 },
+    isPremium: false,
+  },
+  {
+    id: "apex-premium-001",
+    title: "Apex Legends Trios Premium Showdown",
+    game: "apex",
+    maxPlayers: 60,
+    minPlayers: 30,
+    registeredCount: 0,
+    startsAt: "2026-10-07T21:00:00+03:00",
+    status: "recruiting",
+    format: "Battle Royale, Trios",
+    description: "Премиум соревнования по Apex Legends. Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором соревнований (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
+    entryFeeRub: 1000,
+    prizePoolRub: 28000,
+    prizes: { 1: 15000, 2: 8000, 3: 5000 },
+    isPremium: true,
   },
 ];
 
@@ -227,7 +244,7 @@ export function deduplicateTournaments(tournaments: Tournament[]): Tournament[] 
   const result: Tournament[] = [];
   const seenGameTitle = new Set<string>();
   for (const t of Array.from(uniqueMap.values())) {
-    const key = `${t.game}:${(t.title || '').trim().toLowerCase()}`;
+    const key = `${t.game}:${t.isPremium ? 'prem:' : 'std:'}${(t.title || '').trim().toLowerCase()}`;
     if (!seenGameTitle.has(key)) {
       seenGameTitle.add(key);
       const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
