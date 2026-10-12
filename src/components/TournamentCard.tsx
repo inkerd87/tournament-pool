@@ -103,7 +103,7 @@ export const TournamentCard: React.FC<{
   return (
     <Link
       to={`/tournaments/${tournament.id}`}
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-300 active:scale-[0.99] ${
+      className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-300 active:scale-[0.99] cursor-pointer ${
         isPremium
           ? 'border-amber-500/35 bg-gradient-to-b from-[#181410] via-[#120f0c] to-[#0d0b09] hover:border-amber-400 hover:shadow-[0_8px_30px_rgba(245,158,11,0.15)]'
           : 'border-white/[0.1] bg-gradient-to-b from-[#111726] via-[#0e1320] to-[#090d16] hover:border-cyan-500/40 hover:shadow-[0_8px_30px_rgba(0,240,255,0.12)]'

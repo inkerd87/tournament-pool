@@ -175,26 +175,27 @@ export const HomePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Сетка карточек всех дисциплин */}
+                {/* Сетка карточек всех дисциплин - полностью кликабельные для перехода к турнирам */}
                 <div className="relative z-10 grid grid-cols-2 gap-2.5">
                   {heroGames.map((g) => {
                     const isSelected = activeGameId === g.id;
 
                     return (
-                      <button
+                      <Link
                         key={g.id}
-                        type="button"
-                        onClick={() => setActiveGameId(g.id)}
+                        to={`/tournaments?game=${g.id}`}
                         onMouseEnter={() => setActiveGameId(g.id)}
-                        className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-all duration-200 active:scale-[0.98] ${
+                        onClick={() => setActiveGameId(g.id)}
+                        className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                           isSelected
                             ? 'bg-black/90 shadow-lg scale-[1.02]'
-                            : 'bg-black/60 hover:bg-black/80 border-white/10 hover:border-white/25'
+                            : 'bg-black/60 hover:bg-black/85 border-white/10 hover:border-white/25'
                         }`}
                         style={{
                           borderColor: isSelected ? g.color : undefined,
                           boxShadow: isSelected ? `0 4px 20px -2px ${g.glow}` : undefined,
                         }}
+                        title={`Открыть соревнования по ${g.name}`}
                       >
                         {/* Иконка игры с цветной рамкой */}
                         <div
@@ -222,23 +223,31 @@ export const HomePage: React.FC = () => {
                           </span>
                         </div>
 
-                        {/* Индикатор выбора */}
-                        {isSelected && (
-                          <span
-                            className="h-1.5 w-1.5 rounded-full shrink-0 shadow-sm"
-                            style={{ backgroundColor: g.color }}
-                          />
-                        )}
-                      </button>
+                        {/* Индикатор перехода к турнирам */}
+                        <span
+                          className={`text-xs font-black transition-all duration-200 shrink-0 ${
+                            isSelected
+                              ? 'opacity-100 translate-x-0'
+                              : 'opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0'
+                          }`}
+                          style={{ color: g.color }}
+                        >
+                          →
+                        </span>
+                      </Link>
                     );
                   })}
                 </div>
 
                 {/* Интерактивный нижний лаунчер выбранной игры */}
-                <div className="relative z-10 mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-3 bg-black/40 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-3 sm:p-4 rounded-b-3xl">
+                <Link
+                  to={`/tournaments?game=${activeGameConfig.id}`}
+                  className="relative z-10 mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-3 bg-black/40 hover:bg-black/60 transition-colors -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-3 sm:p-4 rounded-b-3xl group cursor-pointer"
+                  title={`Перейти к соревнованиям по ${activeGameConfig.name}`}
+                >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div
-                      className="h-8 w-8 rounded-lg border p-0.5 shrink-0 flex items-center justify-center overflow-hidden"
+                      className="h-8 w-8 rounded-lg border p-0.5 shrink-0 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105"
                       style={{
                         backgroundColor: `${activeGameConfig.color}20`,
                         borderColor: `${activeGameConfig.color}50`,
@@ -247,29 +256,28 @@ export const HomePage: React.FC = () => {
                       <GameIcon game={activeGameConfig.id} className="w-full h-full object-contain rounded" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-black text-white truncate">
+                      <div className="text-xs font-black text-white group-hover:text-cyan-300 transition-colors truncate">
                         {activeGameConfig.name}
                       </div>
                       <div className="text-[10px] text-zinc-400 font-medium truncate">
-                        {activeGameConfig.tag} • Открытые соревнования
+                        {activeGameConfig.tag} • Открыть все соревнования
                       </div>
                     </div>
                   </div>
 
-                  <Link
-                    to={`/tournaments?game=${activeGameConfig.id}`}
-                    className="shrink-0 inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-black text-black transition-all hover:scale-105 active:scale-95 shadow-lg"
+                  <div
+                    className="shrink-0 inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-black text-black transition-all group-hover:scale-105 active:scale-95 shadow-lg"
                     style={{
                       background: `linear-gradient(135deg, ${activeGameConfig.color}, #ffffff)`,
                       boxShadow: `0 4px 15px -2px ${activeGameConfig.glow}`,
                     }}
                   >
                     <span>К турнирам</span>
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
-                  </Link>
-                </div>
+                  </div>
+                </Link>
 
               </div>
             </div>
