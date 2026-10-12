@@ -726,14 +726,19 @@ const server = http.createServer(async (req, res) => {
   let safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
   let filePath = path.join(__dirname, safePath);
 
-  // Check if file exists in root or in dist
+  // Check if file exists in root, in public, or in dist
   let fileToServe = null;
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
     fileToServe = filePath;
   } else {
-    const distPath = path.join(__dirname, 'dist', safePath);
-    if (fs.existsSync(distPath) && fs.statSync(distPath).isFile()) {
-      fileToServe = distPath;
+    const publicPath = path.join(__dirname, 'public', safePath);
+    if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
+      fileToServe = publicPath;
+    } else {
+      const distPath = path.join(__dirname, 'dist', safePath);
+      if (fs.existsSync(distPath) && fs.statSync(distPath).isFile()) {
+        fileToServe = distPath;
+      }
     }
   }
 
