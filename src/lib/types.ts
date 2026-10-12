@@ -21,6 +21,8 @@ export type CustomGame = {
   tag?: string;
   isBuiltin?: boolean;
   hasPremiumMode?: boolean;
+  standardFee?: number;
+  premiumFee?: number;
 };
 
 export type TournamentStatus =

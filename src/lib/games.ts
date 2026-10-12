@@ -11,6 +11,8 @@ export interface GameConfig {
   tag?: string;
   isCustom?: boolean;
   hasPremiumMode?: boolean;
+  standardFee?: number;
+  premiumFee?: number;
 }
 
 export interface GameOverride {
@@ -23,6 +25,8 @@ export interface GameOverride {
   wallpaperUrl?: string;
   tag?: string;
   hasPremiumMode?: boolean;
+  standardFee?: number;
+  premiumFee?: number;
 }
 
 export interface FullGameInfo extends GameConfig {
@@ -37,6 +41,8 @@ export interface FullGameInfo extends GameConfig {
   hasCustomWallpaper: boolean;
   isModified: boolean;
   hasPremiumMode?: boolean;
+  standardFee?: number;
+  premiumFee?: number;
 }
 
 const CUSTOM_GAMES_STORAGE_KEY = "nb_custom_games_v1";
@@ -95,6 +101,8 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.pubg,
     iconUrl: DEFAULT_GAME_ICONS.pubg,
     hasPremiumMode: true,
+    standardFee: 100,
+    premiumFee: 1000,
   },
   pubg_mobile: {
     id: "pubg_mobile",
@@ -106,6 +114,8 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.pubg_mobile,
     iconUrl: DEFAULT_GAME_ICONS.pubg_mobile,
     hasPremiumMode: true,
+    standardFee: 100,
+    premiumFee: 1000,
   },
   warzone: {
     id: "warzone",
@@ -136,6 +146,8 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     tag: "Battle Royale",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.apex,
     hasPremiumMode: true,
+    standardFee: 100,
+    premiumFee: 1000,
   },
   minecraft: {
     id: "minecraft",
@@ -277,6 +289,8 @@ export function syncAllGamesRegistry(
     const wallpaperUrl = ov?.wallpaperUrl || base.wallpaperUrl || DEFAULT_GAME_WALLPAPERS[id];
     const iconUrl = ov?.iconUrl !== undefined ? ov.iconUrl : base.iconUrl;
     const hasPremiumMode = ov?.hasPremiumMode !== undefined ? ov.hasPremiumMode : Boolean(base.hasPremiumMode);
+    const standardFee = ov?.standardFee !== undefined ? ov.standardFee : (base.standardFee ?? 100);
+    const premiumFee = ov?.premiumFee !== undefined ? ov.premiumFee : (base.premiumFee ?? 1000);
 
     gamesTarget[id] = {
       ...base,
@@ -288,6 +302,8 @@ export function syncAllGamesRegistry(
       iconUrl,
       wallpaperUrl,
       hasPremiumMode,
+      standardFee,
+      premiumFee,
       isCustom: false,
     };
 
@@ -306,6 +322,8 @@ export function syncAllGamesRegistry(
     const iconUrl = ov?.iconUrl !== undefined ? ov.iconUrl : cg.iconUrl;
     const wallpaperUrl = ov?.wallpaperUrl || cg.wallpaperUrl || iconUrl;
     const hasPremiumMode = ov?.hasPremiumMode !== undefined ? ov.hasPremiumMode : Boolean(cg.hasPremiumMode);
+    const standardFee = ov?.standardFee !== undefined ? ov.standardFee : (cg.standardFee ?? 100);
+    const premiumFee = ov?.premiumFee !== undefined ? ov.premiumFee : (cg.premiumFee ?? 1000);
 
     gamesTarget[id] = {
       name: ov?.name || cg.name,
@@ -316,6 +334,8 @@ export function syncAllGamesRegistry(
       wallpaperUrl,
       tag: ov?.tag || cg.tag || "Tournament",
       hasPremiumMode,
+      standardFee,
+      premiumFee,
       isCustom: true,
     };
 
@@ -347,6 +367,8 @@ export const GAMES: Record<GameId, GameConfig> = new Proxy(gamesTarget, {
       glow: "rgba(34, 211, 238, 0.35)",
       tag: "Tournament",
       isCustom: true,
+      standardFee: 100,
+      premiumFee: 1000,
     };
   },
 });
@@ -365,7 +387,7 @@ export function getAllGamesList(): FullGameInfo[] {
     const active = gamesTarget[id] || base;
     const ov = overrides[id];
     const isModified = Boolean(
-      ov && (ov.name || ov.short || ov.tag || ov.accent || ov.iconUrl || ov.wallpaperUrl)
+      ov && (ov.name || ov.short || ov.tag || ov.accent || ov.iconUrl || ov.wallpaperUrl || ov.standardFee !== undefined || ov.premiumFee !== undefined)
     );
 
     result.push({
@@ -379,6 +401,8 @@ export function getAllGamesList(): FullGameInfo[] {
       tag: active.tag,
       isCustom: false,
       hasPremiumMode: active.hasPremiumMode,
+      standardFee: active.standardFee ?? base.standardFee ?? 100,
+      premiumFee: active.premiumFee ?? base.premiumFee ?? 1000,
       defaultName: base.name,
       defaultShort: base.short,
       defaultAccent: base.accent,
@@ -403,6 +427,8 @@ export function getAllGamesList(): FullGameInfo[] {
       wallpaperUrl: cg.wallpaperUrl || cg.iconUrl,
       tag: cg.tag || "Tournament",
       hasPremiumMode: cg.hasPremiumMode,
+      standardFee: cg.standardFee ?? 100,
+      premiumFee: cg.premiumFee ?? 1000,
     };
     const ov = overrides[id];
 
@@ -417,6 +443,8 @@ export function getAllGamesList(): FullGameInfo[] {
       tag: active.tag,
       isCustom: true,
       hasPremiumMode: active.hasPremiumMode,
+      standardFee: active.standardFee ?? cg.standardFee ?? 100,
+      premiumFee: active.premiumFee ?? cg.premiumFee ?? 1000,
       defaultName: cg.name,
       defaultShort: cg.short || cg.name,
       defaultAccent: cg.accent || "#22d3ee",
@@ -434,7 +462,7 @@ export function getAllGamesList(): FullGameInfo[] {
 
 /**
  * Обновление параметров ЛЮБОЙ игры (встроенной или кастомной):
- * иконка, название, короткое имя, цвет, тег, фоновый баннер
+ * иконка, название, короткое имя, цвет, тег, фоновый баннер, цены участия
  */
 export function updateGameConfig(
   gameId: string,
@@ -446,6 +474,8 @@ export function updateGameConfig(
     iconUrl?: string;
     wallpaperUrl?: string;
     hasPremiumMode?: boolean;
+    standardFee?: number;
+    premiumFee?: number;
   }
 ): void {
   const cleanId = gameId.trim().toLowerCase();
@@ -467,6 +497,8 @@ export function updateGameConfig(
   if (updates.iconUrl !== undefined) newOv.iconUrl = updates.iconUrl.trim();
   if (updates.wallpaperUrl !== undefined) newOv.wallpaperUrl = updates.wallpaperUrl.trim();
   if (updates.hasPremiumMode !== undefined) newOv.hasPremiumMode = updates.hasPremiumMode;
+  if (updates.standardFee !== undefined) newOv.standardFee = Number(updates.standardFee);
+  if (updates.premiumFee !== undefined) newOv.premiumFee = Number(updates.premiumFee);
 
   overrides[cleanId] = newOv;
   saveStoredGameOverrides(overrides);
@@ -485,6 +517,8 @@ export function updateGameConfig(
       iconUrl: newOv.iconUrl || customGames[cgIndex].iconUrl,
       wallpaperUrl: newOv.wallpaperUrl || customGames[cgIndex].wallpaperUrl,
       hasPremiumMode: newOv.hasPremiumMode !== undefined ? newOv.hasPremiumMode : customGames[cgIndex].hasPremiumMode,
+      standardFee: newOv.standardFee !== undefined ? newOv.standardFee : customGames[cgIndex].standardFee,
+      premiumFee: newOv.premiumFee !== undefined ? newOv.premiumFee : customGames[cgIndex].premiumFee,
     };
     saveStoredCustomGames(customGames);
   }

@@ -4,6 +4,7 @@ import { GameId } from '@/lib/types';
 import { useTournaments } from '@/context/TournamentContext';
 import { TournamentCard } from '@/components/TournamentCard';
 import { GameIcon } from '@/components/GameIcons';
+import { formatRub } from '@/lib/format';
 
 export const TournamentsPage: React.FC = () => {
   const { tournaments, allGames } = useTournaments();
@@ -14,6 +15,10 @@ export const TournamentsPage: React.FC = () => {
     return gameParam || 'all';
   });
   const [pubgMode, setPubgMode] = useState<'standard' | 'premium'>('standard');
+
+  const activeGameConfig = selectedGame !== 'all' ? allGames.find((g) => g.id === selectedGame) : null;
+  const standardFee = activeGameConfig?.standardFee ?? 100;
+  const premiumFee = activeGameConfig?.premiumFee ?? 1000;
 
   useEffect(() => {
     if (gameParam) {
@@ -118,8 +123,8 @@ export const TournamentsPage: React.FC = () => {
               </div>
               <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
                 {pubgMode === 'premium'
-                  ? 'Премиум соревнования: орг. услуги 1 000 ₽ (судейство, лобби, платформа) · повышенное вознаграждение от организатора'
-                  : 'Обычные соревнования: орг. услуги 100 ₽ (судейство, платформа, подбор оппонентов) · вознаграждение победителям'}
+                  ? `Премиум соревнования: орг. услуги ${formatRub(premiumFee)} (судейство, лобби, платформа) · повышенное вознаграждение от организатора`
+                  : `Обычные соревнования: орг. услуги ${formatRub(standardFee)} (судейство, платформа, подбор оппонентов) · вознаграждение победителям`}
               </p>
             </div>
           </div>
@@ -135,7 +140,7 @@ export const TournamentsPage: React.FC = () => {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <span>Стандарт 100 ₽</span>
+              <span>Стандарт {formatRub(standardFee)}</span>
             </button>
             <button
               type="button"
@@ -146,7 +151,7 @@ export const TournamentsPage: React.FC = () => {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <span>Премиум 1 000 ₽</span>
+              <span>Премиум {formatRub(premiumFee)}</span>
             </button>
           </div>
         </div>

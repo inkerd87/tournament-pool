@@ -26,15 +26,16 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#07090d] text-zinc-100 selection:bg-cyan-500/30 selection:text-white">
-      {/* Атмосферный задний фон киберспортивной арены */}
+      {/* Атмосферный тёмный киберспортивный фон */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-85 scale-100 transform-gpu"
-          style={{ backgroundImage: "url('/bg-esports.jpg?v=3')" }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 scale-105"
+          style={{ backgroundImage: "url('/bg-esports.jpg?v=5')" }}
         />
-        {/* Мягкие затемняющие градиенты: сохраняют картинку сочной и лазеры яркими, при этом текст 100% читается */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#07090d]/30 via-[#07090d]/50 to-[#07090d]/80" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(2, 2, 2, 0.75)_95%)]" />
+        {/* Глубокие тёмные градиенты и фирменная кибер-сетка */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#07090d]/60 via-[#07090d]/85 to-[#07090d]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_0%,#07090d_85%)]" />
+        <div className="absolute inset-0 page-grid opacity-30" />
       </div>
       <div className="relative z-10 flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
         <Header />

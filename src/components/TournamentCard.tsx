@@ -22,6 +22,10 @@ export const TournamentCard: React.FC<{
 
   const hasToggle = isPremiumSupported(propTournament.game);
 
+  const gameConfig = allGames?.find((x) => x.id === propTournament.game);
+  const standardFee = gameConfig?.standardFee ?? (propTournament.entryFeeRub ?? ENTRY_FEE_RUB);
+  const premiumFee = gameConfig?.premiumFee ?? 1000;
+
   const [cardMode, setCardMode] = useState<'standard' | 'premium'>(
     propTournament.isPremium ? 'premium' : 'standard'
   );
@@ -43,29 +47,36 @@ export const TournamentCard: React.FC<{
           t.game === targetGame &&
           (t.isPremium || t.id.toLowerCase().includes('premium') || t.title.toLowerCase().includes('premium'))
       );
-      if (prem) return prem;
+      if (prem) {
+        return {
+          ...prem,
+          entryFeeRub: prem.entryFeeRub ?? premiumFee,
+        };
+      }
       return {
         ...propTournament,
         id: `${propTournament.id}-premium`,
         title: `${propTournament.title} Premium`,
         isPremium: true,
-        entryFeeRub: 1000,
-        prizePoolRub: 28000,
-        prizes: { 1: 15000, 2: 8000, 3: 5000 },
-        description: `Премиум соревнование. Оплата организационных услуг 1 000 ₽. Фиксированное вознаграждение 28 000 ₽ учреждено организатором соревнований.`,
+        entryFeeRub: premiumFee,
+        prizePoolRub: premiumFee * 28,
+        prizes: { 1: Math.round(premiumFee * 15), 2: Math.round(premiumFee * 8), 3: Math.round(premiumFee * 5) },
+        description: `Премиум соревнование. Оплата организационных услуг ${formatRub(premiumFee)}. Фиксированное вознаграждение учреждено организатором соревнований.`,
       };
     } else {
-      return (
-        tournaments.find(
-          (t) =>
-            t.game === targetGame &&
-            !t.isPremium &&
-            !t.id.toLowerCase().includes('premium') &&
-            !t.title.toLowerCase().includes('premium')
-        ) || propTournament
-      );
+      const std = tournaments.find(
+        (t) =>
+          t.game === targetGame &&
+          !t.isPremium &&
+          !t.id.toLowerCase().includes('premium') &&
+          !t.title.toLowerCase().includes('premium')
+      ) || propTournament;
+      return {
+        ...std,
+        entryFeeRub: std.entryFeeRub ?? standardFee,
+      };
     }
-  }, [propTournament, cardMode, tournaments, hasToggle]);
+  }, [propTournament, cardMode, tournaments, hasToggle, standardFee, premiumFee]);
 
   const game = GAMES[tournament.game] || {
     name: tournament.game,
@@ -152,9 +163,9 @@ export const TournamentCard: React.FC<{
                     ? 'bg-cyan-400 text-black shadow-sm font-black'
                     : 'text-zinc-400 hover:text-white'
                 }`}
-                title="Обычные соревнования (100 ₽)"
+                title={`Обычные соревнования (${formatRub(standardFee)})`}
               >
-                100 ₽
+                {formatRub(standardFee)}
               </button>
               <button
                 type="button"
@@ -169,9 +180,9 @@ export const TournamentCard: React.FC<{
                     ? 'bg-amber-400 text-black shadow-sm font-black'
                     : 'text-zinc-400 hover:text-white'
                 }`}
-                title="Премиум соревнования (1 000 ₽)"
+                title={`Премиум соревнования (${formatRub(premiumFee)})`}
               >
-                <span>1 000 ₽</span>
+                <span>{formatRub(premiumFee)}</span>
               </button>
             </div>
           ) : isSoon ? (

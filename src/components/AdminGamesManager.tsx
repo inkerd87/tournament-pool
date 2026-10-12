@@ -23,6 +23,9 @@ export const AdminGamesManager: React.FC = () => {
   const [newGameAccent, setNewGameAccent] = useState('#22d3ee');
   const [newGameIconUrl, setNewGameIconUrl] = useState('');
   const [newGameWallpaperUrl, setNewGameWallpaperUrl] = useState('');
+  const [newGameHasPremium, setNewGameHasPremium] = useState(false);
+  const [newGameStandardFee, setNewGameStandardFee] = useState<number | string>(100);
+  const [newGamePremiumFee, setNewGamePremiumFee] = useState<number | string>(1000);
   const [isSubmittingNew, setIsSubmittingNew] = useState(false);
 
   const showNotification = (id: string, text: string, type: 'success' | 'error' = 'success') => {
@@ -73,6 +76,9 @@ export const AdminGamesManager: React.FC = () => {
         iconUrl: newGameIconUrl.trim(),
         wallpaperUrl: newGameWallpaperUrl.trim() || newGameIconUrl.trim(),
         isBuiltin: false,
+        hasPremiumMode: newGameHasPremium,
+        standardFee: Number(newGameStandardFee) || 100,
+        premiumFee: Number(newGamePremiumFee) || 1000,
       });
 
       if (ok) {
@@ -83,6 +89,9 @@ export const AdminGamesManager: React.FC = () => {
         setNewGameAccent('#22d3ee');
         setNewGameIconUrl('');
         setNewGameWallpaperUrl('');
+        setNewGameHasPremium(false);
+        setNewGameStandardFee(100);
+        setNewGamePremiumFee(1000);
         showNotification(uniqueId, `Игра «${newGameName}» успешно добавлена!`);
       } else {
         alert('Ошибка при сохранении игры. Попробуйте еще раз.');
@@ -413,6 +422,80 @@ export const AdminGamesManager: React.FC = () => {
                 </div>
               </div>
 
+              {/* Ползунок премиума и цены взносов */}
+              <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3.5 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-amber-400 font-bold text-sm">★</span>
+                      <span className="text-xs font-bold text-white">Премиум ползунок</span>
+                      <span
+                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
+                          newGameHasPremium
+                            ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                            : 'bg-white/10 text-zinc-400'
+                        }`}
+                      >
+                        {newGameHasPremium ? 'ВКЛЮЧЕН' : 'ВЫКЛЮЧЕН'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400">
+                      Включает интерактивный переключатель (ползунок) на карточках соревнований этой игры
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setNewGameHasPremium(!newGameHasPremium)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                      newGameHasPremium ? 'bg-amber-400' : 'bg-zinc-700'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-black shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        newGameHasPremium ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-amber-500/15">
+                  <div>
+                    <label className="block text-[11px] font-bold text-cyan-300 mb-1">
+                      Цена Стандарт (₽)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        step="10"
+                        value={newGameStandardFee}
+                        onChange={(e) => setNewGameStandardFee(e.target.value)}
+                        className="input-field text-xs font-bold w-full pr-7"
+                        placeholder="100"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">₽</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                      Цена Премиум (₽)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        step="50"
+                        value={newGamePremiumFee}
+                        onChange={(e) => setNewGamePremiumFee(e.target.value)}
+                        className="input-field text-xs font-bold w-full pr-7 text-amber-300 border-amber-500/40"
+                        placeholder="1000"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-400">₽</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="pt-2 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
@@ -446,6 +529,9 @@ interface GameEditorCardProps {
     accent?: string;
     iconUrl?: string;
     wallpaperUrl?: string;
+    hasPremiumMode?: boolean;
+    standardFee?: number;
+    premiumFee?: number;
   }) => Promise<void>;
   onReset: () => Promise<void>;
   onDelete: () => Promise<void>;
@@ -466,6 +552,8 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
   const [iconUrl, setIconUrl] = useState(game.iconUrl || '');
   const [wallpaperUrl, setWallpaperUrl] = useState(game.wallpaperUrl || '');
   const [hasPremiumMode, setHasPremiumMode] = useState<boolean>(Boolean(game.hasPremiumMode));
+  const [standardFee, setStandardFee] = useState<number | string>(game.standardFee ?? 100);
+  const [premiumFee, setPremiumFee] = useState<number | string>(game.premiumFee ?? 1000);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingIcon, setIsUploadingIcon] = useState(false);
   const [isUploadingWall, setIsUploadingWall] = useState(false);
@@ -482,6 +570,8 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
     setIconUrl(game.iconUrl || '');
     setWallpaperUrl(game.wallpaperUrl || '');
     setHasPremiumMode(Boolean(game.hasPremiumMode));
+    setStandardFee(game.standardFee ?? 100);
+    setPremiumFee(game.premiumFee ?? 1000);
   }, [game]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -496,6 +586,8 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
         iconUrl: iconUrl.trim(),
         wallpaperUrl: wallpaperUrl.trim(),
         hasPremiumMode,
+        standardFee: Number(standardFee) || 100,
+        premiumFee: Number(premiumFee) || 1000,
       });
     } finally {
       setIsSaving(false);
@@ -842,44 +934,99 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
           )}
         </div>
 
-        {/* Блок 5: Премиум ползунок (100 ₽ / 1 000 ₽) */}
-        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3.5 flex items-center justify-between gap-4">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <span className="text-amber-400 font-bold text-sm">★</span>
-              <span className="text-xs font-bold text-white">Премиум ползунок (100 ₽ / 1 000 ₽)</span>
-              <span
-                className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
-                  hasPremiumMode
-                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
-                    : 'bg-white/10 text-zinc-400'
-                }`}
-              >
-                {hasPremiumMode ? 'ВКЛЮЧЕН' : 'ВЫКЛЮЧЕН'}
-              </span>
+        {/* Блок 5: Премиум ползунок и настройка цен взноса */}
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-bold text-sm">★</span>
+                <span className="text-xs font-bold text-white">Премиум ползунок на карточках игры</span>
+                <span
+                  className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
+                    hasPremiumMode
+                      ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                      : 'bg-white/10 text-zinc-400'
+                  }`}
+                >
+                  {hasPremiumMode ? 'ВКЛЮЧЕН' : 'ВЫКЛЮЧЕН'}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400 leading-tight">
+                Добавляет интерактивный переключатель режимов участия на карточки соревнований этой игры
+              </p>
             </div>
-            <p className="text-[11px] text-zinc-400 leading-tight">
-              Добавляет интерактивный переключатель «100 ₽ / 1 000 ₽» на карточки соревнований этой игры на сайте
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={async () => {
-              const nextVal = !hasPremiumMode;
-              setHasPremiumMode(nextVal);
-              await onUpdate({ hasPremiumMode: nextVal });
-            }}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              hasPremiumMode ? 'bg-amber-400' : 'bg-zinc-700'
-            }`}
-            title={hasPremiumMode ? 'Выключить премиум ползунок' : 'Включить премиум ползунок'}
-          >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-black shadow-lg ring-0 transition duration-200 ease-in-out ${
-                hasPremiumMode ? 'translate-x-5' : 'translate-x-0'
+            <button
+              type="button"
+              onClick={async () => {
+                const nextVal = !hasPremiumMode;
+                setHasPremiumMode(nextVal);
+                await onUpdate({
+                  hasPremiumMode: nextVal,
+                  standardFee: Number(standardFee) || 100,
+                  premiumFee: Number(premiumFee) || 1000,
+                });
+              }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                hasPremiumMode ? 'bg-amber-400' : 'bg-zinc-700'
               }`}
-            />
-          </button>
+              title={hasPremiumMode ? 'Выключить премиум ползунок' : 'Включить премиум ползунок'}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-black shadow-lg ring-0 transition duration-200 ease-in-out ${
+                  hasPremiumMode ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Настройка цен на ползунках */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2.5 border-t border-amber-500/20">
+            <div>
+              <label className="block text-[11px] font-bold text-cyan-300 uppercase tracking-wider mb-1">
+                Цена на ползунке: Стандарт (₽)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  step="10"
+                  value={standardFee}
+                  onChange={(e) => setStandardFee(e.target.value)}
+                  className="input-field text-xs font-bold w-full pr-8 text-white"
+                  placeholder="100"
+                />
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">
+                  ₽
+                </span>
+              </div>
+              <p className="mt-1 text-[10px] text-zinc-400">
+                Отображается на левой кнопке ползунка
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-amber-300 uppercase tracking-wider mb-1">
+                Цена на ползунке: Премиум (₽)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  step="50"
+                  value={premiumFee}
+                  onChange={(e) => setPremiumFee(e.target.value)}
+                  className="input-field text-xs font-bold w-full pr-8 text-amber-300 border-amber-500/40"
+                  placeholder="1000"
+                />
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-400">
+                  ₽
+                </span>
+              </div>
+              <p className="mt-1 text-[10px] text-zinc-400">
+                Отображается на правой кнопке ползунка
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Кнопка сохранения */}
