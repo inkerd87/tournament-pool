@@ -17,6 +17,7 @@ export const HomePage: React.FC = () => {
     name: g.name,
     short: g.short || g.name,
     color: g.accent || '#00d4ff',
+    glow: g.glow || 'rgba(0, 212, 255, 0.35)',
     tag: g.tag || 'Турнир',
     standardFee: g.standardFee ?? 100,
     premiumFee: g.premiumFee ?? 1000,
@@ -35,7 +36,7 @@ export const HomePage: React.FC = () => {
   return (
     <div className="space-y-12 sm:space-y-16">
       {/* Главный Hero-блок соревнований */}
-      <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#070a0f] pt-6 pb-12 sm:pt-10 sm:pb-16">
+      <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#070a0f]/90 backdrop-blur-sm pt-6 pb-12 sm:pt-10 sm:pb-16">
         
         {/* Фоновое изображение активной дисциплины с мягким затемнением */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -45,7 +46,7 @@ export const HomePage: React.FC = () => {
               <div
                 key={g.id}
                 className={`absolute inset-0 bg-cover bg-center transition-opacity duration-700 ease-out ${
-                  isCurrent ? 'opacity-25 scale-100' : 'opacity-0 scale-105'
+                  isCurrent ? 'opacity-35 scale-100' : 'opacity-0 scale-105'
                 }`}
                 style={{
                   backgroundImage: `url(${g.wallpaperUrl})`,
@@ -53,7 +54,17 @@ export const HomePage: React.FC = () => {
               />
             );
           })}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070a0f] via-[#070a0f]/80 to-[#070a0f]/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#070a0f] via-[#070a0f]/80 to-[#070a0f]/40" />
+
+          {/* Динамический арена-свет под активную дисциплину */}
+          <div
+            className="absolute -top-32 right-10 h-[450px] w-[450px] rounded-full blur-[140px] transition-all duration-700 opacity-25 pointer-events-none"
+            style={{ backgroundColor: activeGameConfig.color }}
+          />
+          <div
+            className="absolute -bottom-20 -left-20 h-[350px] w-[350px] rounded-full blur-[140px] pointer-events-none opacity-20"
+            style={{ backgroundColor: '#00d4ff' }}
+          />
         </div>
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
@@ -61,8 +72,8 @@ export const HomePage: React.FC = () => {
             
             {/* Левая колонка: Заголовок, описание и действия */}
             <div className="lg:col-span-6 space-y-5">
-              <div className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold text-zinc-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+              <div className="inline-flex items-center gap-2 rounded-md border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
                 <span className="tracking-wide uppercase text-[11px] font-mono">NightByte Esports • Сезон 2026</span>
               </div>
 
@@ -70,14 +81,14 @@ export const HomePage: React.FC = () => {
                 Турниры по киберспорту с гарантированными выплатами
               </h1>
 
-              <p className="max-w-xl text-sm sm:text-base text-zinc-400 leading-relaxed font-normal">
+              <p className="max-w-xl text-sm sm:text-base text-zinc-300 leading-relaxed font-normal">
                 Регулярные любительские и открытые матчи по CS2, Dota 2, PUBG, Apex Legends и другим играм. Честное судейство, прозрачные регламенты и автоматические выплаты призовых через СБП.
               </p>
 
               <div className="pt-2 flex flex-col sm:flex-row flex-wrap gap-3">
                 <Link
                   to="/tournaments"
-                  className="btn-primary px-5 py-3 text-sm font-extrabold inline-flex items-center justify-center gap-2"
+                  className="btn-primary px-5 py-3 text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-cyan-400/25"
                 >
                   <span>Смотреть турниры</span>
                   <span>→</span>
@@ -85,7 +96,7 @@ export const HomePage: React.FC = () => {
 
                 <Link
                   to="/how-it-works"
-                  className="btn-secondary px-4 py-3 text-sm font-semibold inline-flex items-center justify-center gap-2"
+                  className="btn-secondary px-4 py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 border-white/20 hover:border-white/40"
                 >
                   <span>Регламент и правила</span>
                 </Link>
@@ -94,7 +105,7 @@ export const HomePage: React.FC = () => {
                   href={VK_GROUP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-secondary px-4 py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 border-[#0077ff]/35 text-[#5ea4ff] hover:bg-[#0077ff]/10"
+                  className="btn-secondary px-4 py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 border-[#0077ff]/40 bg-[#0077ff]/10 text-[#5ea4ff] hover:bg-[#0077ff]/20 hover:border-[#0077ff]/60"
                 >
                   <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zm3.08 14.27h-1.46c-.55 0-.72-.44-1.71-1.43-.86-.83-1.24-.94-1.46-.94-.3 0-.38.08-.38.49v1.31c0 .35-.11.56-1.04.56-1.54 0-3.24-.93-4.44-2.66-1.81-2.54-2.3-4.45-2.3-4.84 0-.21.08-.41.49-.41h1.46c.37 0 .51.17.65.56.72 2.08 1.92 3.9 2.41 3.9.19 0 .27-.09.27-.56V9.97c-.06-.99-.58-1.07-.58-1.42 0-.17.14-.34.37-.34h2.29c.31 0 .42.17.42.53v2.89c0 .31.14.42.23.42.19 0 .34-.11.68-.45 1.05-1.18 1.8-3 1.8-3 .1-.21.27-.41.64-.41h1.46c.44 0 .54.23.44.53-.18.85-1.95 3.35-1.95 3.35-.16.25-.22.36 0 .65.16.21.69.67 1.04 1.08.65.74 1.14 1.36 1.28 1.79.14.42-.08.64-.51.64z" />
@@ -106,7 +117,7 @@ export const HomePage: React.FC = () => {
 
             {/* Правая колонка: Витрина дисциплин и карточка матча */}
             <div className="lg:col-span-6">
-              <div className="rounded-2xl border border-white/[0.08] bg-[#0c1017] p-4 sm:p-5 shadow-xl">
+              <div className="rounded-2xl border border-white/[0.1] bg-[#0c1017] p-4 sm:p-5 shadow-2xl">
                 
                 {/* Переключатель дисциплин */}
                 <div className="mb-4">
@@ -122,11 +133,20 @@ export const HomePage: React.FC = () => {
                           type="button"
                           onClick={() => setActiveGameId(g.id)}
                           onMouseEnter={() => setActiveGameId(g.id)}
-                          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition ${
+                          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all duration-200 ${
                             isSelected
-                              ? 'bg-white/15 text-white border border-white/25 shadow-sm'
-                              : 'bg-white/[0.03] text-zinc-400 border border-white/[0.06] hover:bg-white/[0.08] hover:text-white'
+                              ? 'text-white border shadow-sm scale-105'
+                              : 'bg-white/[0.03] text-zinc-400 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white'
                           }`}
+                          style={
+                            isSelected
+                              ? {
+                                  backgroundColor: `${g.color}25`,
+                                  borderColor: `${g.color}80`,
+                                  boxShadow: `0 3px 12px -2px ${g.color}40`,
+                                }
+                              : undefined
+                          }
                         >
                           <GameIcon game={g.id} className="w-3.5 h-3.5 object-cover rounded-sm" />
                           <span>{g.short}</span>
@@ -137,9 +157,15 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* Карточка-превью активной игры */}
-                <div className="relative rounded-xl border border-white/[0.08] overflow-hidden bg-black/50">
+                <div
+                  className="relative rounded-xl border overflow-hidden bg-black/60 transition-all duration-300"
+                  style={{
+                    borderColor: `${activeGameConfig.color}50`,
+                    boxShadow: `0 10px 30px -8px ${activeGameConfig.color}25`,
+                  }}
+                >
                   <div
-                    className="absolute inset-0 bg-cover bg-center opacity-30"
+                    className="absolute inset-0 bg-cover bg-center opacity-40 transition-all duration-700"
                     style={{ backgroundImage: `url(${activeGameConfig.wallpaperUrl})` }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0c1017] via-[#0c1017]/85 to-transparent" />
@@ -147,20 +173,29 @@ export const HomePage: React.FC = () => {
                   <div className="relative z-10 p-4 sm:p-5 flex flex-col justify-between min-h-[190px]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-black/60 border border-white/10 p-1 flex items-center justify-center shrink-0">
+                        <div
+                          className="h-10 w-10 rounded-lg p-1 flex items-center justify-center shrink-0 border"
+                          style={{
+                            backgroundColor: `${activeGameConfig.color}20`,
+                            borderColor: `${activeGameConfig.color}60`,
+                          }}
+                        >
                           <GameIcon game={activeGameConfig.id} className="w-full h-full object-contain rounded" />
                         </div>
                         <div>
                           <h3 className="text-lg font-bold text-white tracking-tight leading-tight">
                             {activeGameConfig.name}
                           </h3>
-                          <span className="text-xs text-zinc-400">
+                          <span
+                            className="text-xs font-semibold"
+                            style={{ color: activeGameConfig.color }}
+                          >
                             {activeGameConfig.tag} • Открытые соревнования
                           </span>
                         </div>
                       </div>
 
-                      <span className="inline-flex items-center gap-1 rounded bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400 uppercase tracking-wide">
+                      <span className="inline-flex items-center gap-1.5 rounded bg-emerald-500/15 border border-emerald-500/35 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-wide">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         Регистрация открыта
                       </span>
@@ -169,14 +204,14 @@ export const HomePage: React.FC = () => {
                     <div className="mt-4 pt-3 border-t border-white/[0.08] flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 text-xs">
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-zinc-500 block">Взнос</span>
+                          <span className="text-[10px] uppercase font-bold text-zinc-400 block">Взнос</span>
                           <span className="font-extrabold text-white font-mono text-sm">
                             от {formatRub(activeGameConfig.standardFee)}
                           </span>
                         </div>
                         <div className="h-6 w-px bg-white/10" />
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-zinc-500 block">Призовые</span>
+                          <span className="text-[10px] uppercase font-bold text-amber-400/90 block">Призовые</span>
                           <span className="font-extrabold text-amber-300 font-mono text-sm">
                             до 28 000 ₽
                           </span>
@@ -185,7 +220,12 @@ export const HomePage: React.FC = () => {
 
                       <Link
                         to={`/tournaments?game=${activeGameConfig.id}`}
-                        className="btn-primary py-2 px-4 text-xs font-extrabold"
+                        className="py-2 px-4 text-xs font-extrabold rounded-lg transition-all hover:scale-[1.02] shadow-md"
+                        style={{
+                          backgroundColor: activeGameConfig.color,
+                          color: '#000000',
+                          boxShadow: `0 4px 15px -2px ${activeGameConfig.color}50`,
+                        }}
                       >
                         <span>К турнирам {activeGameConfig.short} →</span>
                       </Link>
@@ -200,21 +240,36 @@ export const HomePage: React.FC = () => {
 
           {/* Строка ключевых фактов платформы */}
           <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 border-t border-white/[0.08] pt-6">
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 sm:p-4">
-              <span className="font-mono text-lg sm:text-xl font-bold text-white block">8 дисциплин</span>
-              <span className="text-xs text-zinc-400 mt-0.5 block">CS2, Dota 2, PUBG, Apex, Warzone...</span>
+            <div className="relative overflow-hidden rounded-xl border border-cyan-500/25 bg-gradient-to-b from-cyan-500/[0.07] to-transparent p-3.5 sm:p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="flex h-2 w-2 rounded-full bg-cyan-400" />
+                <span className="font-mono text-lg sm:text-xl font-extrabold text-cyan-300">8 дисциплин</span>
+              </div>
+              <span className="text-xs text-zinc-400 block">CS2, Dota 2, PUBG, Apex, Warzone...</span>
             </div>
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 sm:p-4">
-              <span className="font-mono text-lg sm:text-xl font-bold text-white block">До 24 часов</span>
-              <span className="text-xs text-zinc-400 mt-0.5 block">Выплаты выигрышей через СБП</span>
+
+            <div className="relative overflow-hidden rounded-xl border border-emerald-500/25 bg-gradient-to-b from-emerald-500/[0.07] to-transparent p-3.5 sm:p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="font-mono text-lg sm:text-xl font-extrabold text-emerald-300">До 24 часов</span>
+              </div>
+              <span className="text-xs text-zinc-400 block">Выплаты выигрышей через СБП</span>
             </div>
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 sm:p-4">
-              <span className="font-mono text-lg sm:text-xl font-bold text-white block">Честный арбитраж</span>
-              <span className="text-xs text-zinc-400 mt-0.5 block">Античит и видеоконтроль матчей</span>
+
+            <div className="relative overflow-hidden rounded-xl border border-indigo-500/25 bg-gradient-to-b from-indigo-500/[0.07] to-transparent p-3.5 sm:p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="flex h-2 w-2 rounded-full bg-indigo-400" />
+                <span className="font-mono text-lg sm:text-xl font-extrabold text-indigo-300">Честный арбитраж</span>
+              </div>
+              <span className="text-xs text-zinc-400 block">Античит и видеоконтроль матчей</span>
             </div>
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3 sm:p-4">
-              <span className="font-mono text-lg sm:text-xl font-bold text-white block">Фиксированный взнос</span>
-              <span className="text-xs text-zinc-400 mt-0.5 block">От 100 ₽ без скрытых комиссий</span>
+
+            <div className="relative overflow-hidden rounded-xl border border-amber-500/25 bg-gradient-to-b from-amber-500/[0.07] to-transparent p-3.5 sm:p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="flex h-2 w-2 rounded-full bg-amber-400" />
+                <span className="font-mono text-lg sm:text-xl font-extrabold text-amber-300">Фиксированный взнос</span>
+              </div>
+              <span className="text-xs text-zinc-400 block">От 100 ₽ без скрытых комиссий</span>
             </div>
           </div>
 
@@ -229,7 +284,8 @@ export const HomePage: React.FC = () => {
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 Ближайшие соревнования
               </h2>
-              <span className="rounded bg-white/10 px-2 py-0.5 text-xs font-bold text-zinc-300 font-mono">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/40 px-2.5 py-0.5 text-xs font-bold text-cyan-300 font-mono">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
                 {activeCount} открыто
               </span>
             </div>
@@ -253,27 +309,39 @@ export const HomePage: React.FC = () => {
             onClick={() => setHomeFilterGame('all')}
             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition whitespace-nowrap ${
               homeFilterGame === 'all'
-                ? 'bg-white/15 text-white'
-                : 'bg-white/[0.03] text-zinc-400 hover:text-white'
+                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/20'
+                : 'bg-white/[0.03] text-zinc-400 hover:text-white border border-white/[0.08]'
             }`}
           >
             Все игры
           </button>
-          {heroGames.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              onClick={() => setHomeFilterGame(g.id)}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition whitespace-nowrap ${
-                homeFilterGame === g.id
-                  ? 'bg-white/15 text-white border border-white/20'
-                  : 'bg-white/[0.03] text-zinc-400 hover:text-white border border-transparent'
-              }`}
-            >
-              <GameIcon game={g.id} className="w-3.5 h-3.5 rounded-sm object-cover" />
-              <span>{g.short}</span>
-            </button>
-          ))}
+          {heroGames.map((g) => {
+            const isSel = homeFilterGame === g.id;
+            return (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => setHomeFilterGame(g.id)}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition whitespace-nowrap ${
+                  isSel
+                    ? 'text-white border shadow-sm'
+                    : 'bg-white/[0.03] text-zinc-400 hover:text-white border border-white/[0.08]'
+                }`}
+                style={
+                  isSel
+                    ? {
+                        backgroundColor: `${g.color}25`,
+                        borderColor: `${g.color}80`,
+                        boxShadow: `0 2px 10px -2px ${g.color}40`,
+                      }
+                    : undefined
+                }
+              >
+                <GameIcon game={g.id} className="w-3.5 h-3.5 rounded-sm object-cover" />
+                <span>{g.short}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Сетка карточек соревнований */}
@@ -305,32 +373,46 @@ export const HomePage: React.FC = () => {
           {[
             {
               step: '01',
+              color: '#00d4ff',
+              badgeBg: 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300',
               title: 'Выбор соревнования',
               text: 'Выберите игру, подходящий формат (Solo, Duo, 5v5) и удобное время начала в расписании сетки.',
             },
             {
               step: '02',
+              color: '#6366f1',
+              badgeBg: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300',
               title: 'Регистрация и взнос',
               text: 'Оплатите участие картой РФ или через СБП. Слот в турнирной таблице мгновенно закрепляется за вашим никнеймом.',
             },
             {
               step: '03',
+              color: '#a855f7',
+              badgeBg: 'bg-purple-500/15 border-purple-500/30 text-purple-300',
               title: 'Вход в закрытое лобби',
               text: 'За 15 минут до старта в вашем личном кабинете на сайте появятся данные для подключения (Room ID и пароль).',
             },
             {
               step: '04',
+              color: '#10b981',
+              badgeBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300',
               title: 'Получение призовых',
               text: 'Судьи подтверждают результат по протоколу матча. Вознаграждение победителя переводится на баланс или через СБП до суток.',
             },
           ].map((item) => (
             <div
               key={item.step}
-              className="rounded-xl border border-white/[0.08] bg-[#0c1017] p-5 flex flex-col justify-between"
+              className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0c1017] p-5 flex flex-col justify-between hover:border-white/20 transition-all group"
             >
+              <div
+                className="absolute top-0 left-0 right-0 h-[2px]"
+                style={{ backgroundColor: item.color }}
+              />
               <div>
-                <span className="font-mono text-xs font-bold text-cyan-400 block mb-2">{item.step}</span>
-                <h3 className="text-sm font-bold text-white">{item.title}</h3>
+                <span className={`inline-flex items-center font-mono text-xs font-extrabold rounded-md border px-2 py-0.5 mb-2.5 ${item.badgeBg}`}>
+                  {item.step}
+                </span>
+                <h3 className="text-sm font-bold text-white group-hover:text-white transition-colors">{item.title}</h3>
                 <p className="mt-2 text-xs text-zinc-400 leading-relaxed">{item.text}</p>
               </div>
             </div>
@@ -340,10 +422,11 @@ export const HomePage: React.FC = () => {
 
       {/* Сообщество ВКонтакте */}
       <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 sm:pb-16">
-        <div className="rounded-2xl border border-white/[0.08] bg-[#0c1017] p-6 sm:p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="relative overflow-hidden rounded-2xl border border-[#0077ff]/30 bg-gradient-to-br from-[#0c1424] via-[#0c1017] to-[#0c1017] p-6 sm:p-8 shadow-2xl">
+          <div className="pointer-events-none absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#0077ff]/15 blur-3xl" />
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-md border border-[#0077ff]/30 bg-[#0077ff]/10 px-2.5 py-1 text-xs font-semibold text-[#5ea4ff]">
+              <div className="inline-flex items-center gap-2 rounded-md border border-[#0077ff]/40 bg-[#0077ff]/15 px-2.5 py-1 text-xs font-semibold text-[#5ea4ff]">
                 <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zm3.08 14.27h-1.46c-.55 0-.72-.44-1.71-1.43-.86-.83-1.24-.94-1.46-.94-.3 0-.38.08-.38.49v1.31c0 .35-.11.56-1.04.56-1.54 0-3.24-.93-4.44-2.66-1.81-2.54-2.3-4.45-2.3-4.84 0-.21.08-.41.49-.41h1.46c.37 0 .51.17.65.56.72 2.08 1.92 3.9 2.41 3.9.19 0 .27-.09.27-.56V9.97c-.06-.99-.58-1.07-.58-1.42 0-.17.14-.34.37-.34h2.29c.31 0 .42.17.42.53v2.89c0 .31.14.42.23.42.19 0 .34-.11.68-.45 1.05-1.18 1.8-3 1.8-3 .1-.21.27-.41.64-.41h1.46c.44 0 .54.23.44.53-.18.85-1.95 3.35-1.95 3.35-.16.25-.22.36 0 .65.16.21.69.67 1.04 1.08.65.74 1.14 1.36 1.28 1.79.14.42-.08.64-.51.64z" />
                 </svg>
@@ -354,14 +437,14 @@ export const HomePage: React.FC = () => {
                 Сообщество NightByte Club
               </h2>
 
-              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
                 Следите за расписанием новых соревнований, отчётами о выплатах победителям и общайтесь с судьями и участниками напрямую.
               </p>
 
-              <div className="flex flex-wrap gap-2 text-xs text-zinc-400 pt-1">
-                <span className="rounded border border-white/[0.08] bg-white/[0.02] px-2.5 py-1">Анонсы соревнований</span>
-                <span className="rounded border border-white/[0.08] bg-white/[0.02] px-2.5 py-1">Чеки выплат призовых</span>
-                <span className="rounded border border-white/[0.08] bg-white/[0.02] px-2.5 py-1">Чат игроков и арбитраж</span>
+              <div className="flex flex-wrap gap-2 text-xs pt-1">
+                <span className="rounded-lg border border-[#0077ff]/30 bg-[#0077ff]/10 text-cyan-200 px-2.5 py-1 font-semibold">Анонсы соревнований</span>
+                <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 px-2.5 py-1 font-semibold">Чеки выплат призовых</span>
+                <span className="rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-300 px-2.5 py-1 font-semibold">Чат игроков и арбитраж</span>
               </div>
             </div>
 
@@ -370,11 +453,11 @@ export const HomePage: React.FC = () => {
                 href={VK_GROUP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-secondary py-3 px-6 text-sm font-bold border-[#0077ff]/40 bg-[#0077ff]/15 text-white hover:bg-[#0077ff]/25"
+                className="btn-secondary py-3 px-6 text-sm font-bold border-[#0077ff]/50 bg-[#0077ff]/20 text-white hover:bg-[#0077ff]/35 shadow-md shadow-[#0077ff]/25"
               >
                 <span>Вступить в группу ВК →</span>
               </a>
-              <span className="font-mono text-xs text-zinc-500">
+              <span className="font-mono text-xs text-cyan-400/80">
                 vk.ru/nightbyte.club
               </span>
             </div>

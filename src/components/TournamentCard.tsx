@@ -105,14 +105,14 @@ export const TournamentCard: React.FC<{
       to={`/tournaments/${tournament.id}`}
       className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border transition-all duration-200 active:scale-[0.99] cursor-pointer ${
         isPremium
-          ? 'border-amber-500/25 bg-[#121013] hover:border-amber-400/60 hover:bg-[#161318]'
-          : 'border-white/[0.08] bg-[#0c1017] hover:border-cyan-400/50 hover:bg-[#0f1420]'
+          ? 'border-amber-500/35 bg-[#121013] hover:border-amber-400/80 hover:shadow-xl hover:shadow-amber-500/10'
+          : 'border-white/[0.1] bg-[#0c1017] hover:border-white/30 hover:shadow-xl'
       }`}
     >
       {/* Фоновая картинка игры при наведении */}
       {wallpaperUrl && (
         <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out opacity-10 group-hover:opacity-30 group-hover:scale-105"
+          className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out opacity-15 group-hover:opacity-35 group-hover:scale-105"
           style={{ backgroundImage: `url(${wallpaperUrl})` }}
         />
       )}
@@ -122,11 +122,11 @@ export const TournamentCard: React.FC<{
 
       {/* Верхняя полоска дисциплины */}
       <div
-        className="relative z-10 h-0.5 w-full transition-opacity opacity-70 group-hover:opacity-100"
+        className="relative z-10 h-[3px] w-full transition-all duration-300 opacity-90 group-hover:opacity-100"
         style={{
           background: isPremium
-            ? '#f59e0b'
-            : game.accent || '#00d4ff',
+            ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+            : `linear-gradient(90deg, ${game.accent || '#00d4ff'}, ${game.accent || '#00d4ff'}66)`,
         }}
       />
 
@@ -227,20 +227,20 @@ export const TournamentCard: React.FC<{
         )}
 
         {/* Блок призового вознаграждения */}
-        <div className="mt-3.5 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+        <div className="mt-3.5 rounded-lg border border-amber-500/25 bg-amber-500/[0.05] p-3 transition-colors group-hover:border-amber-500/40 group-hover:bg-amber-500/[0.08]">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 block">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-amber-300/85 block">
                 Призовой фонд
               </span>
-              <span className="text-base sm:text-lg font-extrabold text-white font-mono tracking-tight leading-none mt-0.5 block">
+              <span className="text-base sm:text-lg font-black text-amber-300 font-mono tracking-tight leading-none mt-0.5 block">
                 {isSoon ? 'Анонс скоро' : formatRub(prizePool)}
               </span>
             </div>
 
             {tournament.winnerPerPlayerRub ? (
               <span className="text-right text-[11px] font-bold text-amber-300 font-mono">
-                {formatRub(tournament.winnerPerPlayerRub)} <span className="text-zinc-500 text-[9px] font-normal block">игроку</span>
+                {formatRub(tournament.winnerPerPlayerRub)} <span className="text-amber-400/60 text-[9px] font-normal block">игроку</span>
               </span>
             ) : isPremium ? (
               <span className="text-right text-[10px] font-bold text-amber-300 uppercase tracking-wide">
@@ -251,14 +251,14 @@ export const TournamentCard: React.FC<{
 
           {/* Премиум распределение TOP-3 при наличии */}
           {isPremium && tournament.prizes && (
-            <div className="mt-2.5 pt-2 border-t border-white/[0.06] grid grid-cols-3 gap-1 text-center text-[10px]">
+            <div className="mt-2.5 pt-2 border-t border-amber-500/20 grid grid-cols-3 gap-1 text-center text-[10px]">
               <div>
-                <div className="text-zinc-500 text-[9px] uppercase font-bold">1 место</div>
+                <div className="text-amber-400/70 text-[9px] uppercase font-bold">1 место</div>
                 <div className="font-bold text-amber-300 font-mono">{formatRub(tournament.prizes[1] || 15000)}</div>
               </div>
               <div>
-                <div className="text-zinc-500 text-[9px] uppercase font-bold">2 место</div>
-                <div className="font-bold text-zinc-300 font-mono">{formatRub(tournament.prizes[2] || 8000)}</div>
+                <div className="text-zinc-400 text-[9px] uppercase font-bold">2 место</div>
+                <div className="font-bold text-zinc-200 font-mono">{formatRub(tournament.prizes[2] || 8000)}</div>
               </div>
               <div>
                 <div className="text-zinc-500 text-[9px] uppercase font-bold">3 место</div>
@@ -275,7 +275,7 @@ export const TournamentCard: React.FC<{
               <span className="font-medium text-zinc-400">
                 {tournament.registeredCount} / {tournament.maxPlayers} слотов
                 {remainingSlots > 0 ? (
-                  <span className="text-zinc-500 text-[10px] ml-1">
+                  <span className="text-zinc-400 text-[10px] ml-1">
                     (осталось {remainingSlots})
                   </span>
                 ) : (
@@ -284,26 +284,27 @@ export const TournamentCard: React.FC<{
                   </span>
                 )}
               </span>
-              <span className="font-mono text-zinc-400 text-[10px]">{fillPercent}%</span>
+              <span className="font-mono text-zinc-300 text-[10px]">{fillPercent}%</span>
             </div>
 
             {/* Полоса прогресса */}
-            <div className="h-1 overflow-hidden rounded-full bg-white/[0.08]">
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{
                   width: `${fillPercent}%`,
                   backgroundColor: isPremium ? '#f59e0b' : (game.accent || '#00d4ff'),
+                  boxShadow: `0 0 10px ${(isPremium ? '#f59e0b' : (game.accent || '#00d4ff'))}66`,
                 }}
               />
             </div>
 
             <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-400">
               <span>
-                Старт: <span className="text-zinc-300">{formatDateTime(tournament.startsAt)}</span>
+                Старт: <span className="text-zinc-200">{formatDateTime(tournament.startsAt)}</span>
               </span>
               {Boolean(tournament.minPlayers && tournament.minPlayers > 0) && (
-                <span className="text-zinc-500 text-[10px]">
+                <span className="text-zinc-400 text-[10px]">
                   от {tournament.minPlayers} игр.
                 </span>
               )}
@@ -315,7 +316,7 @@ export const TournamentCard: React.FC<{
       {/* Нижняя плашка действий и оргвзноса */}
       <div className="relative z-10 border-t border-white/[0.06] bg-black/40 px-4 py-3 flex items-center justify-between gap-3">
         <div>
-          <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 block leading-none">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 block leading-none">
             Взнос
           </span>
           <span className="text-sm font-extrabold text-white font-mono mt-0.5 block leading-none">
@@ -332,11 +333,18 @@ export const TournamentCard: React.FC<{
             <span>Результаты →</span>
           </div>
         ) : isPremium ? (
-          <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 px-3.5 py-1.5 text-xs font-extrabold text-black transition-transform group-hover:scale-[1.02]">
+          <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 px-3.5 py-1.5 text-xs font-extrabold text-black transition-transform group-hover:scale-[1.02] shadow-sm shadow-amber-400/25">
             <span>Участвовать →</span>
           </div>
         ) : (
-          <div className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 px-3.5 py-1.5 text-xs font-extrabold text-black transition-transform group-hover:scale-[1.02]">
+          <div
+            className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-extrabold transition-all group-hover:scale-[1.02] shadow-sm"
+            style={{
+              backgroundColor: game.accent || '#00d4ff',
+              color: '#000000',
+              boxShadow: `0 2px 10px -2px ${game.accent || '#00d4ff'}60`,
+            }}
+          >
             <span>Участвовать →</span>
           </div>
         )}
