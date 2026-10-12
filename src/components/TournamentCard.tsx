@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { GameBadge } from '@/components/GameBadge';
 import { formatDateTime, formatRub, statusLabel } from '@/lib/format';
-import { GAMES, GAME_WALLPAPERS } from '@/lib/games';
+import { GAMES, GAME_WALLPAPERS, DEFAULT_GAME_COVERS } from '@/lib/games';
 import { ENTRY_FEE_RUB, TOTAL_PRIZES_RUB } from '@/lib/constants';
 import { Tournament } from '@/lib/types';
 import { useTournaments } from '@/context/TournamentContext';
@@ -87,6 +87,8 @@ export const TournamentCard: React.FC<{
 
   const wallpaperUrl =
     tournament.wallpaperUrl ||
+    (game as any)?.coverUrl ||
+    DEFAULT_GAME_COVERS[tournament.game] ||
     GAME_WALLPAPERS[tournament.game] ||
     (game as any)?.wallpaperUrl ||
     (game as any)?.iconUrl;
@@ -112,13 +114,13 @@ export const TournamentCard: React.FC<{
       {/* Фоновая картинка игры при наведении */}
       {wallpaperUrl && (
         <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out opacity-15 group-hover:opacity-35 group-hover:scale-105"
+          className="pointer-events-none absolute inset-0 bg-cover bg-center transition-all duration-500 ease-out opacity-25 group-hover:opacity-45 group-hover:scale-105"
           style={{ backgroundImage: `url(${wallpaperUrl})` }}
         />
       )}
 
       {/* Затемняющий градиент поверх фоновой картинки */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0c1017] via-[#0c1017]/80 to-transparent group-hover:via-[#0c1017]/70 transition-colors" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0c1017] via-[#0c1017]/85 to-transparent group-hover:via-[#0c1017]/75 transition-colors" />
 
       {/* Верхняя полоска дисциплины */}
       <div

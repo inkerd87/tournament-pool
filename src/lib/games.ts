@@ -8,6 +8,7 @@ export interface GameConfig {
   glow: string;
   iconUrl?: string;
   wallpaperUrl?: string;
+  coverUrl?: string;
   tag?: string;
   isCustom?: boolean;
   hasPremiumMode?: boolean;
@@ -23,6 +24,7 @@ export interface GameOverride {
   glow?: string;
   iconUrl?: string;
   wallpaperUrl?: string;
+  coverUrl?: string;
   tag?: string;
   hasPremiumMode?: boolean;
   standardFee?: number;
@@ -37,6 +39,7 @@ export interface FullGameInfo extends GameConfig {
   defaultTag?: string;
   defaultIconUrl?: string;
   defaultWallpaperUrl?: string;
+  defaultCoverUrl?: string;
   hasCustomIcon: boolean;
   hasCustomWallpaper: boolean;
   isModified: boolean;
@@ -47,6 +50,17 @@ export interface FullGameInfo extends GameConfig {
 
 const CUSTOM_GAMES_STORAGE_KEY = "nb_custom_games_v1";
 const GAME_OVERRIDES_STORAGE_KEY = "nb_game_overrides_v1";
+
+export const DEFAULT_GAME_COVERS: Record<string, string> = {
+  cs2: '/games/covers/cs2.jpg',
+  dota2: '/games/covers/dota2.jpg',
+  pubg: '/games/covers/pubg.jpg',
+  pubg_mobile: '/games/covers/pubg.jpg',
+  apex: '/games/covers/apex.jpg',
+  warzone: '/games/covers/warzone.jpg',
+  fortnite: '/games/covers/fortnite.jpg',
+  minecraft: '/games/wallpapers/minecraft.jpg',
+};
 
 export const DEFAULT_GAME_WALLPAPERS: Record<string, string> = {
   cs2: '/games/wallpapers/cs2.jpg',
@@ -79,6 +93,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(249, 115, 22, 0.35)",
     tag: "5v5 BO1",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.cs2,
+    coverUrl: DEFAULT_GAME_COVERS.cs2,
     iconUrl: DEFAULT_GAME_ICONS.cs2,
   },
   dota2: {
@@ -89,6 +104,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(239, 68, 68, 0.35)",
     tag: "5v5 MOBA",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.dota2,
+    coverUrl: DEFAULT_GAME_COVERS.dota2,
     iconUrl: DEFAULT_GAME_ICONS.dota2,
   },
   pubg: {
@@ -99,6 +115,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(250, 204, 21, 0.3)",
     tag: "Battle Royale",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.pubg,
+    coverUrl: DEFAULT_GAME_COVERS.pubg,
     iconUrl: DEFAULT_GAME_ICONS.pubg,
     hasPremiumMode: true,
     standardFee: 100,
@@ -112,6 +129,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(245, 158, 11, 0.35)",
     tag: "Mobile BR",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.pubg_mobile,
+    coverUrl: DEFAULT_GAME_COVERS.pubg_mobile,
     iconUrl: DEFAULT_GAME_ICONS.pubg_mobile,
     hasPremiumMode: true,
     standardFee: 100,
@@ -125,6 +143,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(34, 197, 94, 0.35)",
     tag: "Resurgence",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.warzone,
+    coverUrl: DEFAULT_GAME_COVERS.warzone,
     iconUrl: DEFAULT_GAME_ICONS.warzone,
   },
   fortnite: {
@@ -135,6 +154,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(168, 85, 247, 0.35)",
     tag: "Zero Build",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.fortnite,
+    coverUrl: DEFAULT_GAME_COVERS.fortnite,
     iconUrl: DEFAULT_GAME_ICONS.fortnite,
   },
   apex: {
@@ -145,6 +165,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(244, 63, 94, 0.35)",
     tag: "Battle Royale",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.apex,
+    coverUrl: DEFAULT_GAME_COVERS.apex,
     hasPremiumMode: true,
     standardFee: 100,
     premiumFee: 1000,
@@ -157,6 +178,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     glow: "rgba(168, 85, 247, 0.35)",
     tag: "Hunger Games",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.minecraft,
+    coverUrl: DEFAULT_GAME_COVERS.minecraft,
   },
 };
 

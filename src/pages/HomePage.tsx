@@ -5,16 +5,16 @@ import { useAuth } from "@/context/AuthContext";
 import { TournamentCard } from "@/components/TournamentCard";
 import { GameIcon } from "@/components/GameIcons";
 import { VK_GROUP_URL } from "@/lib/constants";
-import { GAME_WALLPAPERS } from "@/lib/games";
+import { GAME_WALLPAPERS, DEFAULT_GAME_COVERS } from "@/lib/games";
 import { formatRub } from "@/lib/format";
 
-// Teams for leaderboard showcase
+// Рейтинг лучших команд платформы
 const TOP_TEAMS = [
   {
     rank: 1,
     name: "Realm Eclipse",
     tag: "REC",
-    points: "2,840",
+    points: "2 840",
     winRate: "94%",
     matches: 48,
     color: "#ff1e44",
@@ -25,7 +25,7 @@ const TOP_TEAMS = [
     rank: 2,
     name: "Oblivion Force",
     tag: "OBF",
-    points: "2,710",
+    points: "2 710",
     winRate: "91%",
     matches: 45,
     color: "#00f0ff",
@@ -36,7 +36,7 @@ const TOP_TEAMS = [
     rank: 3,
     name: "Nova Strike",
     tag: "NVS",
-    points: "2,580",
+    points: "2 580",
     winRate: "88%",
     matches: 42,
     color: "#a855f7",
@@ -47,7 +47,7 @@ const TOP_TEAMS = [
     rank: 4,
     name: "Inferno Esports",
     tag: "INF",
-    points: "2,420",
+    points: "2 420",
     winRate: "85%",
     matches: 39,
     color: "#f59e0b",
@@ -58,7 +58,7 @@ const TOP_TEAMS = [
     rank: 5,
     name: "Velocity Gaming",
     tag: "VLC",
-    points: "2,390",
+    points: "2 390",
     winRate: "82%",
     matches: 37,
     color: "#10b981",
@@ -67,11 +67,11 @@ const TOP_TEAMS = [
   },
 ];
 
-// Latest esports news
+// Свежие новости и обновления
 const LATEST_NEWS = [
   {
     id: 1,
-    tag: "TOURNAMENT",
+    tag: "ТУРНИРЫ",
     date: "12 ОКТ 2026",
     title: "Старт осенней серии NightByte Championship 2026",
     excerpt: "Открыта регистрация по всем ключевым дисциплинам. Совокупный призовой фонд превышает 250 000 ₽ с гарантированными выплатами через СБП.",
@@ -79,7 +79,7 @@ const LATEST_NEWS = [
   },
   {
     id: 2,
-    tag: "SYSTEM",
+    tag: "СИСТЕМА",
     date: "10 ОКТ 2026",
     title: "Обновление протоколов античита и арбитража матчей",
     excerpt: "Внедрена автоматическая валидация результатов лобби и ускоренная выплата призовых победителям в течение 24 часов после протокола.",
@@ -87,7 +87,7 @@ const LATEST_NEWS = [
   },
   {
     id: 3,
-    tag: "COMMUNITY",
+    tag: "СООБЩЕСТВО",
     date: "08 ОКТ 2026",
     title: "Итоги прошедшего уикенда в CS2 и Dota 2",
     excerpt: "Лучшие клатчи, хайлайты и финальные протоколы прошедших соревнований доступны в официальном сообществе ВКонтакте.",
@@ -104,7 +104,7 @@ export const HomePage: React.FC = () => {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 
-  // Live countdown state (calculating time to next major event)
+  // Живой таймер обратного отсчета
   const [timeLeft, setTimeLeft] = useState({
     days: 4,
     hours: 18,
@@ -113,7 +113,6 @@ export const HomePage: React.FC = () => {
   });
 
   useEffect(() => {
-    // Target date: 4 days ahead
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + 4);
     targetDate.setHours(21, 0, 0, 0);
@@ -152,6 +151,7 @@ export const HomePage: React.FC = () => {
     tag: g.tag || "Турнир",
     standardFee: g.standardFee ?? 100,
     premiumFee: g.premiumFee ?? 1000,
+    coverUrl: (g as any).coverUrl || DEFAULT_GAME_COVERS[g.id] || g.wallpaperUrl || GAME_WALLPAPERS[g.id] || g.iconUrl,
     wallpaperUrl: g.wallpaperUrl || GAME_WALLPAPERS[g.id] || g.iconUrl,
   }));
 
@@ -163,6 +163,7 @@ export const HomePage: React.FC = () => {
     standardFee: 100,
     premiumFee: 1000,
     tag: "5v5 BO1",
+    coverUrl: "/games/covers/cs2.jpg",
     wallpaperUrl: "/games/wallpapers/cs2.jpg",
   };
 
@@ -185,42 +186,42 @@ export const HomePage: React.FC = () => {
   return (
     <div className="space-y-16 sm:space-y-24 pb-16">
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION (NEXUS ARENA STYLE) */}
+      {/* 1. ГЕРОЙ-ЭКРАН (КИБЕРСПОРТИВНАЯ АРЕНА) */}
       {/* ========================================================================= */}
       <section className="relative pt-6 sm:pt-12 overflow-hidden">
-        {/* Ambient background glows */}
+        {/* Неоновые источники света на фоне */}
         <div className="pointer-events-none absolute -top-40 left-1/4 h-[550px] w-[550px] rounded-full bg-red-600/15 blur-[160px]" />
         <div className="pointer-events-none absolute top-10 right-10 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[150px]" />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
-            {/* Left Column: Hero Text & Actions */}
+            {/* Левая колонка: Заголовок, описание и кнопки */}
             <div className="lg:col-span-7 space-y-6">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2.5 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-bold tracking-wider text-red-400 font-rajdhani uppercase">
+              {/* Бейдж сезона */}
+              <div className="inline-flex items-center gap-2.5 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-bold tracking-wider text-red-400 font-rajdhani uppercase">
                 <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
-                <span>JOIN THE NEXT GENERATION OF ESPORTS</span>
+                <span>ОФИЦИАЛЬНАЯ КИБЕРСПОРТИВНАЯ АРЕНА • СЕЗОН 2026</span>
               </div>
 
-              {/* Big Athletic Title */}
+              {/* Мощный атлетический заголовок */}
               <h1 className="font-teko uppercase font-bold text-6xl sm:text-7xl lg:text-8xl tracking-wide leading-[0.88] text-white">
-                DOMINATE <span className="text-white block sm:inline">THE ARENA</span>
+                ПОБЕЖДАЙ <span className="text-white block sm:inline">НА АРЕНЕ</span>
               </h1>
 
-              {/* Description */}
+              {/* Описание на русском */}
               <p className="max-w-xl text-base sm:text-lg text-zinc-300 font-rajdhani font-medium leading-relaxed">
-                Compete in high-stakes tournaments across your favorite titles. Form your team, climb the leaderboards, and claim your share of massive prize pools.
+                Участвуйте в рейтинговых турнирах по ведущим киберспортивным дисциплинам. Собирайте команду, побеждайте соперников и забирайте реальные призовые с гарантированными выплатами через СБП.
               </p>
 
-              {/* Action Buttons */}
+              {/* Действия */}
               <div className="pt-2 flex flex-wrap items-center gap-4">
                 <button
                   type="button"
                   onClick={openAuth}
-                  className="btn-crimson font-rajdhani uppercase tracking-wider text-base font-extrabold px-8 py-3.5 flex items-center gap-2 cursor-pointer"
+                  className="btn-crimson font-rajdhani uppercase tracking-wider text-base font-extrabold px-8 py-3.5 flex items-center gap-2 cursor-pointer shadow-lg shadow-red-600/30"
                 >
-                  <span>REGISTER NOW</span>
+                  <span>РЕГИСТРАЦИЯ</span>
                   <span className="text-lg">→</span>
                 </button>
 
@@ -228,53 +229,50 @@ export const HomePage: React.FC = () => {
                   to="/tournaments"
                   className="rounded-lg border border-white/20 bg-white/[0.04] px-7 py-3.5 font-rajdhani uppercase tracking-wider text-base font-bold text-white hover:bg-white/[0.08] hover:border-white/40 transition-all cursor-pointer"
                 >
-                  EXPLORE MATCHES
+                  СМОТРЕТЬ ТУРНИРЫ
                 </Link>
               </div>
 
-              {/* Key Platform Stats */}
+              {/* Ключевые показатели платформы */}
               <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-white/[0.08]">
                 <div>
                   <div className="font-teko text-3xl sm:text-4xl font-bold text-white tracking-wide">150K+</div>
-                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">ACTIVE PLAYERS</div>
+                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">АКТИВНЫХ ИГРОКОВ</div>
                 </div>
                 <div>
                   <div className="font-teko text-3xl sm:text-4xl font-bold text-[#ff1e44] tracking-wide">250 000 ₽</div>
-                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">TOTAL PRIZE POOL</div>
+                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">ПРИЗОВОЙ ФОНД</div>
                 </div>
                 <div>
-                  <div className="font-teko text-3xl sm:text-4xl font-bold text-white tracking-wide">1,200+</div>
-                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">MATCHES PLAYED</div>
+                  <div className="font-teko text-3xl sm:text-4xl font-bold text-white tracking-wide">1 200+</div>
+                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">СЫГРАНО МАТЧЕЙ</div>
                 </div>
                 <div>
                   <div className="font-teko text-3xl sm:text-4xl font-bold text-[#00f0ff] tracking-wide">48</div>
-                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">TOP TEAMS</div>
+                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">ТОП-КОМАНД</div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Hero Visual Pro Controller */}
+            {/* Правая колонка: Киберспортивный 3D-арт геймпада */}
             <div className="lg:col-span-5 relative flex items-center justify-center">
-              <div className="relative w-full max-w-lg aspect-square rounded-2xl overflow-hidden border border-red-500/30 bg-[#080b11] shadow-[0_0_50px_rgba(255,30,68,0.2)] group">
-                {/* Visual Image */}
+              <div className="relative w-full max-w-lg aspect-square rounded-2xl overflow-hidden border border-red-500/30 bg-[#080b11] shadow-[0_0_50px_rgba(255,30,68,0.25)] group">
                 <img
                   src="/hero-controller.jpg"
                   alt="Esports Arena Pro Controller"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
 
-                {/* Cyber Arena Gradient Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-transparent to-transparent opacity-60" />
                 <div className="absolute inset-0 border border-white/10 rounded-2xl pointer-events-none" />
 
-                {/* Futuristic Cyber Badge Overlay */}
                 <div className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-md border border-cyan-500/40 bg-black/70 backdrop-blur-md px-3 py-1.5 text-xs font-mono font-bold text-cyan-300">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
                   <span>NIGHTBYTE PRO SERIES</span>
                 </div>
 
                 <div className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-md border border-red-500/40 bg-black/70 backdrop-blur-md px-3 py-1.5 text-xs font-mono font-bold text-red-400">
-                  <span>SEASON 2026</span>
+                  <span>СЕЗОН 2026</span>
                 </div>
               </div>
             </div>
@@ -284,61 +282,61 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. LIVE COUNTDOWN BANNER */}
+      {/* 2. БАННЕР ОБРАТНОГО ОТСЧЕТА (LIVE COUNTDOWN) */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-xl border border-red-500/30 bg-gradient-to-r from-[#12080a] via-[#0b0e14] to-[#0b0e14] p-5 sm:p-6 shadow-xl">
+        <div className="relative overflow-hidden rounded-xl border border-red-500/30 bg-gradient-to-r from-[#14080a] via-[#0b0e14] to-[#0b0e14] p-5 sm:p-6 shadow-xl">
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             
-            {/* Left title & live badge */}
+            {/* Заголовок с живым индикатором */}
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2 rounded bg-red-600/20 border border-red-500/40 px-2.5 py-0.5 text-[11px] font-extrabold tracking-wider text-red-400 font-rajdhani uppercase">
                 <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
-                <span>● LIVE IN</span>
+                <span>● СТАРТ ЧЕРЕЗ</span>
               </div>
               <h2 className="font-rajdhani font-extrabold uppercase text-xl sm:text-2xl text-white tracking-wide">
-                NEXT TOURNAMENT: NIGHTBYTE CHAMPIONSHIP 2026
+                СЛЕДУЮЩИЙ ТУРНИР: NIGHTBYTE CHAMPIONSHIP 2026
               </h2>
             </div>
 
-            {/* Countdown timer blocks */}
+            {/* Блоки цифр таймера */}
             <div className="flex items-center gap-2 sm:gap-4 self-center lg:self-auto font-mono">
-              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[62px]">
+              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[64px]">
                 <span className="font-teko text-2xl sm:text-3xl font-bold text-white leading-none">
                   {String(timeLeft.days).padStart(2, "0")}
                 </span>
-                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">DAYS</span>
+                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">ДНЕЙ</span>
               </div>
               <span className="font-teko text-xl text-red-500 font-bold">:</span>
-              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[62px]">
+              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[64px]">
                 <span className="font-teko text-2xl sm:text-3xl font-bold text-white leading-none">
                   {String(timeLeft.hours).padStart(2, "0")}
                 </span>
-                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">HOURS</span>
+                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">ЧАСОВ</span>
               </div>
               <span className="font-teko text-xl text-red-500 font-bold">:</span>
-              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[62px]">
+              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[64px]">
                 <span className="font-teko text-2xl sm:text-3xl font-bold text-white leading-none">
                   {String(timeLeft.minutes).padStart(2, "0")}
                 </span>
-                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">MINS</span>
+                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">МИНУТ</span>
               </div>
               <span className="font-teko text-xl text-red-500 font-bold">:</span>
-              <div className="flex flex-col items-center bg-black/70 border border-red-500/40 rounded-lg px-3 sm:px-4 py-2 min-w-[62px]">
+              <div className="flex flex-col items-center bg-black/70 border border-red-500/40 rounded-lg px-3 sm:px-4 py-2 min-w-[64px]">
                 <span className="font-teko text-2xl sm:text-3xl font-bold text-[#ff1e44] leading-none">
                   {String(timeLeft.seconds).padStart(2, "0")}
                 </span>
-                <span className="font-rajdhani text-[10px] uppercase font-bold text-red-400">SECS</span>
+                <span className="font-rajdhani text-[10px] uppercase font-bold text-red-400">СЕКУНД</span>
               </div>
             </div>
 
-            {/* Right CTA */}
+            {/* Кнопка перехода к соревнованию */}
             <div className="flex items-center gap-3">
               <Link
                 to="/tournaments"
                 className="btn-crimson font-rajdhani uppercase font-extrabold tracking-wider text-sm px-6 py-2.5 w-full sm:w-auto text-center"
               >
-                VIEW TOURNAMENT
+                К ТУРНИРУ
               </Link>
             </div>
 
@@ -347,29 +345,29 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 3. FEATURED GAMES & PRIZE POOL SHOWCASE */}
+      {/* 3. ПОПУЛЯРНЫЕ ДИСЦИПЛИНЫ И ПРИЗОВОЙ ФОНД */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-8">
         
-        {/* Section Header */}
+        {/* Заголовок секции дисциплин */}
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
           <div className="flex items-center gap-2">
             <span className="text-[#ff1e44] text-lg">✦</span>
             <h2 className="font-rajdhani font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-              FEATURED GAMES
+              ПОПУЛЯРНЫЕ ДИСЦИПЛИНЫ
             </h2>
           </div>
           <Link
             to="/tournaments"
             className="font-rajdhani font-bold uppercase text-xs sm:text-sm tracking-wider text-zinc-400 hover:text-white transition flex items-center gap-1"
           >
-            <span>VIEW ALL GAMES</span>
+            <span>ВСЕ ИГРЫ</span>
             <span>→</span>
           </Link>
         </div>
 
-        {/* Featured Games Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        {/* Сетка высококачественных вертикальных постер-карточек игр */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-5">
           {heroGames.slice(0, 6).map((g) => {
             const isSelected = activeGameId === g.id;
             return (
@@ -379,37 +377,53 @@ export const HomePage: React.FC = () => {
                   setActiveGameId(g.id);
                   setMatchFilterGame(g.id);
                 }}
-                className={`group relative overflow-hidden rounded-xl border transition-all duration-300 cursor-pointer flex flex-col justify-end p-3.5 min-h-[170px] ${
+                className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-end p-4 aspect-[3/4] min-h-[250px] sm:min-h-[290px] ${
                   isSelected
-                    ? "border-[#ff1e44] shadow-[0_0_20px_rgba(255,30,68,0.35)] scale-[1.02]"
-                    : "border-white/[0.08] bg-[#0c1017] hover:border-white/30 hover:scale-[1.01]"
+                    ? "border-2 border-[#ff1e44] shadow-[0_0_30px_rgba(255,30,68,0.5)] scale-[1.03] z-10"
+                    : "border-white/[0.12] bg-[#0c1017] hover:border-white/40 hover:scale-[1.02]"
                 }`}
               >
-                {/* Wallpaper */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-35 group-hover:opacity-50"
-                  style={{ backgroundImage: `url(${g.wallpaperUrl})` }}
+                {/* Четкое изображение обложки дисциплины */}
+                <img
+                  src={g.coverUrl}
+                  alt={g.name}
+                  className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/60 to-transparent" />
 
-                {/* Bottom Active Glow Bar */}
+                {/* Затемняющий градиент только снизу для читаемости текста */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/75 via-45% to-transparent pointer-events-none" />
+
+                {/* Верхний бейдж: иконка + формат игры */}
+                <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
+                  <div className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/70 backdrop-blur-md px-2 py-1 text-[11px] font-bold text-white shadow-md">
+                    <GameIcon game={g.id} className="w-3.5 h-3.5 object-contain rounded" />
+                    <span className="font-rajdhani uppercase tracking-wider">{g.tag}</span>
+                  </div>
+
+                  {isSelected && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-[#ff1e44] px-2 py-0.5 text-[10px] font-black uppercase text-white font-rajdhani shadow-sm shadow-red-500/50">
+                      ✦ ВЫБРАНО
+                    </span>
+                  )}
+                </div>
+
+                {/* Нижняя активная неоновая полоска */}
                 {isSelected && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#ff1e44] shadow-[0_0_10px_#ff1e44]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[4px] bg-[#ff1e44] shadow-[0_0_12px_#ff1e44]" />
                 )}
 
-                {/* Card Content */}
+                {/* Текст и название дисциплины */}
                 <div className="relative z-10 space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <GameIcon game={g.id} className="w-4 h-4 object-contain rounded" />
-                    <span className="font-rajdhani text-[11px] font-bold uppercase text-zinc-400 tracking-wider">
-                      {g.tag}
-                    </span>
-                  </div>
-                  <h3 className="font-rajdhani font-black uppercase text-base sm:text-lg text-white leading-tight">
+                  <h3 className="font-rajdhani font-black uppercase text-lg sm:text-xl text-white leading-tight drop-shadow-md">
                     {g.short}
                   </h3>
-                  <div className="text-[11px] font-mono text-zinc-300 font-bold">
-                    от {formatRub(g.standardFee)}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono text-zinc-300 font-extrabold bg-black/60 px-2 py-0.5 rounded border border-white/10">
+                      от {formatRub(g.standardFee)}
+                    </span>
+                    <span className="text-[10px] font-rajdhani font-bold text-red-400 group-hover:text-red-300 transition uppercase">
+                      Турниры →
+                    </span>
                   </div>
                 </div>
               </div>
@@ -417,13 +431,12 @@ export const HomePage: React.FC = () => {
           })}
         </div>
 
-        {/* PRIZE POOL SHOWCASE CARD (Trophy cup with 250 000 ₽) */}
+        {/* КАРТОЧКА ПРИЗОВОГО ФОНДА (С 3D-КУБКОМ НА 250 000 ₽) */}
         <div className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-[#090c12] p-6 sm:p-8 shadow-2xl">
-          {/* Subtle back illumination */}
           <div className="pointer-events-none absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-red-600/10 blur-[130px]" />
           
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            {/* Trophy visual */}
+            {/* Визуальный кубок */}
             <div className="md:col-span-5 flex items-center justify-center">
               <div className="relative w-full max-w-sm aspect-[4/3] rounded-xl overflow-hidden border border-white/10 bg-black/60 shadow-xl group">
                 <img
@@ -433,15 +446,15 @@ export const HomePage: React.FC = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#090c12] via-transparent to-transparent opacity-40" />
                 <div className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded bg-black/80 border border-amber-500/40 px-2.5 py-1 text-[10px] font-mono font-bold text-amber-300">
-                  <span>🏆 SEASON CHAMPIONSHIP</span>
+                  <span>🏆 ЧЕМПИОНАТ СЕЗОНА</span>
                 </div>
               </div>
             </div>
 
-            {/* Prize pool details */}
+            {/* Подробности призового фонда */}
             <div className="md:col-span-7 space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-0.5 text-xs font-bold text-red-400 font-rajdhani uppercase tracking-wider">
-                <span>✦ SEASON PRIZE POOL</span>
+                <span>✦ ПРИЗОВОЙ ФОНД СЕЗОНА</span>
               </div>
 
               <div>
@@ -449,12 +462,12 @@ export const HomePage: React.FC = () => {
                   250 000 ₽
                 </div>
                 <div className="font-rajdhani uppercase font-extrabold text-sm sm:text-base tracking-widest text-[#ff1e44]">
-                  TOTAL PRIZE DISTRIBUTION
+                  ГАРАНТИРОВАННЫЕ ВЫПЛАТЫ ПОБЕДИТЕЛЯМ
                 </div>
               </div>
 
               <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-rajdhani font-medium max-w-xl">
-                Соревнуйтесь за крупнейший призовой фонд сезона 2026. Победители получают гарантированные выплаты прямо на банковские карты или через СБП в течение 24 часов после завершения турнира.
+                Соревнуйтесь за крупнейший призовой фонд осеннего сезона. Победители получают гарантированные выплаты прямо на банковские карты или через СБП в течение 24 часов после подтверждения судейского протокола.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -470,11 +483,15 @@ export const HomePage: React.FC = () => {
                   <span className="font-mono font-bold text-amber-600">3-е место:</span>
                   <span className="font-bold text-white">35 000 ₽</span>
                 </div>
+                <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs">
+                  <span className="font-mono font-bold text-zinc-400">4–8 места:</span>
+                  <span className="font-bold text-white">25 000 ₽</span>
+                </div>
                 <Link
                   to="/tournaments"
                   className="btn-crimson font-rajdhani uppercase font-bold tracking-wider text-xs px-5 py-2.5 ml-auto cursor-pointer"
                 >
-                  PRIZE BREAKDOWN →
+                  РЕГЛАМЕНТ ПРИЗОВЫХ →
                 </Link>
               </div>
             </div>
@@ -485,21 +502,21 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. TOP TEAMS LEADERBOARD ROW */}
+      {/* 4. ЛУЧШИЕ КОМАНДЫ (ТОП РЕЙТИНГА) */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-6">
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
           <div className="flex items-center gap-2">
             <span className="text-[#ff1e44] text-lg">✦</span>
             <h2 className="font-rajdhani font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-              TOP TEAMS
+              ЛУЧШИЕ КОМАНДЫ
             </h2>
           </div>
           <Link
             to="/tournaments"
             className="font-rajdhani font-bold uppercase text-xs sm:text-sm tracking-wider text-zinc-400 hover:text-white transition flex items-center gap-1"
           >
-            <span>VIEW LEADERBOARD</span>
+            <span>ТАБЛИЦА ЛИДЕРОВ</span>
             <span>→</span>
           </Link>
         </div>
@@ -510,7 +527,6 @@ export const HomePage: React.FC = () => {
               key={team.name}
               className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0d14] p-4 flex flex-col justify-between hover:border-white/25 transition group"
             >
-              {/* Subtle top indicator bar */}
               <div
                 className="absolute top-0 left-0 right-0 h-[2px]"
                 style={{ backgroundColor: team.color }}
@@ -535,7 +551,7 @@ export const HomePage: React.FC = () => {
                       {team.name}
                     </h3>
                     <div className="font-mono text-xs text-zinc-400">
-                      {team.matches} MATCHES
+                      {team.matches} МАТЧЕЙ
                     </div>
                   </div>
                 </div>
@@ -543,11 +559,11 @@ export const HomePage: React.FC = () => {
 
               <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-xs">
                 <div>
-                  <span className="text-[10px] uppercase text-zinc-500 block">POINTS</span>
+                  <span className="text-[10px] uppercase text-zinc-500 block">ОЧКИ</span>
                   <span className="font-bold text-white">{team.points}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] uppercase text-zinc-500 block">WIN RATE</span>
+                  <span className="text-[10px] uppercase text-zinc-500 block">ВИНРЕЙТ</span>
                   <span className="font-bold text-emerald-400">{team.winRate}</span>
                 </div>
               </div>
@@ -557,7 +573,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 5. LIVE & UPCOMING MATCHES CATALOG */}
+      {/* 5. КАТАЛОГ АКТУАЛЬНЫХ МАТЧЕЙ И ТУРНИРОВ */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-4">
@@ -565,7 +581,7 @@ export const HomePage: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="text-[#ff1e44] text-lg">✦</span>
               <h2 className="font-rajdhani font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-                LIVE & UPCOMING MATCHES
+                АКТУАЛЬНЫЕ МАТЧИ И ТУРНИРЫ
               </h2>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/40 px-2.5 py-0.5 text-xs font-bold text-cyan-300 font-mono">
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
@@ -581,11 +597,11 @@ export const HomePage: React.FC = () => {
             to="/tournaments"
             className="font-rajdhani font-bold uppercase text-xs sm:text-sm tracking-wider text-[#00f0ff] hover:text-white transition shrink-0"
           >
-            ALL MATCHES →
+            ВСЕ СОРЕВНОВАНИЯ →
           </Link>
         </div>
 
-        {/* Filter chips */}
+        {/* Фильтры дисциплин */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
@@ -596,7 +612,7 @@ export const HomePage: React.FC = () => {
                 : "bg-white/[0.04] text-zinc-400 hover:text-white border border-white/[0.08]"
             }`}
           >
-            ALL GAMES
+            ВСЕ ИГРЫ
           </button>
           {heroGames.map((g) => {
             const isSel = matchFilterGame === g.id;
@@ -618,7 +634,7 @@ export const HomePage: React.FC = () => {
           })}
         </div>
 
-        {/* Tournament Grid */}
+        {/* Сетка карточек турниров */}
         <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filteredTournaments.slice(0, 9).map((t) => (
             <TournamentCard key={t.id} tournament={t} />
@@ -642,14 +658,14 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 6. LATEST NEWS & STAY UPDATED */}
+      {/* 6. НОВОСТИ И ПОДПИСКА НА ОБНОВЛЕНИЯ */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-6">
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
           <div className="flex items-center gap-2">
             <span className="text-[#ff1e44] text-lg">✦</span>
             <h2 className="font-rajdhani font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-              LATEST NEWS
+              НОВОСТИ И ОБНОВЛЕНИЯ
             </h2>
           </div>
         </div>
@@ -682,7 +698,7 @@ export const HomePage: React.FC = () => {
                   rel="noopener noreferrer"
                   className="font-rajdhani uppercase text-xs font-bold text-red-400 hover:text-red-300 transition inline-flex items-center gap-1"
                 >
-                  <span>READ MORE</span>
+                  <span>ПОДРОБНЕЕ</span>
                   <span>→</span>
                 </a>
               </div>
@@ -690,12 +706,12 @@ export const HomePage: React.FC = () => {
           ))}
         </div>
 
-        {/* STAY UPDATED NEWSLETTER */}
+        {/* ФОРМА ПОДПИСКИ НА УВЕДОМЛЕНИЯ */}
         <div className="relative overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-r from-red-950/20 via-[#0a0d14] to-[#0a0d14] p-6 sm:p-8 mt-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-1">
               <div className="font-rajdhani font-black uppercase text-xl sm:text-2xl text-white tracking-wide">
-                STAY UPDATED
+                БУДЬТЕ В КУРСЕ СОБЫТИЙ
               </div>
               <p className="font-rajdhani text-xs sm:text-sm text-zinc-400 max-w-md">
                 Подпишитесь на уведомления о старте новых турниров, открытии лобби и эксклюзивных розыгрышах платформы.
@@ -722,7 +738,7 @@ export const HomePage: React.FC = () => {
                     type="submit"
                     className="btn-crimson font-rajdhani uppercase font-extrabold tracking-wider text-xs px-6 py-2.5 cursor-pointer whitespace-nowrap"
                   >
-                    SUBSCRIBE
+                    ПОДПИСАТЬСЯ
                   </button>
                 </>
               )}
@@ -732,7 +748,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 7. VK OFFICIAL COMMUNITY CARD */}
+      {/* 7. ОФИЦИАЛЬНОЕ СООБЩЕСТВО ВКОНТАКТЕ */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="relative overflow-hidden rounded-2xl border border-[#0077ff]/30 bg-gradient-to-br from-[#0c1424] via-[#090d16] to-[#090d16] p-6 sm:p-8 shadow-2xl">

@@ -87,7 +87,7 @@ export const Header: React.FC = () => {
               rel="noopener noreferrer"
               className="font-rajdhani text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-[#5ea4ff] transition flex items-center gap-1.5"
             >
-              <span>VK Club</span>
+              <span>Сообщество VK</span>
             </a>
           </nav>
 
@@ -271,7 +271,7 @@ export const Header: React.FC = () => {
       </a>
       <div className="h-8 w-px bg-white/10 my-1" />
       <span className="font-rajdhani text-[10px] font-bold uppercase tracking-[0.25em] text-[#ff1e44] [writing-mode:vertical-rl] rotate-180">
-        FOLLOW US
+        СОЦСЕТИ
       </span>
     </aside>
   </>
