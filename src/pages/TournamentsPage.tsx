@@ -140,7 +140,7 @@ export const TournamentsPage: React.FC = () => {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <span>Стандарт {formatRub(standardFee)}</span>
+              <span>Стандарт</span>
             </button>
             <button
               type="button"
@@ -151,7 +151,7 @@ export const TournamentsPage: React.FC = () => {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <span>Премиум {formatRub(premiumFee)}</span>
+              <span>Премиум</span>
             </button>
           </div>
         </div>

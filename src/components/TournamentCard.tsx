@@ -165,7 +165,7 @@ export const TournamentCard: React.FC<{
                 }`}
                 title={`Обычные соревнования (${formatRub(standardFee)})`}
               >
-                Стандарт
+                {formatRub(standardFee)}
               </button>
               <button
                 type="button"
@@ -182,7 +182,7 @@ export const TournamentCard: React.FC<{
                 }`}
                 title={`Премиум соревнования (${formatRub(premiumFee)})`}
               >
-                <span>Премиум</span>
+                <span>{formatRub(premiumFee)}</span>
               </button>
             </div>
           ) : isSoon ? (
