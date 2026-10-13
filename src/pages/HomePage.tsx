@@ -1,792 +1,387 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useTournaments } from "@/context/TournamentContext";
-import { useAuth } from "@/context/AuthContext";
-import { TournamentCard } from "@/components/TournamentCard";
-import { GameIcon } from "@/components/GameIcons";
-import { VK_GROUP_URL } from "@/lib/constants";
-import { GAME_WALLPAPERS, DEFAULT_GAME_COVERS } from "@/lib/games";
-import { formatRub } from "@/lib/format";
-
-// Рейтинг лучших команд платформы
-const TOP_TEAMS = [
-  {
-    rank: 1,
-    name: "Realm Eclipse",
-    tag: "REC",
-    points: "2 840",
-    winRate: "94%",
-    matches: 48,
-    color: "#ff1e44",
-    bgGradient: "from-red-950/40 via-red-900/10 to-transparent",
-    iconBg: "bg-red-500/20 text-red-400 border-red-500/40",
-  },
-  {
-    rank: 2,
-    name: "Oblivion Force",
-    tag: "OBF",
-    points: "2 710",
-    winRate: "91%",
-    matches: 45,
-    color: "#00f0ff",
-    bgGradient: "from-cyan-950/40 via-cyan-900/10 to-transparent",
-    iconBg: "bg-cyan-500/20 text-cyan-400 border-cyan-500/40",
-  },
-  {
-    rank: 3,
-    name: "Nova Strike",
-    tag: "NVS",
-    points: "2 580",
-    winRate: "88%",
-    matches: 42,
-    color: "#a855f7",
-    bgGradient: "from-purple-950/40 via-purple-900/10 to-transparent",
-    iconBg: "bg-purple-500/20 text-purple-400 border-purple-500/40",
-  },
-  {
-    rank: 4,
-    name: "Inferno Esports",
-    tag: "INF",
-    points: "2 420",
-    winRate: "85%",
-    matches: 39,
-    color: "#f59e0b",
-    bgGradient: "from-amber-950/40 via-amber-900/10 to-transparent",
-    iconBg: "bg-amber-500/20 text-amber-400 border-amber-500/40",
-  },
-  {
-    rank: 5,
-    name: "Velocity Gaming",
-    tag: "VLC",
-    points: "2 390",
-    winRate: "82%",
-    matches: 37,
-    color: "#10b981",
-    bgGradient: "from-emerald-950/40 via-emerald-900/10 to-transparent",
-    iconBg: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
-  },
-];
-
-// Свежие новости и обновления
-const LATEST_NEWS = [
-  {
-    id: 1,
-    tag: "ТУРНИРЫ",
-    date: "12 ОКТ 2026",
-    title: "Старт осенней серии NightByte Championship 2026",
-    excerpt: "Открыта регистрация по всем ключевым дисциплинам. Совокупный призовой фонд превышает 250 000 ₽ с гарантированными выплатами через СБП.",
-    badgeColor: "border-red-500/40 bg-red-500/10 text-red-400",
-  },
-  {
-    id: 2,
-    tag: "СИСТЕМА",
-    date: "10 ОКТ 2026",
-    title: "Обновление протоколов античита и арбитража матчей",
-    excerpt: "Внедрена автоматическая валидация результатов лобби и ускоренная выплата призовых победителям в течение 24 часов после протокола.",
-    badgeColor: "border-cyan-500/40 bg-cyan-500/10 text-cyan-400",
-  },
-  {
-    id: 3,
-    tag: "СООБЩЕСТВО",
-    date: "08 ОКТ 2026",
-    title: "Итоги прошедшего уикенда в CS2 и Dota 2",
-    excerpt: "Лучшие клатчи, хайлайты и финальные протоколы прошедших соревнований доступны в официальном сообществе ВКонтакте.",
-    badgeColor: "border-purple-500/40 bg-purple-500/10 text-purple-400",
-  },
-];
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useTournaments } from '@/context/TournamentContext';
+import { TournamentCard } from '@/components/TournamentCard';
+import { GameIcon } from '@/components/GameIcons';
+import { VK_GROUP_URL } from '@/lib/constants';
+import { GAME_WALLPAPERS } from '@/lib/games';
 
 export const HomePage: React.FC = () => {
-  const { tournaments, allGames } = useTournaments();
-  const { user } = useAuth();
-
-  const [activeGameId, setActiveGameId] = useState<string>("cs2");
-  const [matchFilterGame, setMatchFilterGame] = useState<string>("all");
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
-
-  // Живой таймер обратного отсчета
-  const [timeLeft, setTimeLeft] = useState({
-    days: 4,
-    hours: 18,
-    minutes: 32,
-    seconds: 45,
-  });
-
-  useEffect(() => {
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 4);
-    targetDate.setHours(21, 0, 0, 0);
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const difference = targetDate.getTime() - now;
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60),
-        });
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const openAuth = () => {
-    if (user) {
-      window.location.href = "/tournaments";
-    } else {
-      window.dispatchEvent(new CustomEvent("nb_open_auth_modal"));
-    }
-  };
+  const { tournaments, customGames, allGames } = useTournaments();
+  const [activeGameId, setActiveGameId] = useState<string>('cs2');
 
   const heroGames = (allGames && allGames.length > 0 ? allGames : []).map((g) => ({
     id: g.id,
-    name: g.name,
-    short: g.short || g.name,
-    color: g.accent || "#00d4ff",
-    glow: g.glow || "rgba(0, 212, 255, 0.35)",
-    tag: g.tag || "Турнир",
-    standardFee: g.standardFee ?? 100,
-    premiumFee: g.premiumFee ?? 1000,
-    coverUrl: (g as any).coverUrl || DEFAULT_GAME_COVERS[g.id] || g.wallpaperUrl || GAME_WALLPAPERS[g.id] || g.iconUrl,
+    name: g.short || g.name,
+    color: g.accent,
+    glow: g.glow || `${g.accent}66`,
+    tag: g.tag,
     wallpaperUrl: g.wallpaperUrl || GAME_WALLPAPERS[g.id] || g.iconUrl,
   }));
 
-  const activeGameConfig = heroGames.find((g) => g.id === activeGameId) || heroGames[0] || {
-    id: "cs2",
-    name: "Counter-Strike 2",
-    short: "CS2",
-    color: "#ff1e44",
-    standardFee: 100,
-    premiumFee: 1000,
-    tag: "5v5 BO1",
-    coverUrl: "/games/covers/cs2.jpg",
-    wallpaperUrl: "/games/wallpapers/cs2.jpg",
-  };
-
-  const filteredTournaments = tournaments.filter((t) => {
-    if (t.isPremium) return false;
-    if (matchFilterGame !== "all" && t.game !== matchFilterGame) return false;
-    return true;
-  });
-
-  const activeCount = tournaments.filter((t) => t.status === "recruiting" || t.status === "live").length;
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newsletterEmail.trim()) {
-      setNewsletterSubscribed(true);
-      setNewsletterEmail("");
-    }
-  };
+  const activeGameConfig = heroGames.find((g) => g.id === activeGameId) || heroGames[0];
+  const activeCount = tournaments.filter((t) => t.status === 'recruiting' || t.status === 'live').length;
+  const featured = tournaments.filter((t) => !t.isPremium);
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-16">
-      {/* ========================================================================= */}
-      {/* 1. ГЕРОЙ-ЭКРАН (КИБЕРСПОРТИВНАЯ АРЕНА) */}
-      {/* ========================================================================= */}
-      <section className="relative pt-6 sm:pt-12 overflow-hidden">
-        {/* Неоновые источники света на фоне */}
-        <div className="pointer-events-none absolute -top-40 left-1/4 h-[550px] w-[550px] rounded-full bg-red-600/15 blur-[160px]" />
-        <div className="pointer-events-none absolute top-10 right-10 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[150px]" />
+    <div className="space-y-12 sm:space-y-16">
+      {/* Главный Hero-блок (Command Center) с фоновыми картинками и кибер-ареной */}
+      <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#06080e]/60 pt-6 pb-12 sm:pt-12 sm:pb-20">
+        
+        {/* Большая кинематографичная картинка игры на заднем фоне всей верхней секции */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden transition-all duration-700">
+          {heroGames.map((g) => {
+            const wallpaper = (g as any).wallpaperUrl || GAME_WALLPAPERS[g.id];
+            const isCurrent = activeGameId === g.id;
+            return (
+              <div
+                key={g.id}
+                className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out ${
+                  isCurrent ? 'opacity-40 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+                }`}
+                style={{
+                  backgroundImage: `url(${wallpaper})`,
+                }}
+              />
+            );
+          })}
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          {/* Стандартный фоновый кибер-свет */}
+          <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-cyan-500/10 via-blue-600/5 to-transparent blur-3xl opacity-50" />
+          <div className="absolute top-1/3 -right-40 w-[500px] h-[350px] bg-amber-500/5 blur-3xl" />
+
+          {/* Затемняющие градиенты для сохранения 100% контрастности и читаемости текста */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06080e]/90 via-[#090d16]/50 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(6,8,14,0.75)_85%)]" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
-            {/* Левая колонка: Заголовок, описание и кнопки */}
-            <div className="lg:col-span-7 space-y-6">
+            {/* Левая колонка: Оффер и кнопки */}
+            <div className="lg:col-span-7">
               {/* Бейдж сезона */}
-              <div className="inline-flex items-center gap-2.5 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-bold tracking-wider text-red-400 font-rajdhani uppercase">
-                <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
-                <span>ОФИЦИАЛЬНАЯ КИБЕРСПОРТИВНАЯ АРЕНА • СЕЗОН 2026</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/60 backdrop-blur-md px-3.5 py-1 text-xs font-bold text-cyan-300 mb-5 shadow-lg shadow-cyan-500/10">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span className="tracking-wide uppercase text-[11px]">СЕЗОН 2026 • NIGHTBYTE LEAGUE</span>
               </div>
 
-              {/* Мощный атлетический заголовок */}
-              <h1 className="font-teko uppercase font-bold text-6xl sm:text-7xl lg:text-8xl tracking-wide leading-[0.88] text-white">
-                ПОБЕЖДАЙ <span className="text-white block sm:inline">НА АРЕНЕ</span>
+              <h1 className="text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-[52px]">
+                Киберспортивные соревнования{' '}
+                <span className="bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-400 bg-clip-text text-transparent">
+                  NightByte
+                </span>
               </h1>
 
-              {/* Описание на русском */}
-              <p className="max-w-xl text-base sm:text-lg text-zinc-300 font-rajdhani font-medium leading-relaxed">
-                Участвуйте в рейтинговых турнирах по ведущим киберспортивным дисциплинам. Собирайте команду, побеждайте соперников и забирайте реальные призовые с гарантированными выплатами через СБП.
+              <p className="mt-4 max-w-xl text-sm sm:text-base text-zinc-300 leading-relaxed font-normal">
+                Открытые любительские соревнования по CS2, Dota 2, PUBG, PUBG Mobile, Apex Legends, Warzone и Fortnite. Различные форматы соревнований, честное судейство и вознаграждение победителям.
               </p>
 
-              {/* Действия */}
-              <div className="pt-2 flex flex-wrap items-center gap-4">
-                <button
-                  type="button"
-                  onClick={openAuth}
-                  className="btn-crimson font-rajdhani uppercase tracking-wider text-base font-extrabold px-8 py-3.5 flex items-center gap-2 cursor-pointer shadow-lg shadow-red-600/30"
-                >
-                  <span>РЕГИСТРАЦИЯ</span>
-                  <span className="text-lg">→</span>
-                </button>
-
+              <div className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
                 <Link
                   to="/tournaments"
-                  className="rounded-lg border border-white/20 bg-white/[0.04] px-7 py-3.5 font-rajdhani uppercase tracking-wider text-base font-bold text-white hover:bg-white/[0.08] hover:border-white/40 transition-all cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 px-6 py-3.5 text-sm font-black text-black shadow-lg shadow-cyan-500/25 transition-all duration-200 active:scale-[0.98]"
                 >
-                  СМОТРЕТЬ ТУРНИРЫ
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  <span>Смотреть соревнования</span>
                 </Link>
-              </div>
 
-              {/* Ключевые показатели платформы */}
-              <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-white/[0.08]">
-                <div>
-                  <div className="font-teko text-3xl sm:text-4xl font-bold text-white tracking-wide">150K+</div>
-                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">АКТИВНЫХ ИГРОКОВ</div>
-                </div>
-                <div>
-                  <div className="font-teko text-3xl sm:text-4xl font-bold text-[#ff1e44] tracking-wide">250 000 ₽</div>
-                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">ПРИЗОВОЙ ФОНД</div>
-                </div>
-                <div>
-                  <div className="font-teko text-3xl sm:text-4xl font-bold text-white tracking-wide">1 200+</div>
-                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">СЫГРАНО МАТЧЕЙ</div>
-                </div>
-                <div>
-                  <div className="font-teko text-3xl sm:text-4xl font-bold text-[#00f0ff] tracking-wide">48</div>
-                  <div className="font-rajdhani text-xs font-bold uppercase tracking-wider text-zinc-400">ТОП-КОМАНД</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Правая колонка: Киберспортивный 3D-арт геймпада */}
-            <div className="lg:col-span-5 relative flex items-center justify-center">
-              <div className="relative w-full max-w-lg aspect-square rounded-2xl overflow-hidden border border-red-500/30 bg-[#080b11] shadow-[0_0_50px_rgba(255,30,68,0.25)] group">
-                <img
-                  src="/hero-controller.jpg"
-                  alt="Esports Arena Pro Controller"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-transparent to-transparent opacity-60" />
-                <div className="absolute inset-0 border border-white/10 rounded-2xl pointer-events-none" />
-
-                <div className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-md border border-cyan-500/40 bg-black/70 backdrop-blur-md px-3 py-1.5 text-xs font-mono font-bold text-cyan-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                  <span>NIGHTBYTE PRO SERIES</span>
-                </div>
-
-                <div className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-md border border-red-500/40 bg-black/70 backdrop-blur-md px-3 py-1.5 text-xs font-mono font-bold text-red-400">
-                  <span>СЕЗОН 2026</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 2. БАННЕР ОБРАТНОГО ОТСЧЕТА (LIVE COUNTDOWN) */}
-      {/* ========================================================================= */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-xl border border-red-500/30 bg-gradient-to-r from-[#14080a] via-[#0b0e14] to-[#0b0e14] p-5 sm:p-6 shadow-xl">
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            
-            {/* Заголовок с живым индикатором */}
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 rounded bg-red-600/20 border border-red-500/40 px-2.5 py-0.5 text-[11px] font-extrabold tracking-wider text-red-400 font-rajdhani uppercase">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-ping" />
-                <span>● СТАРТ ЧЕРЕЗ</span>
-              </div>
-              <h2 className="font-rajdhani font-extrabold uppercase text-xl sm:text-2xl text-white tracking-wide">
-                СЛЕДУЮЩИЙ ТУРНИР: NIGHTBYTE CHAMPIONSHIP 2026
-              </h2>
-            </div>
-
-            {/* Блоки цифр таймера */}
-            <div className="flex items-center gap-2 sm:gap-4 self-center lg:self-auto font-mono">
-              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[64px]">
-                <span className="font-teko text-2xl sm:text-3xl font-bold text-white leading-none">
-                  {String(timeLeft.days).padStart(2, "0")}
-                </span>
-                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">ДНЕЙ</span>
-              </div>
-              <span className="font-teko text-xl text-red-500 font-bold">:</span>
-              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[64px]">
-                <span className="font-teko text-2xl sm:text-3xl font-bold text-white leading-none">
-                  {String(timeLeft.hours).padStart(2, "0")}
-                </span>
-                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">ЧАСОВ</span>
-              </div>
-              <span className="font-teko text-xl text-red-500 font-bold">:</span>
-              <div className="flex flex-col items-center bg-black/70 border border-white/10 rounded-lg px-3 sm:px-4 py-2 min-w-[64px]">
-                <span className="font-teko text-2xl sm:text-3xl font-bold text-white leading-none">
-                  {String(timeLeft.minutes).padStart(2, "0")}
-                </span>
-                <span className="font-rajdhani text-[10px] uppercase font-bold text-zinc-400">МИНУТ</span>
-              </div>
-              <span className="font-teko text-xl text-red-500 font-bold">:</span>
-              <div className="flex flex-col items-center bg-black/70 border border-red-500/40 rounded-lg px-3 sm:px-4 py-2 min-w-[64px]">
-                <span className="font-teko text-2xl sm:text-3xl font-bold text-[#ff1e44] leading-none">
-                  {String(timeLeft.seconds).padStart(2, "0")}
-                </span>
-                <span className="font-rajdhani text-[10px] uppercase font-bold text-red-400">СЕКУНД</span>
-              </div>
-            </div>
-
-            {/* Кнопка перехода к соревнованию */}
-            <div className="flex items-center gap-3">
-              <Link
-                to="/tournaments"
-                className="btn-crimson font-rajdhani uppercase font-extrabold tracking-wider text-sm px-6 py-2.5 w-full sm:w-auto text-center"
-              >
-                К ТУРНИРУ
-              </Link>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 3. ПОПУЛЯРНЫЕ ДИСЦИПЛИНЫ И ПРИЗОВОЙ ФОНД */}
-      {/* ========================================================================= */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-8">
-        
-        {/* Заголовок секции дисциплин */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[#ff1e44] text-lg">✦</span>
-            <h2 className="font-rajdhani font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-              ПОПУЛЯРНЫЕ ДИСЦИПЛИНЫ
-            </h2>
-          </div>
-          <Link
-            to="/tournaments"
-            className="font-rajdhani font-bold uppercase text-xs sm:text-sm tracking-wider text-zinc-400 hover:text-white transition flex items-center gap-1"
-          >
-            <span>ВСЕ ИГРЫ</span>
-            <span>→</span>
-          </Link>
-        </div>
-
-        {/* Сетка высококачественных вертикальных постер-карточек игр */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-5">
-          {heroGames.slice(0, 6).map((g) => {
-            const isSelected = activeGameId === g.id;
-            return (
-              <div
-                key={g.id}
-                onClick={() => {
-                  setActiveGameId(g.id);
-                  setMatchFilterGame(g.id);
-                }}
-                className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-end p-4 aspect-[3/4] min-h-[250px] sm:min-h-[290px] ${
-                  isSelected
-                    ? "border-2 border-[#ff1e44] shadow-[0_0_30px_rgba(255,30,68,0.5)] scale-[1.03] z-10"
-                    : "border-white/[0.12] bg-[#0c1017] hover:border-white/40 hover:scale-[1.02]"
-                }`}
-              >
-                {/* Четкое изображение обложки дисциплины */}
-                <img
-                  src={g.coverUrl}
-                  alt={g.name}
-                  className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500"
-                />
-
-                {/* Затемняющий градиент только снизу для читаемости текста */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/75 via-45% to-transparent pointer-events-none" />
-
-                {/* Верхний бейдж: иконка + формат игры */}
-                <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
-                  <div className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-black/70 backdrop-blur-md px-2 py-1 text-[11px] font-bold text-white shadow-md">
-                    <GameIcon game={g.id} className="w-3.5 h-3.5 object-contain rounded" />
-                    <span className="font-rajdhani uppercase tracking-wider">{g.tag}</span>
-                  </div>
-
-                  {isSelected && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-[#ff1e44] px-2 py-0.5 text-[10px] font-black uppercase text-white font-rajdhani shadow-sm shadow-red-500/50">
-                      ✦ ВЫБРАНО
-                    </span>
-                  )}
-                </div>
-
-                {/* Нижняя активная неоновая полоска */}
-                {isSelected && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[4px] bg-[#ff1e44] shadow-[0_0_12px_#ff1e44]" />
-                )}
-
-                {/* Текст и название дисциплины */}
-                <div className="relative z-10 space-y-1">
-                  <h3 className="font-rajdhani font-black uppercase text-lg sm:text-xl text-white leading-tight drop-shadow-md">
-                    {g.short}
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono text-zinc-300 font-extrabold bg-black/60 px-2 py-0.5 rounded border border-white/10">
-                      от {formatRub(g.standardFee)}
-                    </span>
-                    <span className="text-[10px] font-rajdhani font-bold text-red-400 group-hover:text-red-300 transition uppercase">
-                      Турниры →
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* КАРТОЧКА ПРИЗОВОГО ФОНДА (С 3D-КУБКОМ НА 250 000 ₽) */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-[#090c12] p-6 sm:p-8 shadow-2xl">
-          <div className="pointer-events-none absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-red-600/10 blur-[130px]" />
-          
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            {/* Визуальный кубок */}
-            <div className="md:col-span-5 flex items-center justify-center">
-              <div className="relative w-full max-w-sm aspect-[4/3] rounded-xl overflow-hidden border border-white/10 bg-black/60 shadow-xl group">
-                <img
-                  src="/trophy-cup.jpg"
-                  alt="Championship Trophy"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#090c12] via-transparent to-transparent opacity-40" />
-                <div className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded bg-black/80 border border-amber-500/40 px-2.5 py-1 text-[10px] font-mono font-bold text-amber-300">
-                  <span>🏆 ЧЕМПИОНАТ СЕЗОНА</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Подробности призового фонда */}
-            <div className="md:col-span-7 space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-0.5 text-xs font-bold text-red-400 font-rajdhani uppercase tracking-wider">
-                <span>✦ ПРИЗОВОЙ ФОНД СЕЗОНА</span>
-              </div>
-
-              <div>
-                <div className="font-teko uppercase font-bold text-5xl sm:text-7xl text-white tracking-wide leading-none">
-                  250 000 ₽
-                </div>
-                <div className="font-rajdhani uppercase font-extrabold text-sm sm:text-base tracking-widest text-[#ff1e44]">
-                  ГАРАНТИРОВАННЫЕ ВЫПЛАТЫ ПОБЕДИТЕЛЯМ
-                </div>
-              </div>
-
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-rajdhani font-medium max-w-xl">
-                Соревнуйтесь за крупнейший призовой фонд осеннего сезона. Победители получают гарантированные выплаты прямо на банковские карты или через СБП в течение 24 часов после подтверждения судейского протокола.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs">
-                  <span className="font-mono font-bold text-amber-300">1-е место:</span>
-                  <span className="font-bold text-white">125 000 ₽</span>
-                </div>
-                <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs">
-                  <span className="font-mono font-bold text-zinc-300">2-е место:</span>
-                  <span className="font-bold text-white">65 000 ₽</span>
-                </div>
-                <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs">
-                  <span className="font-mono font-bold text-amber-600">3-е место:</span>
-                  <span className="font-bold text-white">35 000 ₽</span>
-                </div>
-                <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs">
-                  <span className="font-mono font-bold text-zinc-400">4–8 места:</span>
-                  <span className="font-bold text-white">25 000 ₽</span>
-                </div>
                 <Link
-                  to="/tournaments"
-                  className="btn-crimson font-rajdhani uppercase font-bold tracking-wider text-xs px-5 py-2.5 ml-auto cursor-pointer"
+                  to="/how-it-works"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 px-5 py-3.5 text-sm font-bold text-white transition-all duration-200 active:scale-[0.98]"
                 >
-                  РЕГЛАМЕНТ ПРИЗОВЫХ →
+                  <svg className="w-4 h-4 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Регламент соревнований</span>
                 </Link>
-              </div>
-            </div>
 
-          </div>
-        </div>
-
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 4. ЛУЧШИЕ КОМАНДЫ (ТОП РЕЙТИНГА) */}
-      {/* ========================================================================= */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[#ff1e44] text-lg">✦</span>
-            <h2 className="font-rajdhani font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-              ЛУЧШИЕ КОМАНДЫ
-            </h2>
-          </div>
-          <Link
-            to="/tournaments"
-            className="font-rajdhani font-bold uppercase text-xs sm:text-sm tracking-wider text-zinc-400 hover:text-white transition flex items-center gap-1"
-          >
-            <span>ТАБЛИЦА ЛИДЕРОВ</span>
-            <span>→</span>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-          {TOP_TEAMS.map((team) => (
-            <div
-              key={team.name}
-              className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0d14] p-4 flex flex-col justify-between hover:border-white/25 transition group"
-            >
-              <div
-                className="absolute top-0 left-0 right-0 h-[2px]"
-                style={{ backgroundColor: team.color }}
-              />
-
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="font-mono text-xs font-bold text-zinc-400">
-                    #{team.rank}
-                  </span>
-                  <span className="font-mono text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                    {team.tag}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border font-teko text-xl font-bold ${team.iconBg}`}>
-                    {team.tag.substring(0, 2)}
-                  </div>
-                  <div>
-                    <h3 className="font-rajdhani font-extrabold uppercase text-sm sm:text-base text-white group-hover:text-red-400 transition">
-                      {team.name}
-                    </h3>
-                    <div className="font-mono text-xs text-zinc-400">
-                      {team.matches} МАТЧЕЙ
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between font-mono text-xs">
-                <div>
-                  <span className="text-[10px] uppercase text-zinc-500 block">ОЧКИ</span>
-                  <span className="font-bold text-white">{team.points}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] uppercase text-zinc-500 block">ВИНРЕЙТ</span>
-                  <span className="font-bold text-emerald-400">{team.winRate}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 5. КАТАЛОГ АКТУАЛЬНЫХ МАТЧЕЙ И ТУРНИРОВ */}
-      {/* ========================================================================= */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/[0.08] pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[#ff1e44] text-lg">✦</span>
-              <h2 className="font-rajdhani font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-                АКТУАЛЬНЫЕ МАТЧИ И ТУРНИРЫ
-              </h2>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/40 px-2.5 py-0.5 text-xs font-bold text-cyan-300 font-mono">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                {activeCount} открыто
-              </span>
-            </div>
-            <p className="mt-1 font-rajdhani text-xs sm:text-sm text-zinc-400">
-              Выберите дисциплину, зарегистрируйтесь на матч и получите данные комнаты в личном кабинете.
-            </p>
-          </div>
-
-          <Link
-            to="/tournaments"
-            className="font-rajdhani font-bold uppercase text-xs sm:text-sm tracking-wider text-[#00f0ff] hover:text-white transition shrink-0"
-          >
-            ВСЕ СОРЕВНОВАНИЯ →
-          </Link>
-        </div>
-
-        {/* Фильтры дисциплин */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setMatchFilterGame("all")}
-            className={`rounded-lg px-4 py-2 font-rajdhani uppercase font-bold text-xs tracking-wider transition whitespace-nowrap cursor-pointer ${
-              matchFilterGame === "all"
-                ? "bg-[#ff1e44] text-white shadow-[0_0_15px_rgba(255,30,68,0.4)]"
-                : "bg-white/[0.04] text-zinc-400 hover:text-white border border-white/[0.08]"
-            }`}
-          >
-            ВСЕ ИГРЫ
-          </button>
-          {heroGames.map((g) => {
-            const isSel = matchFilterGame === g.id;
-            return (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => setMatchFilterGame(g.id)}
-                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 font-rajdhani uppercase font-bold text-xs tracking-wider transition whitespace-nowrap cursor-pointer ${
-                  isSel
-                    ? "bg-[#ff1e44] text-white shadow-[0_0_15px_rgba(255,30,68,0.4)]"
-                    : "bg-white/[0.04] text-zinc-400 hover:text-white border border-white/[0.08]"
-                }`}
-              >
-                <GameIcon game={g.id} className="w-3.5 h-3.5 rounded-sm object-cover" />
-                <span>{g.short}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Сетка карточек турниров */}
-        <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {filteredTournaments.slice(0, 9).map((t) => (
-            <TournamentCard key={t.id} tournament={t} />
-          ))}
-        </div>
-
-        {filteredTournaments.length === 0 && (
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-10 text-center font-rajdhani">
-            <p className="text-zinc-400 text-sm">
-              В данной дисциплине нет открытых матчей на сегодня. Попробуйте выбрать другую игру или загляните позже.
-            </p>
-            <button
-              type="button"
-              onClick={() => setMatchFilterGame("all")}
-              className="mt-3 text-xs font-bold text-[#ff1e44] hover:underline uppercase tracking-wider cursor-pointer"
-            >
-              Сбросить фильтр
-            </button>
-          </div>
-        )}
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 6. НОВОСТИ И ПОДПИСКА НА ОБНОВЛЕНИЯ */}
-      {/* ========================================================================= */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[#ff1e44] text-lg">✦</span>
-            <h2 className="font-rajdhani font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-wide">
-              НОВОСТИ И ОБНОВЛЕНИЯ
-            </h2>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-          {LATEST_NEWS.map((item) => (
-            <div
-              key={item.id}
-              className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#090c12] p-5 flex flex-col justify-between hover:border-white/20 transition group"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className={`inline-flex items-center rounded px-2 py-0.5 font-mono text-[10px] font-bold uppercase border ${item.badgeColor}`}>
-                    {item.tag}
-                  </span>
-                  <span className="font-mono text-[11px] text-zinc-500 font-bold">{item.date}</span>
-                </div>
-                <h3 className="font-rajdhani font-extrabold uppercase text-base sm:text-lg text-white group-hover:text-red-400 transition leading-snug">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-xs text-zinc-400 font-rajdhani leading-relaxed">
-                  {item.excerpt}
-                </p>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-white/[0.06]">
                 <a
                   href={VK_GROUP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-rajdhani uppercase text-xs font-bold text-red-400 hover:text-red-300 transition inline-flex items-center gap-1"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#0077FF]/40 bg-[#0077FF]/20 px-5 py-3.5 text-sm font-bold text-white transition-all duration-200 hover:border-[#0077FF] hover:bg-[#0077FF]/30 active:scale-[0.98]"
                 >
-                  <span>ПОДРОБНЕЕ</span>
-                  <span>→</span>
+                  <svg className="h-4 w-4 fill-[#4da3ff]" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zm3.08 14.27h-1.46c-.55 0-.72-.44-1.71-1.43-.86-.83-1.24-.94-1.46-.94-.3 0-.38.08-.38.49v1.31c0 .35-.11.56-1.04.56-1.54 0-3.24-.93-4.44-2.66-1.81-2.54-2.3-4.45-2.3-4.84 0-.21.08-.41.49-.41h1.46c.37 0 .51.17.65.56.72 2.08 1.92 3.9 2.41 3.9.19 0 .27-.09.27-.56V9.97c-.06-.99-.58-1.07-.58-1.42 0-.17.14-.34.37-.34h2.29c.31 0 .42.17.42.53v2.89c0 .31.14.42.23.42.19 0 .34-.11.68-.45 1.05-1.18 1.8-3 1.8-3 .1-.21.27-.41.64-.41h1.46c.44 0 .54.23.44.53-.18.85-1.95 3.35-1.95 3.35-.16.25-.22.36 0 .65.16.21.69.67 1.04 1.08.65.74 1.14 1.36 1.28 1.79.14.42-.08.64-.51.64z" />
+                  </svg>
+                  <span>Мы ВКонтакте</span>
                 </a>
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* ФОРМА ПОДПИСКИ НА УВЕДОМЛЕНИЯ */}
-        <div className="relative overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-r from-red-950/20 via-[#0a0d14] to-[#0a0d14] p-6 sm:p-8 mt-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-1">
-              <div className="font-rajdhani font-black uppercase text-xl sm:text-2xl text-white tracking-wide">
-                БУДЬТЕ В КУРСЕ СОБЫТИЙ
+            {/* Правая колонка: ИНТЕРАКТИВНЫЙ КОМАНДНЫЙ ЦЕНТР ДИСЦИПЛИН */}
+            <div className="lg:col-span-5 relative">
+              <div
+                className="relative rounded-3xl border p-4 sm:p-5 overflow-hidden shadow-2xl bg-[#070b14]/90 backdrop-blur-xl transition-all duration-300"
+                style={{
+                  boxShadow: `0 20px 50px -15px ${activeGameConfig.glow}`,
+                  borderColor: `${activeGameConfig.color}40`,
+                }}
+              >
+                
+                {/* Кинематографичный фон активной дисциплины */}
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                  {heroGames.map((g) => {
+                    const wallpaper = (g as any).wallpaperUrl || GAME_WALLPAPERS[g.id];
+                    const isCurrent = activeGameId === g.id;
+                    return (
+                      <div
+                        key={g.id}
+                        className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-out ${
+                          isCurrent ? 'opacity-35 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+                        }`}
+                        style={{
+                          backgroundImage: `url(${wallpaper})`,
+                        }}
+                      />
+                    );
+                  })}
+
+                  {/* Затемняющий градиент поверх картинки */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#070b14] via-[#070b14]/85 to-[#070b14]/65" />
+                  <div className="absolute inset-0 bg-black/35" />
+                </div>
+
+                {/* Верхний статус-бар: Дисциплины платформы */}
+                <div className="relative z-10 mb-4 flex items-center justify-between border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-2.5 w-2.5 relative">
+                      <span
+                        className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                        style={{ backgroundColor: activeGameConfig.color }}
+                      />
+                      <span
+                        className="relative inline-flex rounded-full h-2.5 w-2.5"
+                        style={{ backgroundColor: activeGameConfig.color }}
+                      />
+                    </span>
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                      Дисциплины платформы
+                    </span>
+                    <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-bold text-zinc-300">
+                      {heroGames.length} Игр
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 rounded-full bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-1 text-[11px] font-bold text-cyan-300 backdrop-blur-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Сезон 2026</span>
+                  </div>
+                </div>
+
+                {/* Сетка карточек всех дисциплин - полностью кликабельные для перехода к турнирам */}
+                <div className="relative z-10 grid grid-cols-2 gap-2.5">
+                  {heroGames.map((g) => {
+                    const isSelected = activeGameId === g.id;
+
+                    return (
+                      <Link
+                        key={g.id}
+                        to={`/tournaments?game=${g.id}`}
+                        onMouseEnter={() => setActiveGameId(g.id)}
+                        onClick={() => setActiveGameId(g.id)}
+                        className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-all duration-200 active:scale-[0.98] cursor-pointer ${
+                          isSelected
+                            ? 'bg-black/90 shadow-lg scale-[1.02]'
+                            : 'bg-black/60 hover:bg-black/85 border-white/10 hover:border-white/25'
+                        }`}
+                        style={{
+                          borderColor: isSelected ? g.color : undefined,
+                          boxShadow: isSelected ? `0 4px 20px -2px ${g.glow}` : undefined,
+                        }}
+                        title={`Открыть соревнования по ${g.name}`}
+                      >
+                        {/* Иконка игры с цветной рамкой */}
+                        <div
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 overflow-hidden border p-0.5"
+                          style={{
+                            backgroundColor: `${g.color}25`,
+                            borderColor: `${g.color}60`,
+                          }}
+                        >
+                          <GameIcon game={g.id} className="w-full h-full object-cover rounded" />
+                        </div>
+
+                        {/* Название и формат */}
+                        <div className="min-w-0 flex-1">
+                          <span className={`block text-xs sm:text-sm font-black tracking-tight truncate transition-colors ${
+                            isSelected ? 'text-white' : 'text-zinc-200 group-hover:text-white'
+                          }`}>
+                            {g.name}
+                          </span>
+                          <span
+                            className="block text-[9px] font-bold tracking-wider uppercase font-mono truncate"
+                            style={{ color: g.color }}
+                          >
+                            {g.tag}
+                          </span>
+                        </div>
+
+                        {/* Индикатор перехода к турнирам */}
+                        <span
+                          className={`text-xs font-black transition-all duration-200 shrink-0 ${
+                            isSelected
+                              ? 'opacity-100 translate-x-0'
+                              : 'opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0'
+                          }`}
+                          style={{ color: g.color }}
+                        >
+                          →
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {/* Интерактивный нижний лаунчер выбранной игры */}
+                <Link
+                  to={`/tournaments?game=${activeGameConfig.id}`}
+                  className="relative z-10 mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-3 bg-black/40 hover:bg-black/60 transition-colors -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-3 sm:p-4 rounded-b-3xl group cursor-pointer"
+                  title={`Перейти к соревнованиям по ${activeGameConfig.name}`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className="h-8 w-8 rounded-lg border p-0.5 shrink-0 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105"
+                      style={{
+                        backgroundColor: `${activeGameConfig.color}20`,
+                        borderColor: `${activeGameConfig.color}50`,
+                      }}
+                    >
+                      <GameIcon game={activeGameConfig.id} className="w-full h-full object-contain rounded" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-black text-white group-hover:text-cyan-300 transition-colors truncate">
+                        {activeGameConfig.name}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 font-medium truncate">
+                        {activeGameConfig.tag} • Открыть все соревнования
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className="shrink-0 inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-black text-black transition-all group-hover:scale-105 active:scale-95 shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, ${activeGameConfig.color}, #ffffff)`,
+                      boxShadow: `0 4px 15px -2px ${activeGameConfig.glow}`,
+                    }}
+                  >
+                    <span>К турнирам</span>
+                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+
               </div>
-              <p className="font-rajdhani text-xs sm:text-sm text-zinc-400 max-w-md">
-                Подпишитесь на уведомления о старте новых турниров, открытии лобби и эксклюзивных розыгрышах платформы.
-              </p>
             </div>
 
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md w-full">
-              {newsletterSubscribed ? (
-                <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-xs font-bold text-emerald-300 flex items-center gap-2">
-                  <span>✓</span>
-                  <span>Вы успешно подписаны на уведомления соревнований!</span>
-                </div>
-              ) : (
-                <>
-                  <input
-                    type="email"
-                    value={newsletterEmail}
-                    onChange={(e) => setNewsletterEmail(e.target.value)}
-                    placeholder="Ваш email адрес..."
-                    required
-                    className="flex-1 rounded-lg border border-white/10 bg-black/60 px-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-red-500 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="btn-crimson font-rajdhani uppercase font-extrabold tracking-wider text-xs px-6 py-2.5 cursor-pointer whitespace-nowrap"
-                  >
-                    ПОДПИСАТЬСЯ
-                  </button>
-                </>
-              )}
-            </form>
+          </div>
+
+          {/* Информационная полоса статистики / Преимуществ */}
+          <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 border-t border-white/[0.08] pt-8">
+            <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3 sm:p-4">
+              <span className="font-mono text-xl sm:text-2xl font-black text-cyan-400 block">8 Игр</span>
+              <span className="text-xs text-zinc-400 font-medium mt-1 block">CS2, Dota 2, PUBG, Apex, Warzone...</span>
+            </div>
+            <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3 sm:p-4">
+              <span className="font-mono text-xl sm:text-2xl font-black text-amber-300 block">До 24ч</span>
+              <span className="text-xs text-zinc-400 font-medium mt-1 block">Выплаты вознаграждений через СБП</span>
+            </div>
+            <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3 sm:p-4">
+              <span className="font-mono text-xl sm:text-2xl font-black text-emerald-400 block">100%</span>
+              <span className="text-xs text-zinc-400 font-medium mt-1 block">Честное судейство и проверка читов</span>
+            </div>
+            <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3 sm:p-4">
+              <span className="font-mono text-xl sm:text-2xl font-black text-purple-400 block">Любая сумма</span>
+              <span className="text-xs text-zinc-400 font-medium mt-1 block">Пополнение 100, 200, 500, 1000 ₽ или своя</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* 7. ОФИЦИАЛЬНОЕ СООБЩЕСТВО ВКОНТАКТЕ */}
-      {/* ========================================================================= */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="relative overflow-hidden rounded-2xl border border-[#0077ff]/30 bg-gradient-to-br from-[#0c1424] via-[#090d16] to-[#090d16] p-6 sm:p-8 shadow-2xl">
-          <div className="pointer-events-none absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#0077ff]/15 blur-3xl" />
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      {/* Каталог актуальных турниров */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/[0.08] pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Ближайшие соревнования
+              </h2>
+              <span className="rounded-full bg-cyan-500/15 border border-cyan-500/40 px-2.5 py-0.5 text-xs font-bold text-cyan-300 font-mono">
+                {activeCount} активных
+              </span>
+            </div>
+            <p className="mt-1 text-xs sm:text-sm text-zinc-400">
+              Выберите дисциплину, оплатите оргвзнос картой или СБП и получите доступ в закрытое лобби
+            </p>
+          </div>
+          <Link
+            to="/tournaments"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-cyan-400 hover:text-cyan-300 transition"
+          >
+            <span>Все соревнования</span>
+            <span>→</span>
+          </Link>
+        </div>
+
+        <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {featured.map((t) => (
+            <TournamentCard key={t.id} tournament={t} />
+          ))}
+        </div>
+      </section>
+
+      {/* Сообщество ВКонтакте */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="rounded-3xl border border-[#0077FF]/35 bg-gradient-to-br from-[#0c1527] via-[#09101d] to-[#080d17] p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#0077FF]/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative">
             <div className="max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-md border border-[#0077ff]/40 bg-[#0077ff]/15 px-2.5 py-1 text-xs font-semibold text-[#5ea4ff]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#0077FF]/40 bg-[#0077FF]/20 px-3 py-1 text-xs font-bold text-[#6eb4ff]">
                 <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zm3.08 14.27h-1.46c-.55 0-.72-.44-1.71-1.43-.86-.83-1.24-.94-1.46-.94-.3 0-.38.08-.38.49v1.31c0 .35-.11.56-1.04.56-1.54 0-3.24-.93-4.44-2.66-1.81-2.54-2.3-4.45-2.3-4.84 0-.21.08-.41.49-.41h1.46c.37 0 .51.17.65.56.72 2.08 1.92 3.9 2.41 3.9.19 0 .27-.09.27-.56V9.97c-.06-.99-.58-1.07-.58-1.42 0-.17.14-.34.37-.34h2.29c.31 0 .42.17.42.53v2.89c0 .31.14.42.23.42.19 0 .34-.11.68-.45 1.05-1.18 1.8-3 1.8-3 .1-.21.27-.41.64-.41h1.46c.44 0 .54.23.44.53-.18.85-1.95 3.35-1.95 3.35-.16.25-.22.36 0 .65.16.21.69.67 1.04 1.08.65.74 1.14 1.36 1.28 1.79.14.42-.08.64-.51.64z" />
                 </svg>
-                <span>ОФИЦИАЛЬНОЕ СООБЩЕСТВО</span>
+                <span>Официальное сообщество ВКонтакте</span>
               </div>
 
-              <h2 className="font-rajdhani font-black uppercase text-2xl sm:text-3xl text-white tracking-wide">
-                Сообщество NightByte Club
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Сообщество <span className="text-[#4da3ff]">NightByte Club</span>
               </h2>
 
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-rajdhani">
-                Следите за расписанием новых соревнований, отчетами о выплатах победителям и общайтесь с судьями и участниками напрямую.
+              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                Следите за расписанием новых турниров, результатами матчей, отчётами о выплатах призовых и общайтесь с участниками и организаторами напрямую.
               </p>
 
-              <div className="flex flex-wrap gap-2 text-xs pt-1 font-rajdhani font-bold">
-                <span className="rounded-lg border border-[#0077ff]/30 bg-[#0077ff]/10 text-cyan-200 px-2.5 py-1">Анонсы соревнований</span>
-                <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 px-2.5 py-1">Чеки выплат призовых</span>
-                <span className="rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-300 px-2.5 py-1">Чат игроков и арбитраж</span>
+              <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-zinc-300 pt-1">
+                <span className="rounded-lg border border-white/10 bg-black/50 px-2.5 py-1">Анонсы и сетки турниров</span>
+                <span className="rounded-lg border border-white/10 bg-black/50 px-2.5 py-1">Отчёты о выплатах призовых</span>
+                <span className="rounded-lg border border-white/10 bg-black/50 px-2.5 py-1">Чат участников и судейство</span>
+                <span className="rounded-lg border border-white/10 bg-black/50 px-2.5 py-1">Розыгрыши слотов</span>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-3 shrink-0">
+            <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-3 shrink-0">
               <a
                 href={VK_GROUP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-3 px-6 text-sm font-rajdhani font-extrabold uppercase tracking-wider rounded-lg border border-[#0077ff]/50 bg-[#0077ff]/20 text-white hover:bg-[#0077ff]/35 shadow-md shadow-[#0077ff]/25 transition cursor-pointer"
+                className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-[#0077FF] hover:bg-[#1a85ff] px-7 py-4 text-sm font-black text-white shadow-xl shadow-[#0077FF]/30 transition-all duration-200 active:scale-[0.98]"
               >
-                <span>Вступить в группу ВК →</span>
+                <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zm3.08 14.27h-1.46c-.55 0-.72-.44-1.71-1.43-.86-.83-1.24-.94-1.46-.94-.3 0-.38.08-.38.49v1.31c0 .35-.11.56-1.04.56-1.54 0-3.24-.93-4.44-2.66-1.81-2.54-2.3-4.45-2.3-4.84 0-.21.08-.41.49-.41h1.46c.37 0 .51.17.65.56.72 2.08 1.92 3.9 2.41 3.9.19 0 .27-.09.27-.56V9.97c-.06-.99-.58-1.07-.58-1.42 0-.17.14-.34.37-.34h2.29c.31 0 .42.17.42.53v2.89c0 .31.14.42.23.42.19 0 .34-.11.68-.45 1.05-1.18 1.8-3 1.8-3 .1-.21.27-.41.64-.41h1.46c.44 0 .54.23.44.53-.18.85-1.95 3.35-1.95 3.35-.16.25-.22.36 0 .65.16.21.69.67 1.04 1.08.65.74 1.14 1.36 1.28 1.79.14.42-.08.64-.51.64z" />
+                </svg>
+                <span>Вступить в группу ВК</span>
+                <span className="transition-transform group-hover:translate-x-1">→</span>
               </a>
-              <span className="font-mono text-xs text-cyan-400/80">
+              <span className="text-center lg:text-right font-mono text-xs text-zinc-400">
                 vk.ru/nightbyte.club
               </span>
             </div>
@@ -794,6 +389,53 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Раздел: Как это работает (4 шага) */}
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 sm:pb-20">
+        <div className="border-b border-white/[0.08] pb-4 mb-6">
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            Как устроена платформа соревнований
+          </h2>
+          <p className="mt-1 text-xs sm:text-sm text-zinc-400">
+            Простой и прозрачный порядок участия от выбора матча до выплаты выигрыша
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              step: '01',
+              title: 'Дисциплины и форматы',
+              text: 'Соревнования по CS2, Dota 2, королевским битвам PUBG, PUBG Mobile, Apex Legends, Warzone и Fortnite.',
+            },
+            {
+              step: '02',
+              title: 'Оплата и баланс',
+              text: 'Оплата услуг по организации (судейство, подбор оппонентов, лобби). Пополнение баланса на любую сумму: 100, 200, 500, 1000, 1500 ₽ или произвольную через СБП и банковские карты РФ.',
+            },
+            {
+              step: '03',
+              title: 'Доступ в лобби',
+              text: 'Сетка соревнований и данные для подключения к лобби (Room ID и пароль) отображаются в личном кабинете после набора участников.',
+            },
+            {
+              step: '04',
+              title: 'Вознаграждение победителей',
+              text: 'Фиксированное вознаграждение учреждено организатором соревнований за спортивные достижения (не зависит от взносов участников). Выплата через СБП до 24 часов.',
+            },
+          ].map((item) => (
+            <div
+              key={item.step}
+              className="rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#111726] to-[#0c101a] p-5 sm:p-6 transition hover:border-cyan-500/30 flex flex-col justify-between"
+            >
+              <div>
+                <span className="font-mono text-sm font-black text-cyan-400 block mb-2">{item.step}</span>
+                <h3 className="text-base font-bold text-white">{item.title}</h3>
+                <p className="mt-2 text-xs text-zinc-400 leading-relaxed">{item.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

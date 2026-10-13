@@ -86,15 +86,14 @@ export const TournamentsPage: React.FC = () => {
             <button
               key={game}
               onClick={() => setSelectedGame(game)}
-              className={`shrink-0 flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-200 ${
+              className={`shrink-0 flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition ${
                 isSelected
-                  ? 'text-black shadow-md scale-105'
+                  ? 'text-black shadow-md'
                   : 'border border-white/10 bg-[#12161f] text-zinc-300 hover:text-white'
               }`}
               style={{
                 backgroundColor: isSelected ? info.accent : undefined,
-                borderColor: !isSelected && info.accent ? `${info.accent}30` : undefined,
-                boxShadow: isSelected ? `0 4px 15px -3px ${info.glow || info.accent}` : undefined,
+                boxShadow: isSelected ? `0 4px 15px -3px ${info.glow}` : undefined,
               }}
             >
               <GameIcon game={game} className="w-3.5 h-3.5 shrink-0 rounded-sm" />
@@ -106,23 +105,23 @@ export const TournamentsPage: React.FC = () => {
 
       {/* Ползунок / Переключатель: Премиум соревнования */}
       {(selectedGame === 'all' || isPremiumSupportedGame(selectedGame)) && (
-        <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/35 bg-gradient-to-r from-amber-950/30 via-[#141210] to-[#161214] p-3.5 sm:p-4 shadow-lg shadow-amber-500/5">
+        <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/25 bg-[#141210] p-3.5 sm:p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/25 border border-amber-500/40 text-amber-300 font-extrabold text-base shadow-sm shadow-amber-500/20">
-              <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold text-base">
+              <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs sm:text-sm font-bold text-white tracking-tight">Режим: Премиум соревнования</span>
-                <span className="rounded-md bg-amber-400/20 border border-amber-400/40 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                <span className="rounded-md bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
                   {selectedGame !== 'all'
                     ? (allGames.find((g) => g.id === selectedGame)?.name || selectedGame)
                     : 'PUBG, Apex Legends и др.'}
                 </span>
               </div>
-              <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-300">
+              <p className="mt-0.5 text-[11px] sm:text-xs text-zinc-400">
                 {pubgMode === 'premium'
                   ? `Премиум соревнования: орг. услуги ${formatRub(premiumFee)} (судейство, лобби, платформа) · повышенное вознаграждение от организатора`
                   : `Обычные соревнования: орг. услуги ${formatRub(standardFee)} (судейство, платформа, подбор оппонентов) · вознаграждение победителям`}
