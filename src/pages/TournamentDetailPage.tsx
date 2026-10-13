@@ -106,7 +106,7 @@ export const TournamentDetailPage: React.FC = () => {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              🎮 Орг. тариф ({standardFeeText})
+              🎮 Стандарт
             </Link>
             <Link
               to={premiumLink}
@@ -116,7 +116,7 @@ export const TournamentDetailPage: React.FC = () => {
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              <span>⭐ Премиум ({premiumFeeText})</span>
+              <span>⭐ Премиум</span>
             </Link>
           </div>
         </div>
