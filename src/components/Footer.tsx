@@ -90,10 +90,10 @@ export const Footer: React.FC = () => {
             <p className="text-zinc-300">
               Самозанятый{" "}
               <span className="font-medium text-white">
-                Дегтярев Владимир Михайлович
+                Лекус Данила Павлович
               </span>
             </p>
-            <p className="font-mono text-zinc-400">ИНН: 910408161157</p>
+            <p className="font-mono text-zinc-400">ИНН: 920001360596</p>
             <p>
               Телефон:{" "}
               <a

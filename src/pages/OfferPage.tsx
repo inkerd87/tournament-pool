@@ -18,7 +18,7 @@ export const OfferPage: React.FC = () => {
             о заключении договора об оказании услуг по организации киберспортивных соревнований
           </p>
           <p className="mt-2 text-xs text-zinc-400">
-            Исполнитель: <strong className="text-zinc-200">Самозанятый Дегтярев Владимир Михайлович</strong> (ИНН: 910408161157) · Действует с 1 сентября 2026 г. · Сайт: <a href="https://nightbyteonline.ru" className="text-cyan-400 hover:underline">https://nightbyteonline.ru/</a>
+            Исполнитель: <strong className="text-zinc-200">Самозанятый Лекус Данила Павлович</strong> (ИНН: 920001360596) · Действует с 1 сентября 2026 г. · Сайт: <a href="https://nightbyteonline.ru" className="text-cyan-400 hover:underline">https://nightbyteonline.ru/</a>
           </p>
         </div>
 
@@ -41,7 +41,7 @@ export const OfferPage: React.FC = () => {
           
           <div className="rounded-xl border border-white/10 bg-black/40 p-4 space-y-2 text-xs">
             <p className="font-bold text-white">Термины и определения:</p>
-            <p><strong>Исполнитель</strong> — Самозанятый гражданин РФ Дегтярев Владимир Михайлович, применяющий специальный налоговый режим «Налог на профессиональный доход» (ИНН 910408161157), являющийся организатором киберспортивных соревнований и администратором Сайта.</p>
+            <p><strong>Исполнитель</strong> — Самозанятый гражданин РФ Лекус Данила Павлович, применяющий специальный налоговый режим «Налог на профессиональный доход» (ИНН 920001360596), являющийся организатором киберспортивных соревнований и администратором Сайта.</p>
             <p><strong>Заказчик</strong> — дееспособное физическое лицо, достигшее возраста 18 (восемнадцати) лет, совершившее акцепт настоящей Оферты.</p>
             <p><strong>Договор</strong> — текст настоящей Оферты с Приложениями, являющимися неотъемлемой частью настоящей Оферты, акцептованный Заказчиком путем совершения конклюдентных действий, предусмотренных настоящей Офертой.</p>
             <p><strong>Конклюдентные действия</strong> — это поведение, которое выражает согласие с предложением контрагента заключить, изменить или расторгнуть договор. Действия состоят в регистрации учетной записи, подаче заявки и (или) оплате организационных услуг.</p>
@@ -165,7 +165,7 @@ export const OfferPage: React.FC = () => {
           <div className="grid gap-3 sm:grid-cols-2 text-xs">
             <div>
               <p className="text-zinc-500">Исполнитель</p>
-              <p className="font-semibold text-white">Самозанятый Дегтярев Владимир Михайлович</p>
+              <p className="font-semibold text-white">Самозанятый Лекус Данила Павлович</p>
             </div>
             <div>
               <p className="text-zinc-500">Налоговый статус</p>
@@ -173,7 +173,7 @@ export const OfferPage: React.FC = () => {
             </div>
             <div>
               <p className="text-zinc-500">ИНН</p>
-              <p className="font-mono font-bold text-cyan-300 select-all">910408161157</p>
+              <p className="font-mono font-bold text-cyan-300 select-all">920001360596</p>
             </div>
             <div>
               <p className="text-zinc-500">Контактный телефон</p>

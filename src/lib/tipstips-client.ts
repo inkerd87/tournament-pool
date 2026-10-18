@@ -1,9 +1,9 @@
 import { supabase } from './supabase';
 import { getStoredUser, saveUser } from './storage';
 
-export const TIPSTIPS_URL = 'https://tips.tips/000482808';
-export const TIPSTIPS_CODE = '000482808';
-export const TIPSTIPS_RECIPIENT = 'Владимир (NightByte)';
+export const TIPSTIPS_URL = 'https://tips.tips/000488604';
+export const TIPSTIPS_CODE = '000488604';
+export const TIPSTIPS_RECIPIENT = 'Лекус Данила Павлович';
 export const TIPSTIPS_QR_IMAGE = '/tipstips-qr.png';
 
 export interface TipsTipsPayment {

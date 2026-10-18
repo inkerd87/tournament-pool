@@ -6,7 +6,7 @@ export const PrivacyPage: React.FC = () => {
     <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
       <h1 className="text-3xl font-extrabold text-white">Политика конфиденциальности и правовой статус</h1>
       <p className="mt-2 text-sm text-zinc-400">
-        Оператор платформы: <strong className="text-white font-semibold">Самозанятый Дегтярев Владимир Михайлович</strong>, ИНН: <strong className="text-zinc-200">910408161157</strong>.
+        Оператор платформы: <strong className="text-white font-semibold">Самозанятый Лекус Данила Павлович</strong>, ИНН: <strong className="text-zinc-200">920001360596</strong>.
       </p>
 
       <div className="mt-8 space-y-7 text-sm leading-relaxed text-zinc-300">
@@ -83,7 +83,7 @@ export const PrivacyPage: React.FC = () => {
         <section className="space-y-3">
           <h2 className="text-base font-bold text-white">5. Изменения и контакты</h2>
           <p>
-            Оператор персональных данных: <strong className="text-white">Самозанятый Дегтярев Владимир Михайлович</strong> (ИНН: <span className="font-mono text-cyan-300">910408161157</span>).
+            Оператор персональных данных: <strong className="text-white">Самозанятый Лекус Данила Павлович</strong> (ИНН: <span className="font-mono text-cyan-300">920001360596</span>).
           </p>
           <p>
             Актуальная редакция документа всегда доступна по адресу{' '}

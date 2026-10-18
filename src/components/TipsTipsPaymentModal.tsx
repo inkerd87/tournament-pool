@@ -141,7 +141,7 @@ export const TipsTipsPaymentModal: React.FC<TipsTipsPaymentModalProps> = ({
                   alt="QR-код tips.tips"
                   className="w-36 h-36 object-contain"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://api.tips.tips/codes/light-image/482808';
+                    (e.target as HTMLImageElement).src = 'https://api.tips.tips/codes/light-image/488604';
                   }}
                 />
               </div>
