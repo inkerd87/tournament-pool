@@ -19,8 +19,26 @@ export const TournamentsPage: React.FC = () => {
   const activeGameConfig = selectedGame !== 'all'
     ? allGames.find((g) => g.id === selectedGame)
     : allGames.find((g) => g.hasPremiumMode || g.id === 'pubg');
-  const standardFee = activeGameConfig?.standardFee ?? 100;
-  const premiumFee = activeGameConfig?.premiumFee ?? 1000;
+
+  const targetGameId = selectedGame !== 'all' ? selectedGame : (activeGameConfig?.id || 'pubg');
+  const stdTournament = tournaments.find(
+    (t) =>
+      t.game === targetGameId &&
+      !t.isPremium &&
+      !t.id.toLowerCase().includes('premium')
+  );
+  const premTournament = tournaments.find(
+    (t) =>
+      t.game === targetGameId &&
+      (t.isPremium || t.id.toLowerCase().includes('premium'))
+  );
+
+  const standardFee = (stdTournament?.entryFeeRub !== undefined && stdTournament.entryFeeRub > 0)
+    ? stdTournament.entryFeeRub
+    : (activeGameConfig?.standardFee ?? 100);
+  const premiumFee = (premTournament?.entryFeeRub !== undefined && premTournament.entryFeeRub > 0)
+    ? premTournament.entryFeeRub
+    : (activeGameConfig?.premiumFee ?? 1000);
 
   useEffect(() => {
     if (gameParam) {

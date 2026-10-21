@@ -730,30 +730,38 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
                 </p>
               </div>
 
-              <div className="inline-flex rounded-xl bg-black/80 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
-                <button
-                  type="button"
-                  onClick={() => handleModeSwitch('standard')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    !isPremium
-                      ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25 font-black'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  🎮 Обычный ({formatRub(allGames.find((g) => g.id === selectedGame)?.standardFee ?? 100)})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleModeSwitch('premium')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    isPremium
-                      ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-md shadow-amber-400/30 font-black'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  ⭐ Премиум ({formatRub(allGames.find((g) => g.id === selectedGame)?.premiumFee ?? 1000)})
-                </button>
-              </div>
+                {(() => {
+                  const isCsOrDota = selectedGame === 'cs2' || selectedGame === 'dota2';
+                  const selCfg = allGames.find((g) => g.id === selectedGame);
+                  const modalStdFee = !isPremium ? (entryFeeRub || 0) : (selCfg?.standardFee ?? (isCsOrDota ? 1500 : 100));
+                  const modalPremFee = isPremium ? (entryFeeRub || 0) : (selCfg?.premiumFee ?? 1000);
+                  return (
+                    <div className="inline-flex rounded-xl bg-black/80 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => handleModeSwitch('standard')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          !isPremium
+                            ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25 font-black'
+                            : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        🎮 Обычный ({formatRub(modalStdFee)})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleModeSwitch('premium')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          isPremium
+                            ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-md shadow-amber-400/30 font-black'
+                            : 'text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        ⭐ Премиум ({formatRub(modalPremFee)})
+                      </button>
+                    </div>
+                  );
+                })()}
             </div>
           </div>
 

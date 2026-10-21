@@ -44,6 +44,7 @@ export const AdminMatchForm: React.FC<Props> = ({
     updateTournament,
     updateTournamentStartsAt,
     deleteTournament,
+    updateGameConfig,
     allGames,
     registrations,
   } = useTournaments();
@@ -100,6 +101,15 @@ export const AdminMatchForm: React.FC<Props> = ({
 
   // Список зарегистрированных участников этого матча
   const tournamentRegs = registrations.filter((r) => r.tournamentId === tournament.id);
+
+  const isCsOrDota = game === 'cs2' || game === 'dota2';
+  const gameCfg = allGames.find((g) => g.id === game);
+  const cfgStdFee = gameCfg?.standardFee ?? (isCsOrDota ? 1500 : 100);
+  const cfgPremFee = gameCfg?.premiumFee ?? 1000;
+
+  const currentFee = Math.max(0, Number(entryFeeRub) || 0);
+  const displayStdFee = !isPremium ? currentFee : cfgStdFee;
+  const displayPremFee = isPremium ? currentFee : cfgPremFee;
 
   // Синхронизация при смене ID турнира (не сбрасывать данные во время редактирования каждые 4 секунды)
   useEffect(() => {
@@ -304,6 +314,7 @@ export const AdminMatchForm: React.FC<Props> = ({
     const isTeam5v5 = (game === 'cs2' || game === 'dota2') && winningPlacesCount === 1;
     const winnerPerPlayer = isTeam5v5 ? Math.round((Number(prizePoolRub) || 0) / 5) : 0;
 
+    const parsedFee = Math.max(0, Number(entryFeeRub) || 0);
     setIsSaving(true);
     const ok = await updateTournament(tournament.id, {
       game,
@@ -315,7 +326,7 @@ export const AdminMatchForm: React.FC<Props> = ({
       maxPlayers: Math.max(2, Number(maxPlayers) || 10),
       minPlayers: Math.max(0, Number(minPlayers) || 0),
       registeredCount: Math.max(0, Number(registeredCount) || 0),
-      entryFeeRub: Math.max(0, Number(entryFeeRub) || 0),
+      entryFeeRub: parsedFee,
       prizePoolRub: Math.max(0, Number(prizePoolRub) || 0),
       winningPlacesCount: winningPlacesCount,
       prizes: cleanPrizes,
@@ -326,14 +337,19 @@ export const AdminMatchForm: React.FC<Props> = ({
       wallpaperUrl: wallpaperUrl.trim() || undefined,
       isPremium: Boolean(isPremium),
     });
-    setIsSaving(false);
 
     if (ok) {
+      if (isPremium) {
+        await updateGameConfig(game, { premiumFee: parsedFee });
+      } else {
+        await updateGameConfig(game, { standardFee: parsedFee });
+      }
       setSavedTime(true);
       setTimeout(() => setSavedTime(false), 3000);
     } else {
       alert('Ошибка при сохранении в базу данных. Попробуйте еще раз.');
     }
+    setIsSaving(false);
   };
 
   // Немедленное сохранение времени матча
@@ -693,7 +709,7 @@ export const AdminMatchForm: React.FC<Props> = ({
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
-                      🎮 Обычный ({formatRub(allGames.find((g) => g.id === game)?.standardFee ?? 100)})
+                      🎮 Обычный ({formatRub(displayStdFee)})
                     </button>
                     <button
                       type="button"
@@ -704,8 +720,58 @@ export const AdminMatchForm: React.FC<Props> = ({
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
-                      ⭐ Премиум ({formatRub(allGames.find((g) => g.id === game)?.premiumFee ?? 1000)})
+                      ⭐ Премиум ({formatRub(displayPremFee)})
                     </button>
+                  </div>
+                </div>
+
+                {/* Редактирование взноса и фонда */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2.5 border-t border-amber-500/20">
+                  <div>
+                    <label className="block text-[11px] text-cyan-300 font-bold mb-1">
+                      💳 Оргвзнос с игрока (₽):
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min={0}
+                        className="input-field text-xs font-mono font-bold text-cyan-300 border-cyan-500/30 w-full pr-8"
+                        value={entryFeeRub}
+                        onChange={(e) => setEntryFeeRub(Number(e.target.value))}
+                      />
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-cyan-400">₽</span>
+                    </div>
+                    <p className="mt-1 text-[10px] text-zinc-400">
+                      Сумма орг. взноса для ползунка и карточки турнира
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-amber-300 font-bold mb-1">
+                      🏆 Призовой фонд (₽):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          min={0}
+                          className="input-field text-xs font-mono font-extrabold text-amber-300 border-amber-500/40 w-full pr-8"
+                          value={prizePoolRub}
+                          onChange={(e) => setPrizePoolRub(Number(e.target.value))}
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-400">₽</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDistributePool(prizePoolRub, winningPlacesCount)}
+                        className="shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/20 px-2.5 py-2 text-[10px] font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition"
+                      >
+                        Авто
+                      </button>
+                    </div>
+                    <p className="mt-1 text-[10px] text-zinc-400">
+                      Общая сумма фиксированного вознаграждения
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1128,7 +1194,7 @@ export const AdminMatchForm: React.FC<Props> = ({
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
-                      🎮 Обычный ({formatRub(allGames.find((g) => g.id === game)?.standardFee ?? 100)})
+                      🎮 Обычный ({formatRub(displayStdFee)})
                     </button>
                     <button
                       type="button"
@@ -1139,7 +1205,7 @@ export const AdminMatchForm: React.FC<Props> = ({
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
-                      ⭐ Премиум ({formatRub(allGames.find((g) => g.id === game)?.premiumFee ?? 1000)})
+                      ⭐ Премиум ({formatRub(displayPremFee)})
                     </button>
                   </div>
                 </div>

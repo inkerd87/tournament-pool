@@ -544,6 +544,7 @@ export function updateGameConfig(
     };
     saveStoredCustomGames(customGames);
   }
+  syncAllGamesRegistry();
 }
 
 /**
@@ -555,6 +556,7 @@ export function resetGameConfig(gameId: string): void {
   if (cleanId in overrides) {
     delete overrides[cleanId];
     saveStoredGameOverrides(overrides);
+    syncAllGamesRegistry();
   }
 }
 

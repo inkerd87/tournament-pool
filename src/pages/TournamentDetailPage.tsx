@@ -47,29 +47,21 @@ export const TournamentDetailPage: React.FC = () => {
 
   const gameConfig = allGames?.find((g) => g.id === rawTournament.game);
   let adjustedTournament = rawTournament;
-  if (gameConfig) {
-    if (rawTournament.isPremium && gameConfig.premiumFee) {
-      const fee = gameConfig.premiumFee;
-      const pool = rawTournament.prizePoolRub && rawTournament.entryFeeRub
-        ? Math.round(rawTournament.prizePoolRub * (fee / rawTournament.entryFeeRub))
-        : fee * 28;
+  if (!rawTournament.entryFeeRub) {
+    if (rawTournament.isPremium) {
+      const fee = gameConfig?.premiumFee || 1000;
       adjustedTournament = {
         ...rawTournament,
         entryFeeRub: fee,
-        prizePoolRub: pool,
+        prizePoolRub: rawTournament.prizePoolRub || fee * 28,
       };
-    } else if (!rawTournament.isPremium && gameConfig.standardFee) {
-      const fee = gameConfig.standardFee;
+    } else {
       const isCsOrDota = rawTournament.game === 'cs2' || rawTournament.game === 'dota2';
-      const baseFee = isCsOrDota ? 1500 : 100;
-      const basePool = isCsOrDota ? 12000 : 2200;
-      const pool = rawTournament.prizePoolRub && rawTournament.entryFeeRub
-        ? Math.round(rawTournament.prizePoolRub * (fee / rawTournament.entryFeeRub))
-        : Math.round(basePool * (fee / baseFee));
+      const fee = gameConfig?.standardFee || (isCsOrDota ? 1500 : 100);
       adjustedTournament = {
         ...rawTournament,
         entryFeeRub: fee,
-        prizePoolRub: pool,
+        prizePoolRub: rawTournament.prizePoolRub || (isCsOrDota ? 12000 : 2200),
       };
     }
   }

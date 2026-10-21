@@ -23,8 +23,30 @@ export const TournamentCard: React.FC<{
   const hasToggle = isPremiumSupported(propTournament.game);
 
   const gameConfig = allGames?.find((x) => x.id === propTournament.game);
-  const standardFee = gameConfig?.standardFee ?? (propTournament.entryFeeRub ?? ENTRY_FEE_RUB);
-  const premiumFee = gameConfig?.premiumFee ?? 1000;
+
+  const stdTournament = tournaments.find(
+    (t) =>
+      t.game === propTournament.game &&
+      !t.isPremium &&
+      !t.id.toLowerCase().includes('premium') &&
+      !t.title.toLowerCase().includes('premium')
+  );
+  const premTournament = tournaments.find(
+    (t) =>
+      t.game === propTournament.game &&
+      (t.isPremium || t.id.toLowerCase().includes('premium') || t.title.toLowerCase().includes('premium'))
+  );
+
+  const isCsOrDota = propTournament.game === 'cs2' || propTournament.game === 'dota2';
+  const defaultStd = isCsOrDota ? 1500 : 100;
+
+  const standardFee = (!propTournament.isPremium && propTournament.entryFeeRub !== undefined && propTournament.entryFeeRub > 0)
+    ? propTournament.entryFeeRub
+    : (stdTournament?.entryFeeRub ?? gameConfig?.standardFee ?? defaultStd);
+
+  const premiumFee = (propTournament.isPremium && propTournament.entryFeeRub !== undefined && propTournament.entryFeeRub > 0)
+    ? propTournament.entryFeeRub
+    : (premTournament?.entryFeeRub ?? gameConfig?.premiumFee ?? 1000);
 
   const [cardMode, setCardMode] = useState<'standard' | 'premium'>(
     propTournament.isPremium ? 'premium' : 'standard'
@@ -39,7 +61,12 @@ export const TournamentCard: React.FC<{
   }, [propTournament.id, propTournament.isPremium, propTournament.game, hasToggle]);
 
   const tournament = useMemo(() => {
-    if (!hasToggle) return propTournament;
+    if (!hasToggle) {
+      return {
+        ...propTournament,
+        entryFeeRub: propTournament.entryFeeRub ?? standardFee,
+      };
+    }
     const targetGame = propTournament.game;
     if (cardMode === 'premium') {
       const prem = tournaments.find(
@@ -47,16 +74,12 @@ export const TournamentCard: React.FC<{
           t.game === targetGame &&
           (t.isPremium || t.id.toLowerCase().includes('premium') || t.title.toLowerCase().includes('premium'))
       );
-      const fee = premiumFee;
-      const pool = prem?.prizePoolRub && prem.entryFeeRub
-        ? Math.round(prem.prizePoolRub * (fee / prem.entryFeeRub))
+      const fee = (prem?.entryFeeRub !== undefined && prem.entryFeeRub > 0) ? prem.entryFeeRub : premiumFee;
+      const pool = prem?.prizePoolRub
+        ? prem.prizePoolRub
         : fee * 28;
-      const prizes = prem?.prizes && prem.entryFeeRub
-        ? {
-            1: Math.round((prem.prizes[1] || 15000) * (fee / prem.entryFeeRub)),
-            2: Math.round((prem.prizes[2] || 8000) * (fee / prem.entryFeeRub)),
-            3: Math.round((prem.prizes[3] || 5000) * (fee / prem.entryFeeRub)),
-          }
+      const prizes = prem?.prizes
+        ? prem.prizes
         : { 1: Math.round(fee * 15), 2: Math.round(fee * 8), 3: Math.round(fee * 5) };
 
       if (prem) {
@@ -85,12 +108,11 @@ export const TournamentCard: React.FC<{
           !t.id.toLowerCase().includes('premium') &&
           !t.title.toLowerCase().includes('premium')
       ) || propTournament;
-      const fee = standardFee;
-      const isCsOrDota = targetGame === 'cs2' || targetGame === 'dota2';
+      const fee = (std.entryFeeRub !== undefined && std.entryFeeRub > 0) ? std.entryFeeRub : standardFee;
       const baseFee = isCsOrDota ? 1500 : 100;
       const basePool = isCsOrDota ? 12000 : 2200;
-      const pool = std.prizePoolRub && std.entryFeeRub
-        ? Math.round(std.prizePoolRub * (fee / std.entryFeeRub))
+      const pool = std.prizePoolRub
+        ? std.prizePoolRub
         : Math.round(basePool * (fee / baseFee));
 
       return {
@@ -99,7 +121,7 @@ export const TournamentCard: React.FC<{
         prizePoolRub: pool,
       };
     }
-  }, [propTournament, cardMode, tournaments, hasToggle, standardFee, premiumFee]);
+  }, [propTournament, cardMode, tournaments, hasToggle, standardFee, premiumFee, isCsOrDota]);
 
   const game = GAMES[tournament.game] || {
     name: tournament.game,
