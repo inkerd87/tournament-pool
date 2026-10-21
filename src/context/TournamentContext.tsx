@@ -875,11 +875,56 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     updates: Partial<GameConfig>
   ): Promise<boolean> => {
     updateGameConfig(gameId, updates);
-    setAllGames(getAllGamesList());
+    const all = getAllGamesList();
+    setAllGames(all);
     const overrides = getStoredGameOverrides();
     setGameOverrides(overrides);
     const cGames = getStoredCustomGames();
     setCustomGames(cGames);
+
+    if (updates.standardFee !== undefined || updates.premiumFee !== undefined) {
+      setTournaments(prev => {
+        const next = prev.map(t => {
+          if (t.game !== gameId) return t;
+          const isPrem = Boolean(
+            t.isPremium ||
+            t.id.toLowerCase().includes('premium') ||
+            t.title.toLowerCase().includes('premium')
+          );
+          if (isPrem && updates.premiumFee !== undefined) {
+            const premFee = Number(updates.premiumFee);
+            const ratio = premFee / (t.entryFeeRub || 1000 || 1);
+            return {
+              ...t,
+              entryFeeRub: premFee,
+              prizePoolRub: t.prizePoolRub ? Math.round(t.prizePoolRub * ratio) : premFee * 28,
+              prizes: t.prizes
+                ? {
+                    1: Math.round((t.prizes[1] || 15000) * ratio),
+                    2: Math.round((t.prizes[2] || 8000) * ratio),
+                    3: Math.round((t.prizes[3] || 5000) * ratio),
+                  }
+                : { 1: Math.round(premFee * 15), 2: Math.round(premFee * 8), 3: Math.round(premFee * 5) },
+            };
+          } else if (!isPrem && updates.standardFee !== undefined) {
+            const stdFee = Number(updates.standardFee);
+            const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
+            const baseFee = isCsOrDota ? 1500 : 100;
+            const ratio = stdFee / (t.entryFeeRub || baseFee || 1);
+            return {
+              ...t,
+              entryFeeRub: stdFee,
+              prizePoolRub: t.prizePoolRub ? Math.round(t.prizePoolRub * ratio) : (isCsOrDota ? 12000 : 2200),
+            };
+          }
+          return t;
+        });
+        saveTournaments(next);
+        return next;
+      });
+    }
+
+    notifyAllClients();
     return syncGamesRegistryToSupabase(cGames, overrides);
   };
 

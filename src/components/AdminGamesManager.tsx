@@ -992,6 +992,16 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
                   step="10"
                   value={standardFee}
                   onChange={(e) => setStandardFee(e.target.value)}
+                  onBlur={async () => {
+                    const val = Number(standardFee) || 100;
+                    if (val !== game.standardFee) {
+                      await onUpdate({
+                        hasPremiumMode,
+                        standardFee: val,
+                        premiumFee: Number(premiumFee) || 1000,
+                      });
+                    }
+                  }}
                   className="input-field text-xs font-bold w-full pr-8 text-white"
                   placeholder="100"
                 />
@@ -1015,6 +1025,16 @@ const GameEditorCard: React.FC<GameEditorCardProps> = ({
                   step="50"
                   value={premiumFee}
                   onChange={(e) => setPremiumFee(e.target.value)}
+                  onBlur={async () => {
+                    const val = Number(premiumFee) || 1000;
+                    if (val !== game.premiumFee) {
+                      await onUpdate({
+                        hasPremiumMode,
+                        standardFee: Number(standardFee) || 100,
+                        premiumFee: val,
+                      });
+                    }
+                  }}
                   className="input-field text-xs font-bold w-full pr-8 text-amber-300 border-amber-500/40"
                   placeholder="1000"
                 />

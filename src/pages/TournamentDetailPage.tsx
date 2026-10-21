@@ -15,14 +15,14 @@ export const TournamentDetailPage: React.FC = () => {
   const { user } = useAuth();
 
   // Find tournament by ID, with fallback for virtual "-premium" IDs
-  let tournament = tournaments.find((t) => t.id === id);
-  if (!tournament && id?.endsWith('-premium')) {
+  let rawTournament = tournaments.find((t) => t.id === id);
+  if (!rawTournament && id?.endsWith('-premium')) {
     const baseId = id.replace(/-premium$/, '');
     const baseTournament = tournaments.find((t) => t.id === baseId);
     if (baseTournament) {
       const gameConfig = allGames?.find((g) => g.id === baseTournament.game);
       const premFee = gameConfig?.premiumFee || 1000;
-      tournament = {
+      rawTournament = {
         ...baseTournament,
         id,
         title: `${baseTournament.title} (Премиум)`,
@@ -34,7 +34,7 @@ export const TournamentDetailPage: React.FC = () => {
     }
   }
 
-  if (!tournament) {
+  if (!rawTournament) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16 text-center">
         <h1 className="text-xl sm:text-2xl font-bold text-white">Соревнование не найдено</h1>
@@ -45,6 +45,36 @@ export const TournamentDetailPage: React.FC = () => {
     );
   }
 
+  const gameConfig = allGames?.find((g) => g.id === rawTournament.game);
+  let adjustedTournament = rawTournament;
+  if (gameConfig) {
+    if (rawTournament.isPremium && gameConfig.premiumFee) {
+      const fee = gameConfig.premiumFee;
+      const pool = rawTournament.prizePoolRub && rawTournament.entryFeeRub
+        ? Math.round(rawTournament.prizePoolRub * (fee / rawTournament.entryFeeRub))
+        : fee * 28;
+      adjustedTournament = {
+        ...rawTournament,
+        entryFeeRub: fee,
+        prizePoolRub: pool,
+      };
+    } else if (!rawTournament.isPremium && gameConfig.standardFee) {
+      const fee = gameConfig.standardFee;
+      const isCsOrDota = rawTournament.game === 'cs2' || rawTournament.game === 'dota2';
+      const baseFee = isCsOrDota ? 1500 : 100;
+      const basePool = isCsOrDota ? 12000 : 2200;
+      const pool = rawTournament.prizePoolRub && rawTournament.entryFeeRub
+        ? Math.round(rawTournament.prizePoolRub * (fee / rawTournament.entryFeeRub))
+        : Math.round(basePool * (fee / baseFee));
+      adjustedTournament = {
+        ...rawTournament,
+        entryFeeRub: fee,
+        prizePoolRub: pool,
+      };
+    }
+  }
+
+  const tournament = adjustedTournament;
   const game = allGames?.find((g) => g.id === tournament.game) || GAMES[tournament.game] || {
     name: tournament.game,
     short: tournament.game,
@@ -54,7 +84,6 @@ export const TournamentDetailPage: React.FC = () => {
   const matchAccess = matches[tournament.id];
   const canRegister = tournament.status === 'recruiting' && tournament.registeredCount < tournament.maxPlayers && !isRegistered;
 
-  const gameConfig = allGames?.find((g) => g.id === tournament.game);
   const isPremiumSupported = Boolean(
     gameConfig?.hasPremiumMode ||
     tournament.game === 'pubg' ||
@@ -63,8 +92,8 @@ export const TournamentDetailPage: React.FC = () => {
     tournament.isPremium
   );
 
-  const standardTournament = tournaments.find((t) => t.game === tournament?.game && !t.isPremium);
-  const premiumTournament = tournaments.find((t) => t.game === tournament?.game && t.isPremium);
+  const standardTournament = tournaments.find((t) => t.game === tournament?.game && !t.isPremium && !t.id.toLowerCase().includes('premium'));
+  const premiumTournament = tournaments.find((t) => t.game === tournament?.game && (t.isPremium || t.id.toLowerCase().includes('premium')));
 
   const standardLink = standardTournament ? `/tournaments/${standardTournament.id}` : `/tournaments/${tournament.id.replace(/-premium$/, '')}`;
   const premiumLink = premiumTournament ? `/tournaments/${premiumTournament.id}` : `/tournaments/${tournament.id}-premium`;

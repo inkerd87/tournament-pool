@@ -221,6 +221,75 @@ export const AdminMatchForm: React.FC<Props> = ({
     setPrizesByPlace(next);
   };
 
+  // Интерактивное переключение между обычным и премиум режимом
+  const handleModeSwitch = (targetMode: 'standard' | 'premium') => {
+    const isTargetPremium = targetMode === 'premium';
+    setIsPremium(isTargetPremium);
+
+    const isCsOrDota = game === 'cs2' || game === 'dota2';
+    const cfg = allGames.find((g) => g.id === game);
+
+    if (isTargetPremium) {
+      const premFee = cfg?.premiumFee ?? 1000;
+      const premPool = premFee * 28;
+      const p1 = Math.round(premFee * 15);
+      const p2 = Math.round(premFee * 8);
+      const p3 = Math.round(premFee * 5);
+
+      setEntryFeeRub(premFee);
+      setPrizePoolRub(premPool);
+      setWinningPlacesCount(3);
+      setPrizesByPlace({ 1: p1, 2: p2, 3: p3 });
+
+      // Обновляем заголовок, если в нем нет "Премиум"
+      setTitle((prev) => {
+        const clean = prev.replace(/\s*\(?(Обычный|Стандарт|Standard)\)?/gi, '').trim();
+        if (/премиум|premium/i.test(clean)) return clean;
+        return `${clean} (Премиум)`;
+      });
+
+      // Обновляем формат
+      setFormat((prev) => {
+        if (/премиум|premium/i.test(prev)) return prev;
+        return `${prev} (Премиум вознаграждение ${formatRub(premPool)})`;
+      });
+
+      // Обновляем описание
+      setDescription((prev) => {
+        if (/премиум|premium/i.test(prev)) return prev;
+        return `Премиум соревнования по ${cfg?.name || game.toUpperCase()}. Оплата организационных услуг ${formatRub(premFee)} (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором (1 место: ${formatRub(p1)}, 2 место: ${formatRub(p2)}, 3 место: ${formatRub(p3)}) и не формируется из взносов.`;
+      });
+    } else {
+      const stdFee = cfg?.standardFee ?? (isCsOrDota ? 1500 : 100);
+      const stdPool = isCsOrDota ? 12000 : 2200;
+      const count = isCsOrDota ? 1 : 3;
+      const prizes: Record<number, number> = isCsOrDota ? { 1: 12000 } : { 1: 1000, 2: 700, 3: 500 };
+
+      setEntryFeeRub(stdFee);
+      setPrizePoolRub(stdPool);
+      setWinningPlacesCount(count);
+      setPrizesByPlace(prizes);
+
+      // Убираем "Премиум" из заголовка
+      setTitle((prev) => {
+        return prev.replace(/\s*\(?(Премиум|Premium)\)?/gi, '').trim();
+      });
+
+      // Обновляем формат
+      setFormat((prev) => {
+        return prev.replace(/\s*\(?Премиум вознаграждение.*?\)?/gi, '').trim() || (isCsOrDota ? '5v5, BO1 — Регламент соревнований' : 'Solo, 1 соревнование');
+      });
+
+      // Обновляем описание
+      setDescription((prev) => {
+        if (isCsOrDota) {
+          return 'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков). Оплата орг. услуг 1 500 ₽ с игрока. Фиксированное вознаграждение 12 000 ₽ победившей команде за спортивные достижения!';
+        }
+        return `Одиночные соревнования по ${cfg?.name || game.toUpperCase()}. Оплата организационных услуг ${formatRub(stdFee)} (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение ${formatRub(stdPool)} учреждено организатором соревнований.`;
+      });
+    }
+  };
+
   // Сохранение всех параметров матча
   const handleSaveMatchDetails = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -590,6 +659,57 @@ export const AdminMatchForm: React.FC<Props> = ({
           {/* ТАБ 1: ОСНОВНЫЕ ПАРАМЕТРЫ И СЛОТЫ */}
           {activeTab === 'general' && (
             <form onSubmit={handleSaveMatchDetails} className="space-y-4">
+              {/* Переключатель тарифа: Обычный / Премиум */}
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-amber-400 font-bold text-sm">⭐</span>
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">
+                        Тариф соревнования: {isPremium ? 'Премиум' : 'Обычный'}
+                      </span>
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-extrabold ${
+                          isPremium
+                            ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                            : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                        }`}
+                      >
+                        {isPremium ? '★ ПРЕМИУМ' : '🎮 ОБЫЧНЫЙ'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-tight mt-0.5">
+                      Кликните для переключения: автоматически обновляет оргвзнос, призовой фонд, призы по местам и название
+                    </p>
+                  </div>
+
+                  <div className="inline-flex rounded-xl bg-black/80 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch('standard')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        !isPremium
+                          ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25 font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      🎮 Обычный ({formatRub(allGames.find((g) => g.id === game)?.standardFee ?? 100)})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch('premium')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        isPremium
+                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-md shadow-amber-400/30 font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      ⭐ Премиум ({formatRub(allGames.find((g) => g.id === game)?.premiumFee ?? 1000)})
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
                   <label className="block text-[11px] text-zinc-400 mb-1 font-semibold">
@@ -974,17 +1094,55 @@ export const AdminMatchForm: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Премиум чекбокс */}
-              <div className="flex items-center pt-2">
-                <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-zinc-300">
-                  <input
-                    type="checkbox"
-                    checked={isPremium}
-                    onChange={(e) => setIsPremium(e.target.checked)}
-                    className="h-4 w-4 rounded border-white/20 bg-black text-amber-400 accent-amber-400"
-                  />
-                  <span className="font-semibold text-amber-300">⭐ Премиум-соревнование (отдельный режим)</span>
-                </label>
+              {/* Переключатель тарифа: Обычный / Премиум */}
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-amber-400 font-bold text-sm">⭐</span>
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">
+                        Тариф соревнования: {isPremium ? 'Премиум' : 'Обычный'}
+                      </span>
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-extrabold ${
+                          isPremium
+                            ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                            : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                        }`}
+                      >
+                        {isPremium ? '★ ПРЕМИУМ' : '🎮 ОБЫЧНЫЙ'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-tight mt-0.5">
+                      Кликните для переключения: моментально обновляет взнос, призовой фонд, призы по местам и формат
+                    </p>
+                  </div>
+
+                  <div className="inline-flex rounded-xl bg-black/80 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch('standard')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        !isPremium
+                          ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25 font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      🎮 Обычный ({formatRub(allGames.find((g) => g.id === game)?.standardFee ?? 100)})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch('premium')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        isPremium
+                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-md shadow-amber-400/30 font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      ⭐ Премиум ({formatRub(allGames.find((g) => g.id === game)?.premiumFee ?? 1000)})
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center justify-between pt-2">

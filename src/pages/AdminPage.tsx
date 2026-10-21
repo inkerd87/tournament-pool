@@ -16,6 +16,7 @@ export const AdminPage: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [openWithCustomGame, setOpenWithCustomGame] = useState(false);
   const [matchStatusFilter, setMatchStatusFilter] = useState<'all' | 'recruiting' | 'live' | 'finished' | 'soon'>('all');
+  const [matchModeFilter, setMatchModeFilter] = useState<'all' | 'standard' | 'premium'>('all');
   const [matchGameFilter, setMatchGameFilter] = useState<string>('all');
   const [matchSearchQuery, setMatchSearchQuery] = useState<string>('');
   const [expandAllMatches, setExpandAllMatches] = useState<boolean>(false);
@@ -296,6 +297,45 @@ export const AdminPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-zinc-400 shrink-0 font-medium">Тариф:</span>
+                  <div className="inline-flex rounded-lg bg-black/50 p-0.5 border border-white/10 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setMatchModeFilter('all')}
+                      className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
+                        matchModeFilter === 'all'
+                          ? 'bg-white/20 text-white'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      Все
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMatchModeFilter('standard')}
+                      className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
+                        matchModeFilter === 'standard'
+                          ? 'bg-cyan-500 text-black font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      🎮 Обычные
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMatchModeFilter('premium')}
+                      className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
+                        matchModeFilter === 'premium'
+                          ? 'bg-amber-400 text-black font-black'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      ⭐ Премиум
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <span className="text-[11px] text-zinc-400 shrink-0 font-medium">Игра:</span>
                   <select
                     value={matchGameFilter}
@@ -318,6 +358,15 @@ export const AdminPage: React.FC = () => {
               const filtered = tournaments.filter((t) => {
                 if (matchStatusFilter !== 'all' && t.status !== matchStatusFilter) {
                   return false;
+                }
+                if (matchModeFilter !== 'all') {
+                  const isPrem = Boolean(
+                    t.isPremium ||
+                    t.id.toLowerCase().includes('premium') ||
+                    t.title.toLowerCase().includes('premium')
+                  );
+                  if (matchModeFilter === 'premium' && !isPrem) return false;
+                  if (matchModeFilter === 'standard' && isPrem) return false;
                 }
                 if (matchGameFilter !== 'all' && t.game !== matchGameFilter) {
                   return false;
@@ -347,6 +396,7 @@ export const AdminPage: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setMatchStatusFilter('all');
+                        setMatchModeFilter('all');
                         setMatchGameFilter('all');
                         setMatchSearchQuery('');
                       }}

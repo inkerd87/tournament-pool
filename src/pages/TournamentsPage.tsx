@@ -16,7 +16,9 @@ export const TournamentsPage: React.FC = () => {
   });
   const [pubgMode, setPubgMode] = useState<'standard' | 'premium'>('standard');
 
-  const activeGameConfig = selectedGame !== 'all' ? allGames.find((g) => g.id === selectedGame) : null;
+  const activeGameConfig = selectedGame !== 'all'
+    ? allGames.find((g) => g.id === selectedGame)
+    : allGames.find((g) => g.hasPremiumMode || g.id === 'pubg');
   const standardFee = activeGameConfig?.standardFee ?? 100;
   const premiumFee = activeGameConfig?.premiumFee ?? 1000;
 

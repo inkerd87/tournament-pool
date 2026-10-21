@@ -47,10 +47,24 @@ export const TournamentCard: React.FC<{
           t.game === targetGame &&
           (t.isPremium || t.id.toLowerCase().includes('premium') || t.title.toLowerCase().includes('premium'))
       );
+      const fee = premiumFee;
+      const pool = prem?.prizePoolRub && prem.entryFeeRub
+        ? Math.round(prem.prizePoolRub * (fee / prem.entryFeeRub))
+        : fee * 28;
+      const prizes = prem?.prizes && prem.entryFeeRub
+        ? {
+            1: Math.round((prem.prizes[1] || 15000) * (fee / prem.entryFeeRub)),
+            2: Math.round((prem.prizes[2] || 8000) * (fee / prem.entryFeeRub)),
+            3: Math.round((prem.prizes[3] || 5000) * (fee / prem.entryFeeRub)),
+          }
+        : { 1: Math.round(fee * 15), 2: Math.round(fee * 8), 3: Math.round(fee * 5) };
+
       if (prem) {
         return {
           ...prem,
-          entryFeeRub: prem.entryFeeRub ?? premiumFee,
+          entryFeeRub: fee,
+          prizePoolRub: pool,
+          prizes,
         };
       }
       return {
@@ -58,10 +72,10 @@ export const TournamentCard: React.FC<{
         id: `${propTournament.id}-premium`,
         title: `${propTournament.title} Premium`,
         isPremium: true,
-        entryFeeRub: premiumFee,
-        prizePoolRub: premiumFee * 28,
-        prizes: { 1: Math.round(premiumFee * 15), 2: Math.round(premiumFee * 8), 3: Math.round(premiumFee * 5) },
-        description: `Премиум соревнование. Оплата организационных услуг ${formatRub(premiumFee)}. Фиксированное вознаграждение учреждено организатором соревнований.`,
+        entryFeeRub: fee,
+        prizePoolRub: pool,
+        prizes,
+        description: `Премиум соревнование. Оплата организационных услуг ${formatRub(fee)}. Фиксированное вознаграждение учреждено организатором соревнований.`,
       };
     } else {
       const std = tournaments.find(
@@ -71,9 +85,18 @@ export const TournamentCard: React.FC<{
           !t.id.toLowerCase().includes('premium') &&
           !t.title.toLowerCase().includes('premium')
       ) || propTournament;
+      const fee = standardFee;
+      const isCsOrDota = targetGame === 'cs2' || targetGame === 'dota2';
+      const baseFee = isCsOrDota ? 1500 : 100;
+      const basePool = isCsOrDota ? 12000 : 2200;
+      const pool = std.prizePoolRub && std.entryFeeRub
+        ? Math.round(std.prizePoolRub * (fee / std.entryFeeRub))
+        : Math.round(basePool * (fee / baseFee));
+
       return {
         ...std,
-        entryFeeRub: std.entryFeeRub ?? standardFee,
+        entryFeeRub: fee,
+        prizePoolRub: pool,
       };
     }
   }, [propTournament, cardMode, tournaments, hasToggle, standardFee, premiumFee]);

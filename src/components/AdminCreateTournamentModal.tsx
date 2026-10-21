@@ -3,6 +3,7 @@ import { CustomGame, GameId, TournamentStatus } from '@/lib/types';
 import { useTournaments } from '@/context/TournamentContext';
 import { compressGameIconFile, hexToRgbaGlow } from '@/lib/games';
 import { GameIcon } from '@/components/GameIcons';
+import { formatRub } from '@/lib/format';
 
 interface Props {
   isOpen: boolean;
@@ -127,8 +128,9 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
   onClose,
   initialShowCustomGame = false,
 }) => {
-  const { createTournament, customGames, addCustomGame, deleteCustomGame } = useTournaments();
+  const { createTournament, customGames, addCustomGame, deleteCustomGame, allGames } = useTournaments();
   const [selectedGame, setSelectedGame] = useState<GameId>('cs2');
+  const [isPremium, setIsPremium] = useState(false);
   const [title, setTitle] = useState('CS2 5v5 Night Cup');
   const [startsAtLocal, setStartsAtLocal] = useState(getDefaultStartsAt);
   const [format, setFormat] = useState('5v5, BO1 — Регламент соревнований');
@@ -209,27 +211,107 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
     });
   };
 
+  const handleModeSwitch = (targetMode: 'standard' | 'premium') => {
+    const isTargetPremium = targetMode === 'premium';
+    setIsPremium(isTargetPremium);
+
+    const isCsOrDota = selectedGame === 'cs2' || selectedGame === 'dota2';
+    const cfg = allGames.find((g) => g.id === selectedGame);
+
+    if (isTargetPremium) {
+      const premFee = cfg?.premiumFee ?? 1000;
+      const premPool = premFee * 28;
+      const p1 = Math.round(premFee * 15);
+      const p2 = Math.round(premFee * 8);
+      const p3 = Math.round(premFee * 5);
+
+      setEntryFeeRub(premFee);
+      setPrizePoolRub(premPool);
+      setWinningPlacesCount(3);
+      setPrizesByPlace({ 1: p1, 2: p2, 3: p3 });
+
+      setTitle((prev) => {
+        const clean = prev.replace(/\s*\(?(Обычный|Стандарт|Standard)\)?/gi, '').trim();
+        if (/премиум|premium/i.test(clean)) return clean;
+        return `${clean} (Премиум)`;
+      });
+
+      setFormat((prev) => {
+        if (/премиум|premium/i.test(prev)) return prev;
+        return `${prev} (Премиум вознаграждение ${formatRub(premPool)})`;
+      });
+
+      setDescription((prev) => {
+        if (/премиум|premium/i.test(prev)) return prev;
+        return `Премиум соревнования по ${cfg?.name || selectedGame.toUpperCase()}. Оплата организационных услуг ${formatRub(premFee)} (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором (1 место: ${formatRub(p1)}, 2 место: ${formatRub(p2)}, 3 место: ${formatRub(p3)}) и не формируется из взносов.`;
+      });
+    } else {
+      const stdFee = cfg?.standardFee ?? (isCsOrDota ? 1500 : 100);
+      const stdPool = isCsOrDota ? 12000 : 2200;
+      const count = isCsOrDota ? 1 : 3;
+      const prizes: Record<number, number> = isCsOrDota ? { 1: 12000 } : { 1: 1000, 2: 700, 3: 500 };
+
+      setEntryFeeRub(stdFee);
+      setPrizePoolRub(stdPool);
+      setWinningPlacesCount(count);
+      setPrizesByPlace(prizes);
+
+      setTitle((prev) => prev.replace(/\s*\(?(Премиум|Premium)\)?/gi, '').trim());
+
+      setFormat((prev) => {
+        return prev.replace(/\s*\(?Премиум вознаграждение.*?\)?/gi, '').trim() || (isCsOrDota ? '5v5, BO1 — Регламент соревнований' : 'Solo, 1 соревнование');
+      });
+
+      setDescription((prev) => {
+        if (isCsOrDota) {
+          return 'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков). Оплата орг. услуг 1 500 ₽ с игрока. Фиксированное вознаграждение 12 000 ₽ победившей команде за спортивные достижения!';
+        }
+        return `Одиночные соревнования по ${cfg?.name || selectedGame.toUpperCase()}. Оплата организационных услуг ${formatRub(stdFee)} (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение ${formatRub(stdPool)} учреждено организатором соревнований.`;
+      });
+    }
+  };
+
   const handleGameChange = (gameId: GameId) => {
     setSelectedGame(gameId);
     const opt = allGameOptions.find((g) => g.id === gameId);
+    const cfg = allGames.find((g) => g.id === gameId);
     if (opt) {
       const isTeam = gameId === 'cs2' || gameId === 'dota2';
       const isMinecraft = gameId === 'minecraft';
-      setTitle(`${opt.name} Cup`);
-      setFormat(opt.defaultFormat);
       setMaxPlayers(opt.defaultMax);
       setMinPlayers(isTeam ? 10 : isMinecraft ? 24 : (gameId === 'apex' ? 30 : 50));
-      setEntryFeeRub(opt.defaultFee);
-      setPrizePoolRub(opt.defaultPrize);
-      setWinningPlacesCount(isTeam || isMinecraft ? 1 : 3);
-      setPrizesByPlace(
-        isTeam
-          ? { 1: opt.defaultPrize }
-          : isMinecraft
-          ? { 1: 2500 }
-          : { 1: 1000, 2: 700, 3: 500 }
-      );
-      setDescription(opt.defaultDesc);
+
+      if (isPremium) {
+        const premFee = cfg?.premiumFee ?? 1000;
+        const premPool = premFee * 28;
+        const p1 = Math.round(premFee * 15);
+        const p2 = Math.round(premFee * 8);
+        const p3 = Math.round(premFee * 5);
+        setTitle(`${opt.name} Cup (Премиум)`);
+        setFormat(`${opt.defaultFormat} (Премиум вознаграждение ${formatRub(premPool)})`);
+        setEntryFeeRub(premFee);
+        setPrizePoolRub(premPool);
+        setWinningPlacesCount(3);
+        setPrizesByPlace({ 1: p1, 2: p2, 3: p3 });
+        setDescription(
+          `Премиум соревнования по ${opt.name}. Оплата организационных услуг ${formatRub(premFee)}. Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором.`
+        );
+      } else {
+        const stdFee = cfg?.standardFee ?? opt.defaultFee;
+        setTitle(`${opt.name} Cup`);
+        setFormat(opt.defaultFormat);
+        setEntryFeeRub(stdFee);
+        setPrizePoolRub(opt.defaultPrize);
+        setWinningPlacesCount(isTeam || isMinecraft ? 1 : 3);
+        setPrizesByPlace(
+          isTeam
+            ? { 1: opt.defaultPrize }
+            : isMinecraft
+            ? { 1: 2500 }
+            : { 1: 1000, 2: 700, 3: 500 }
+        );
+        setDescription(opt.defaultDesc);
+      }
     }
   };
 
@@ -350,6 +432,7 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
         winningPlacesCount,
         prizes: cleanPrizes,
         customGame: customGameObj,
+        isPremium: Boolean(isPremium),
       });
 
       onClose();
@@ -620,6 +703,57 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Переключатель тарифа: Обычный / Премиум */}
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-amber-400 font-bold text-sm">⭐</span>
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Тариф соревнования: {isPremium ? 'Премиум' : 'Обычный'}
+                  </span>
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-extrabold ${
+                      isPremium
+                        ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                        : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                    }`}
+                  >
+                    {isPremium ? '★ ПРЕМИУМ' : '🎮 ОБЫЧНЫЙ'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-tight mt-0.5">
+                  Кликните для выбора: автоматически заполняет оргвзнос, призовой фонд, призы по местам и название
+                </p>
+              </div>
+
+              <div className="inline-flex rounded-xl bg-black/80 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => handleModeSwitch('standard')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    !isPremium
+                      ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25 font-black'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  🎮 Обычный ({formatRub(allGames.find((g) => g.id === selectedGame)?.standardFee ?? 100)})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeSwitch('premium')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    isPremium
+                      ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-md shadow-amber-400/30 font-black'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  ⭐ Премиум ({formatRub(allGames.find((g) => g.id === selectedGame)?.premiumFee ?? 1000)})
+                </button>
+              </div>
             </div>
           </div>
 
