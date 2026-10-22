@@ -675,6 +675,53 @@ const server = http.createServer(async (req, res) => {
     }));
   }
 
+  // Storage API endpoints for bulletproof persistence independent of 3rd party database quotas
+  if (pathname.startsWith('/api/storage/')) {
+    const key = pathname.replace('/api/storage/', '').replace(/[^a-z0-9_-]/gi, '');
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      try { fs.mkdirSync(dataDir, { recursive: true }); } catch {}
+    }
+    const filePath = path.join(dataDir, `${key}.json`);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      return res.end();
+    }
+
+    if (req.method === 'GET') {
+      if (fs.existsSync(filePath)) {
+        try {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(content);
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          return res.end(JSON.stringify({ error: String(e) }));
+        }
+      }
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ error: 'Not found' }));
+    }
+
+    if (req.method === 'POST') {
+      const bodyStr = await readBody(req);
+      try {
+        JSON.parse(bodyStr); // Validate JSON format
+        fs.writeFileSync(filePath, bodyStr, 'utf-8');
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ ok: true, savedAt: new Date().toISOString() }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end(JSON.stringify({ error: 'Invalid JSON', message: String(e) }));
+      }
+    }
+  }
+
   // FreeKassa: создание платежа
   if (
     pathname === '/freekassa-create.php' ||

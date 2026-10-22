@@ -218,44 +218,21 @@ export function deduplicateTournaments(tournaments: Tournament[]): Tournament[] 
     return true;
   });
 
-  // Check if user/custom tournaments exist that supersede initial legacy seeds
-  const hasCustomPubg = valid.some((t) => t.game === 'pubg' && !t.isPremium && t.id !== 'pubg-solo-001');
-  const hasCustomPubgMobile = valid.some((t) => t.game === 'pubg_mobile' && !t.isPremium && t.id !== 'pubg-mobile-solo-001');
-  const hasCustomApex = valid.some((t) => t.game === 'apex' && t.id !== 'apex-solo-001');
-  const hasCustomMinecraft = valid.some((t) => t.game === 'minecraft' && t.id !== 'minecraft-hg-001');
-
-  const filtered = valid.filter((t) => {
-    if (hasCustomPubg && t.id === 'pubg-solo-001') return false;
-    if (hasCustomPubgMobile && t.id === 'pubg-mobile-solo-001') return false;
-    if (hasCustomApex && t.id === 'apex-solo-001') return false;
-    if (hasCustomMinecraft && t.id === 'minecraft-hg-001') return false;
-    return true;
-  });
-
-  // 1. Deduplicate by unique tournament ID
+  // Deduplicate strictly by unique tournament ID
   const uniqueMap = new Map<string, Tournament>();
-  filtered.forEach((t) => {
+  valid.forEach((t) => {
     if (!uniqueMap.has(t.id)) {
       uniqueMap.set(t.id, t);
     }
   });
 
-  // 2. Deduplicate by game and normalized title to eliminate duplicate matches
-  const result: Tournament[] = [];
-  const seenGameTitle = new Set<string>();
-  for (const t of Array.from(uniqueMap.values())) {
-    const key = `${t.game}:${t.isPremium ? 'prem:' : 'std:'}${(t.title || '').trim().toLowerCase()}`;
-    if (!seenGameTitle.has(key)) {
-      seenGameTitle.add(key);
-      const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
-      const minPlayers =
-        t.minPlayers ||
-        (isCsOrDota ? 10 : t.game === 'minecraft' ? 24 : 50);
-      result.push({ ...t, minPlayers });
-    }
-  }
-
-  return result;
+  return Array.from(uniqueMap.values()).map((t) => {
+    const isCsOrDota = t.game === 'cs2' || t.game === 'dota2';
+    const minPlayers =
+      t.minPlayers ||
+      (isCsOrDota ? 10 : t.game === 'minecraft' ? 24 : 50);
+    return { ...t, minPlayers };
+  });
 }
 
 const STORAGE_TOURNAMENTS_KEY = 'nb_tournaments_v20';
@@ -288,6 +265,15 @@ export function saveTournaments(tournaments: Tournament[]) {
   const clean = deduplicateTournaments(tournaments);
   localStorage.setItem(STORAGE_TOURNAMENTS_KEY, JSON.stringify(clean));
   localStorage.setItem('nb_last_sync_time', String(Date.now()));
+  try {
+    if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+      fetch('/api/storage/tournaments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clean),
+      }).catch(() => {});
+    }
+  } catch {}
 }
 
 export function getStoredUser(): User | null {
@@ -320,6 +306,15 @@ export function getStoredRegistrations(): Registration[] {
 
 export function saveRegistrations(regs: Registration[]) {
   localStorage.setItem('nb_registrations_v4', JSON.stringify(regs));
+  try {
+    if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+      fetch('/api/storage/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(regs),
+      }).catch(() => {});
+    }
+  } catch {}
 }
 
 export function getStoredMatches(): Record<string, TournamentMatchAccess> {
@@ -351,6 +346,15 @@ export function getStoredMatches(): Record<string, TournamentMatchAccess> {
 
 export function saveMatches(matches: Record<string, TournamentMatchAccess>) {
   localStorage.setItem('nb_matches', JSON.stringify(matches));
+  try {
+    if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+      fetch('/api/storage/matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(matches),
+      }).catch(() => {});
+    }
+  } catch {}
 }
 
 export function getStoredHistory(email: string): MatchHistoryEntry[] {

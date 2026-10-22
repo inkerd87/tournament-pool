@@ -90,8 +90,18 @@ export const TournamentDetailPage: React.FC = () => {
   const standardLink = standardTournament ? `/tournaments/${standardTournament.id}` : `/tournaments/${tournament.id.replace(/-premium$/, '')}`;
   const premiumLink = premiumTournament ? `/tournaments/${premiumTournament.id}` : `/tournaments/${tournament.id}-premium`;
 
-  const standardFeeText = `${formatRub(gameConfig?.standardFee ?? 100)}`;
-  const premiumFeeText = `${formatRub(gameConfig?.premiumFee ?? 1000)}`;
+  const isCsOrDota = tournament.game === 'cs2' || tournament.game === 'dota2';
+  const defaultStd = isCsOrDota ? 1500 : 100;
+  const standardFee = (standardTournament?.entryFeeRub !== undefined && standardTournament.entryFeeRub > 0)
+    ? standardTournament.entryFeeRub
+    : (!tournament.isPremium && tournament.entryFeeRub ? tournament.entryFeeRub : (gameConfig?.standardFee ?? defaultStd));
+
+  const premiumFee = (premiumTournament?.entryFeeRub !== undefined && premiumTournament.entryFeeRub > 0)
+    ? premiumTournament.entryFeeRub
+    : (tournament.isPremium && tournament.entryFeeRub ? tournament.entryFeeRub : (gameConfig?.premiumFee ?? 1000));
+
+  const standardFeeText = `${formatRub(standardFee)}`;
+  const premiumFeeText = `${formatRub(premiumFee)}`;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-12 sm:px-6">

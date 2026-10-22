@@ -137,6 +137,8 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
   const [maxPlayers, setMaxPlayers] = useState(10);
   const [minPlayers, setMinPlayers] = useState(10);
   const [entryFeeRub, setEntryFeeRub] = useState(1500);
+  const [standardFee, setStandardFee] = useState(1500);
+  const [premiumFee, setPremiumFee] = useState(1000);
   const [prizePoolRub, setPrizePoolRub] = useState(12000);
   const [winningPlacesCount, setWinningPlacesCount] = useState(1);
   const [prizesByPlace, setPrizesByPlace] = useState<Record<number, number>>({ 1: 12000 });
@@ -144,6 +146,16 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
   const [description, setDescription] = useState(
     'Командные киберспортивные соревнования 5 на 5. Оплата организационных услуг с игрока. Фиксированное вознаграждение за спортивные достижения!'
   );
+
+  const handleEntryFeeChange = (val: number) => {
+    const clean = Math.max(0, Number(val) || 0);
+    setEntryFeeRub(clean);
+    if (isPremium) {
+      setPremiumFee(clean);
+    } else {
+      setStandardFee(clean);
+    }
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -219,13 +231,14 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
     const cfg = allGames.find((g) => g.id === selectedGame);
 
     if (isTargetPremium) {
-      const premFee = cfg?.premiumFee ?? 1000;
-      const premPool = premFee * 28;
-      const p1 = Math.round(premFee * 15);
-      const p2 = Math.round(premFee * 8);
-      const p3 = Math.round(premFee * 5);
+      const activeFee = premiumFee || cfg?.premiumFee || 1000;
+      const premPool = activeFee * 28;
+      const p1 = Math.round(activeFee * 15);
+      const p2 = Math.round(activeFee * 8);
+      const p3 = Math.round(activeFee * 5);
 
-      setEntryFeeRub(premFee);
+      setEntryFeeRub(activeFee);
+      setPremiumFee(activeFee);
       setPrizePoolRub(premPool);
       setWinningPlacesCount(3);
       setPrizesByPlace({ 1: p1, 2: p2, 3: p3 });
@@ -243,15 +256,16 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
 
       setDescription((prev) => {
         if (/премиум|premium/i.test(prev)) return prev;
-        return `Премиум соревнования по ${cfg?.name || selectedGame.toUpperCase()}. Оплата организационных услуг ${formatRub(premFee)} (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором (1 место: ${formatRub(p1)}, 2 место: ${formatRub(p2)}, 3 место: ${formatRub(p3)}) и не формируется из взносов.`;
+        return `Премиум соревнования по ${cfg?.name || selectedGame.toUpperCase()}. Оплата организационных услуг ${formatRub(activeFee)} (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором (1 место: ${formatRub(p1)}, 2 место: ${formatRub(p2)}, 3 место: ${formatRub(p3)}) и не формируется из взносов.`;
       });
     } else {
-      const stdFee = cfg?.standardFee ?? (isCsOrDota ? 1500 : 100);
+      const activeFee = standardFee || cfg?.standardFee || (isCsOrDota ? 1500 : 100);
       const stdPool = isCsOrDota ? 12000 : 2200;
       const count = isCsOrDota ? 1 : 3;
       const prizes: Record<number, number> = isCsOrDota ? { 1: 12000 } : { 1: 1000, 2: 700, 3: 500 };
 
-      setEntryFeeRub(stdFee);
+      setEntryFeeRub(activeFee);
+      setStandardFee(activeFee);
       setPrizePoolRub(stdPool);
       setWinningPlacesCount(count);
       setPrizesByPlace(prizes);
@@ -266,7 +280,7 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
         if (isCsOrDota) {
           return 'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков). Оплата орг. услуг 1 500 ₽ с игрока. Фиксированное вознаграждение 12 000 ₽ победившей команде за спортивные достижения!';
         }
-        return `Одиночные соревнования по ${cfg?.name || selectedGame.toUpperCase()}. Оплата организационных услуг ${formatRub(stdFee)} (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение ${formatRub(stdPool)} учреждено организатором соревнований.`;
+        return `Одиночные соревнования по ${cfg?.name || selectedGame.toUpperCase()}. Оплата организационных услуг ${formatRub(activeFee)} (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение ${formatRub(stdPool)} учреждено организатором соревнований.`;
       });
     }
   };
@@ -278,29 +292,33 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
     if (opt) {
       const isTeam = gameId === 'cs2' || gameId === 'dota2';
       const isMinecraft = gameId === 'minecraft';
+      const stdFee = cfg?.standardFee ?? (isTeam ? 1500 : (opt?.defaultFee ?? 100));
+      const premFee = cfg?.premiumFee ?? 1000;
+      setStandardFee(stdFee);
+      setPremiumFee(premFee);
       setMaxPlayers(opt.defaultMax);
       setMinPlayers(isTeam ? 10 : isMinecraft ? 24 : (gameId === 'apex' ? 30 : 50));
 
       if (isPremium) {
-        const premFee = cfg?.premiumFee ?? 1000;
-        const premPool = premFee * 28;
-        const p1 = Math.round(premFee * 15);
-        const p2 = Math.round(premFee * 8);
-        const p3 = Math.round(premFee * 5);
+        const activeFee = premFee;
+        const premPool = activeFee * 28;
+        const p1 = Math.round(activeFee * 15);
+        const p2 = Math.round(activeFee * 8);
+        const p3 = Math.round(activeFee * 5);
         setTitle(`${opt.name} Cup (Премиум)`);
         setFormat(`${opt.defaultFormat} (Премиум вознаграждение ${formatRub(premPool)})`);
-        setEntryFeeRub(premFee);
+        setEntryFeeRub(activeFee);
         setPrizePoolRub(premPool);
         setWinningPlacesCount(3);
         setPrizesByPlace({ 1: p1, 2: p2, 3: p3 });
         setDescription(
-          `Премиум соревнования по ${opt.name}. Оплата организационных услуг ${formatRub(premFee)}. Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором.`
+          `Премиум соревнования по ${opt.name}. Оплата организационных услуг ${formatRub(activeFee)}. Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором.`
         );
       } else {
-        const stdFee = cfg?.standardFee ?? opt.defaultFee;
+        const activeFee = stdFee;
         setTitle(`${opt.name} Cup`);
         setFormat(opt.defaultFormat);
-        setEntryFeeRub(stdFee);
+        setEntryFeeRub(activeFee);
         setPrizePoolRub(opt.defaultPrize);
         setWinningPlacesCount(isTeam || isMinecraft ? 1 : 3);
         setPrizesByPlace(
@@ -731,10 +749,8 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
               </div>
 
                 {(() => {
-                  const isCsOrDota = selectedGame === 'cs2' || selectedGame === 'dota2';
-                  const selCfg = allGames.find((g) => g.id === selectedGame);
-                  const modalStdFee = !isPremium ? (entryFeeRub || 0) : (selCfg?.standardFee ?? (isCsOrDota ? 1500 : 100));
-                  const modalPremFee = isPremium ? (entryFeeRub || 0) : (selCfg?.premiumFee ?? 1000);
+                  const modalStdFee = !isPremium ? (entryFeeRub || standardFee) : standardFee;
+                  const modalPremFee = isPremium ? (entryFeeRub || premiumFee) : premiumFee;
                   return (
                     <div className="inline-flex rounded-xl bg-black/80 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
                       <button
@@ -863,7 +879,7 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
                 min={0}
                 className="input-field font-mono text-cyan-300"
                 value={entryFeeRub}
-                onChange={(e) => setEntryFeeRub(Number(e.target.value))}
+                onChange={(e) => handleEntryFeeChange(Number(e.target.value))}
               />
             </div>
           </div>

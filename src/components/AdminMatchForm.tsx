@@ -47,6 +47,7 @@ export const AdminMatchForm: React.FC<Props> = ({
     updateGameConfig,
     allGames,
     registrations,
+    tournaments,
   } = useTournaments();
 
   // Состояние развернутости формы
@@ -82,6 +83,28 @@ export const AdminMatchForm: React.FC<Props> = ({
   const [customIconUrl, setCustomIconUrl] = useState<string>(tournament.customIconUrl || '');
   const [wallpaperUrl, setWallpaperUrl] = useState<string>(tournament.wallpaperUrl || '');
 
+  // Хранение взносов для обычного и премиум режимов для мгновенной синхронизации переключателя
+  const [standardFee, setStandardFee] = useState<number>(() => {
+    if (!tournament.isPremium && tournament.entryFeeRub !== undefined && tournament.entryFeeRub > 0) {
+      return tournament.entryFeeRub;
+    }
+    const stdMatch = tournaments.find((t) => t.game === tournament.game && !t.isPremium && t.id !== tournament.id);
+    if (stdMatch?.entryFeeRub !== undefined && stdMatch.entryFeeRub > 0) return stdMatch.entryFeeRub;
+    const gCfg = allGames.find((g) => g.id === tournament.game);
+    const isCs = tournament.game === 'cs2' || tournament.game === 'dota2';
+    return gCfg?.standardFee ?? (isCs ? 1500 : 100);
+  });
+
+  const [premiumFee, setPremiumFee] = useState<number>(() => {
+    if (tournament.isPremium && tournament.entryFeeRub !== undefined && tournament.entryFeeRub > 0) {
+      return tournament.entryFeeRub;
+    }
+    const premMatch = tournaments.find((t) => t.game === tournament.game && t.isPremium && t.id !== tournament.id);
+    if (premMatch?.entryFeeRub !== undefined && premMatch.entryFeeRub > 0) return premMatch.entryFeeRub;
+    const gCfg = allGames.find((g) => g.id === tournament.game);
+    return gCfg?.premiumFee ?? 1000;
+  });
+
   // Данные лобби и трансляции
   const [roomId, setRoomId] = useState(initialMatch?.roomId || `NB_${tournament.game.toUpperCase()}_01`);
   const [password, setPassword] = useState(
@@ -104,12 +127,19 @@ export const AdminMatchForm: React.FC<Props> = ({
 
   const isCsOrDota = game === 'cs2' || game === 'dota2';
   const gameCfg = allGames.find((g) => g.id === game);
-  const cfgStdFee = gameCfg?.standardFee ?? (isCsOrDota ? 1500 : 100);
-  const cfgPremFee = gameCfg?.premiumFee ?? 1000;
 
-  const currentFee = Math.max(0, Number(entryFeeRub) || 0);
-  const displayStdFee = !isPremium ? currentFee : cfgStdFee;
-  const displayPremFee = isPremium ? currentFee : cfgPremFee;
+  const displayStdFee = !isPremium ? (entryFeeRub || standardFee) : standardFee;
+  const displayPremFee = isPremium ? (entryFeeRub || premiumFee) : premiumFee;
+
+  const handleEntryFeeChange = (val: number) => {
+    const clean = Math.max(0, Number(val) || 0);
+    setEntryFeeRub(clean);
+    if (isPremium) {
+      setPremiumFee(clean);
+    } else {
+      setStandardFee(clean);
+    }
+  };
 
   // Синхронизация при смене ID турнира (не сбрасывать данные во время редактирования каждые 4 секунды)
   useEffect(() => {
@@ -131,6 +161,22 @@ export const AdminMatchForm: React.FC<Props> = ({
     setCustomIconUrl(tournament.customIconUrl || '');
     setWallpaperUrl(tournament.wallpaperUrl || '');
     setStreamUrl(tournament.streamUrl || initialMatch?.streamUrl || '');
+
+    const isCs = tournament.game === 'cs2' || tournament.game === 'dota2';
+    const gCfg = allGames.find((g) => g.id === tournament.game);
+    const stdMatch = tournaments.find((t) => t.game === tournament.game && !t.isPremium && t.id !== tournament.id);
+    const premMatch = tournaments.find((t) => t.game === tournament.game && t.isPremium && t.id !== tournament.id);
+
+    const sFee = !tournament.isPremium
+      ? (tournament.entryFeeRub ?? (isCs ? 1500 : 100))
+      : (stdMatch?.entryFeeRub ?? gCfg?.standardFee ?? (isCs ? 1500 : 100));
+
+    const pFee = tournament.isPremium
+      ? (tournament.entryFeeRub ?? 1000)
+      : (premMatch?.entryFeeRub ?? gCfg?.premiumFee ?? 1000);
+
+    setStandardFee(sFee);
+    setPremiumFee(pFee);
   }, [tournament.id]);
 
   // Синхронизация времени старта, если оно обновилось из базы/контекста
@@ -240,13 +286,14 @@ export const AdminMatchForm: React.FC<Props> = ({
     const cfg = allGames.find((g) => g.id === game);
 
     if (isTargetPremium) {
-      const premFee = cfg?.premiumFee ?? 1000;
-      const premPool = premFee * 28;
-      const p1 = Math.round(premFee * 15);
-      const p2 = Math.round(premFee * 8);
-      const p3 = Math.round(premFee * 5);
+      const activeFee = premiumFee || cfg?.premiumFee || 1000;
+      const premPool = activeFee * 28;
+      const p1 = Math.round(activeFee * 15);
+      const p2 = Math.round(activeFee * 8);
+      const p3 = Math.round(activeFee * 5);
 
-      setEntryFeeRub(premFee);
+      setEntryFeeRub(activeFee);
+      setPremiumFee(activeFee);
       setPrizePoolRub(premPool);
       setWinningPlacesCount(3);
       setPrizesByPlace({ 1: p1, 2: p2, 3: p3 });
@@ -267,15 +314,16 @@ export const AdminMatchForm: React.FC<Props> = ({
       // Обновляем описание
       setDescription((prev) => {
         if (/премиум|premium/i.test(prev)) return prev;
-        return `Премиум соревнования по ${cfg?.name || game.toUpperCase()}. Оплата организационных услуг ${formatRub(premFee)} (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором (1 место: ${formatRub(p1)}, 2 место: ${formatRub(p2)}, 3 место: ${formatRub(p3)}) и не формируется из взносов.`;
+        return `Премиум соревнования по ${cfg?.name || game.toUpperCase()}. Оплата организационных услуг ${formatRub(activeFee)} (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором (1 место: ${formatRub(p1)}, 2 место: ${formatRub(p2)}, 3 место: ${formatRub(p3)}) и не формируется из взносов.`;
       });
     } else {
-      const stdFee = cfg?.standardFee ?? (isCsOrDota ? 1500 : 100);
+      const activeFee = standardFee || cfg?.standardFee || (isCsOrDota ? 1500 : 100);
       const stdPool = isCsOrDota ? 12000 : 2200;
       const count = isCsOrDota ? 1 : 3;
       const prizes: Record<number, number> = isCsOrDota ? { 1: 12000 } : { 1: 1000, 2: 700, 3: 500 };
 
-      setEntryFeeRub(stdFee);
+      setEntryFeeRub(activeFee);
+      setStandardFee(activeFee);
       setPrizePoolRub(stdPool);
       setWinningPlacesCount(count);
       setPrizesByPlace(prizes);
@@ -295,7 +343,7 @@ export const AdminMatchForm: React.FC<Props> = ({
         if (isCsOrDota) {
           return 'Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков). Оплата орг. услуг 1 500 ₽ с игрока. Фиксированное вознаграждение 12 000 ₽ победившей команде за спортивные достижения!';
         }
-        return `Одиночные соревнования по ${cfg?.name || game.toUpperCase()}. Оплата организационных услуг ${formatRub(stdFee)} (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение ${formatRub(stdPool)} учреждено организатором соревнований.`;
+        return `Одиночные соревнования по ${cfg?.name || game.toUpperCase()}. Оплата организационных услуг ${formatRub(activeFee)} (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение ${formatRub(stdPool)} учреждено организатором соревнований.`;
       });
     }
   };
@@ -315,6 +363,9 @@ export const AdminMatchForm: React.FC<Props> = ({
     const winnerPerPlayer = isTeam5v5 ? Math.round((Number(prizePoolRub) || 0) / 5) : 0;
 
     const parsedFee = Math.max(0, Number(entryFeeRub) || 0);
+    const finalStdFee = isPremium ? standardFee : parsedFee;
+    const finalPremFee = isPremium ? parsedFee : premiumFee;
+
     setIsSaving(true);
     const ok = await updateTournament(tournament.id, {
       game,
@@ -339,11 +390,22 @@ export const AdminMatchForm: React.FC<Props> = ({
     });
 
     if (ok) {
-      if (isPremium) {
-        await updateGameConfig(game, { premiumFee: parsedFee });
-      } else {
-        await updateGameConfig(game, { standardFee: parsedFee });
+      await updateGameConfig(game, {
+        standardFee: finalStdFee,
+        premiumFee: finalPremFee,
+      });
+
+      // Также обновляем парный турнир, если он существует
+      const pairedMatch = tournaments.find(
+        (t) => t.id !== tournament.id && t.game === game && Boolean(t.isPremium) !== Boolean(isPremium)
+      );
+      if (pairedMatch) {
+        const pairedFee = isPremium ? finalStdFee : finalPremFee;
+        if (pairedMatch.entryFeeRub !== pairedFee) {
+          await updateTournament(pairedMatch.id, { entryFeeRub: pairedFee });
+        }
       }
+
       setSavedTime(true);
       setTimeout(() => setSavedTime(false), 3000);
     } else {
@@ -737,7 +799,7 @@ export const AdminMatchForm: React.FC<Props> = ({
                         min={0}
                         className="input-field text-xs font-mono font-bold text-cyan-300 border-cyan-500/30 w-full pr-8"
                         value={entryFeeRub}
-                        onChange={(e) => setEntryFeeRub(Number(e.target.value))}
+                        onChange={(e) => handleEntryFeeChange(Number(e.target.value))}
                       />
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-cyan-400">₽</span>
                     </div>
@@ -1080,7 +1142,7 @@ export const AdminMatchForm: React.FC<Props> = ({
                     min={0}
                     className="input-field text-xs font-mono font-bold text-cyan-300 border-cyan-500/30 w-full"
                     value={entryFeeRub}
-                    onChange={(e) => setEntryFeeRub(Number(e.target.value))}
+                    onChange={(e) => handleEntryFeeChange(Number(e.target.value))}
                   />
                 </div>
 
