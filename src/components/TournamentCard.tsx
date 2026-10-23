@@ -145,6 +145,19 @@ export const TournamentCard: React.FC<{
   const fillPercent = Math.min(100, Math.round((tournament.registeredCount / tournament.maxPlayers) * 100));
   const remainingSlots = Math.max(0, tournament.maxPlayers - tournament.registeredCount);
 
+  const placesCount = useMemo(() => {
+    if (typeof tournament.winningPlacesCount === 'number' && tournament.winningPlacesCount >= 1) {
+      return tournament.winningPlacesCount;
+    }
+    if (tournament.prizes && typeof tournament.prizes === 'object') {
+      const active = Object.keys(tournament.prizes)
+        .map(Number)
+        .filter((k) => !isNaN(k) && Number((tournament.prizes as any)[k]) > 0);
+      if (active.length > 0) return Math.max(...active);
+    }
+    return tournament.winnerPerPlayerRub ? 1 : 3;
+  }, [tournament.winningPlacesCount, tournament.prizes, tournament.winnerPerPlayerRub]);
+
   return (
     <Link
       to={`/tournaments/${tournament.id}`}
@@ -296,28 +309,33 @@ export const TournamentCard: React.FC<{
               <span className="text-right text-[11px] font-bold text-amber-200 font-mono">
                 {formatRub(tournament.winnerPerPlayerRub)} <span className="text-zinc-400 text-[9px] font-normal block">игроку</span>
               </span>
-            ) : isPremium ? (
+            ) : (
               <span className="text-right text-[11px] font-extrabold text-amber-300 font-mono">
-                TOP-3 <span className="text-zinc-400 text-[9px] font-normal block">награды</span>
+                {placesCount === 1 ? '1 призер' : `TOP-${placesCount}`}
+                <span className="text-zinc-400 text-[9px] font-normal block">награды</span>
               </span>
-            ) : null}
+            )}
           </div>
 
-          {/* Премиум распределение TOP-3 при наличии */}
-          {isPremium && tournament.prizes && (
-            <div className="mt-2.5 pt-2 border-t border-amber-500/20 grid grid-cols-3 gap-1 text-center text-[10px]">
-              <div>
-                <div className="text-zinc-400 text-[9px] uppercase font-bold">1 место</div>
-                <div className="font-black text-amber-300 font-mono">{formatRub(tournament.prizes[1] || 15000)}</div>
-              </div>
-              <div>
-                <div className="text-zinc-400 text-[9px] uppercase font-bold">2 место</div>
-                <div className="font-bold text-zinc-300 font-mono">{formatRub(tournament.prizes[2] || 8000)}</div>
-              </div>
-              <div>
-                <div className="text-zinc-400 text-[9px] uppercase font-bold">3 место</div>
-                <div className="font-bold text-zinc-400 font-mono">{formatRub(tournament.prizes[3] || 5000)}</div>
-              </div>
+          {/* Распределение наград по призовым местам при наличии */}
+          {!isSoon && placesCount > 0 && (
+            <div
+              className="mt-2.5 pt-2 border-t border-amber-500/20 grid gap-1 text-center text-[10px]"
+              style={{ gridTemplateColumns: `repeat(${Math.min(placesCount, 4)}, minmax(0, 1fr))` }}
+            >
+              {Array.from({ length: Math.min(placesCount, 4) }, (_, idx) => idx + 1).map((place) => {
+                const prize = tournament.prizes?.[place] ?? (place === 1 && placesCount === 1 ? prizePool : 0);
+                return (
+                  <div key={place} className="min-w-0">
+                    <div className="text-zinc-400 text-[9px] uppercase font-bold truncate">
+                      {place === 1 ? '1 место' : place === 2 ? '2 место' : place === 3 ? '3 место' : `${place} место`}
+                    </div>
+                    <div className={`font-mono truncate ${place === 1 ? 'font-black text-amber-300' : 'font-bold text-zinc-300'}`}>
+                      {formatRub(prize)}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

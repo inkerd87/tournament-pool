@@ -220,6 +220,9 @@ export const AdminMatchForm: React.FC<Props> = ({
       for (let i = 1; i <= newCount; i++) {
         next[i] = prev[i] ?? 0;
       }
+      if (newCount === 1) {
+        next[1] = prizePoolRub || next[1] || 0;
+      }
       const sum = Object.values(next).reduce((acc, v) => acc + (Number(v) || 0), 0);
       if (sum > 0) {
         setPrizePoolRub(sum);
@@ -288,15 +291,13 @@ export const AdminMatchForm: React.FC<Props> = ({
     if (isTargetPremium) {
       const activeFee = premiumFee || cfg?.premiumFee || 1000;
       const premPool = activeFee * 28;
-      const p1 = Math.round(activeFee * 15);
-      const p2 = Math.round(activeFee * 8);
-      const p3 = Math.round(activeFee * 5);
+      const targetCount = winningPlacesCount || 3;
 
       setEntryFeeRub(activeFee);
       setPremiumFee(activeFee);
       setPrizePoolRub(premPool);
-      setWinningPlacesCount(3);
-      setPrizesByPlace({ 1: p1, 2: p2, 3: p3 });
+      setWinningPlacesCount(targetCount);
+      handleDistributePool(premPool, targetCount);
 
       // Обновляем заголовок, если в нем нет "Премиум"
       setTitle((prev) => {
@@ -314,19 +315,18 @@ export const AdminMatchForm: React.FC<Props> = ({
       // Обновляем описание
       setDescription((prev) => {
         if (/премиум|premium/i.test(prev)) return prev;
-        return `Премиум соревнования по ${cfg?.name || game.toUpperCase()}. Оплата организационных услуг ${formatRub(activeFee)} (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором (1 место: ${formatRub(p1)}, 2 место: ${formatRub(p2)}, 3 место: ${formatRub(p3)}) и не формируется из взносов.`;
+        return `Премиум соревнования по ${cfg?.name || game.toUpperCase()}. Оплата организационных услуг ${formatRub(activeFee)} (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение ${formatRub(premPool)} учреждено организатором и не формируется из взносов.`;
       });
     } else {
       const activeFee = standardFee || cfg?.standardFee || (isCsOrDota ? 1500 : 100);
       const stdPool = isCsOrDota ? 12000 : 2200;
-      const count = isCsOrDota ? 1 : 3;
-      const prizes: Record<number, number> = isCsOrDota ? { 1: 12000 } : { 1: 1000, 2: 700, 3: 500 };
+      const targetCount = winningPlacesCount || (isCsOrDota ? 1 : 3);
 
       setEntryFeeRub(activeFee);
       setStandardFee(activeFee);
       setPrizePoolRub(stdPool);
-      setWinningPlacesCount(count);
-      setPrizesByPlace(prizes);
+      setWinningPlacesCount(targetCount);
+      handleDistributePool(stdPool, targetCount);
 
       // Убираем "Премиум" из заголовка
       setTitle((prev) => {
@@ -787,8 +787,8 @@ export const AdminMatchForm: React.FC<Props> = ({
                   </div>
                 </div>
 
-                {/* Редактирование взноса и фонда */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2.5 border-t border-amber-500/20">
+                {/* Редактирование взноса, фонда и призовых мест */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2.5 border-t border-amber-500/20">
                   <div>
                     <label className="block text-[11px] text-cyan-300 font-bold mb-1">
                       💳 Оргвзнос с игрока (₽):
@@ -804,7 +804,7 @@ export const AdminMatchForm: React.FC<Props> = ({
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-cyan-400">₽</span>
                     </div>
                     <p className="mt-1 text-[10px] text-zinc-400">
-                      Сумма орг. взноса для ползунка и карточки турнира
+                      Сумма орг. взноса для карточки турнира
                     </p>
                   </div>
 
@@ -826,13 +826,47 @@ export const AdminMatchForm: React.FC<Props> = ({
                       <button
                         type="button"
                         onClick={() => handleDistributePool(prizePoolRub, winningPlacesCount)}
+                        title="Автоматически распределить по призовым местам"
                         className="shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/20 px-2.5 py-2 text-[10px] font-bold text-amber-300 hover:bg-amber-500 hover:text-black transition"
                       >
                         Авто
                       </button>
                     </div>
                     <p className="mt-1 text-[10px] text-zinc-400">
-                      Общая сумма фиксированного вознаграждения
+                      Общая сумма вознаграждения
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-zinc-300 font-bold mb-1">
+                      🥇 Призовых мест:
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleWinningPlacesCountChange(winningPlacesCount - 1)}
+                        className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-2 text-xs font-extrabold text-zinc-300 hover:bg-white/15 shrink-0"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        className="input-field text-center text-xs font-mono font-extrabold text-white flex-1 min-w-0"
+                        value={winningPlacesCount}
+                        onChange={(e) => handleWinningPlacesCountChange(Number(e.target.value))}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleWinningPlacesCountChange(winningPlacesCount + 1)}
+                        className="rounded-lg border border-white/15 bg-white/5 px-2.5 py-2 text-xs font-extrabold text-zinc-300 hover:bg-white/15 shrink-0"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <p className="mt-1 text-[10px] text-zinc-400">
+                      Количество победителей (1–20)
                     </p>
                   </div>
                 </div>

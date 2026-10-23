@@ -15,6 +15,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.",
     entryFeeRub: 1500,
     prizePoolRub: 12000,
+    winningPlacesCount: 1,
     prizes: { 1: 12000, 2: 0, 3: 0 },
     winnerPerPlayerRub: 2400,
   },
@@ -31,6 +32,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Командные киберспортивные соревнования 5 на 5 (2 команды по 5 игроков, минимум 10 участников). Оплата организационных услуг 1 500 ₽ с игрока (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победившей команде 12 000 ₽ (по 2 400 ₽ каждому игроку) учреждено организатором соревнований за спортивные достижения и не зависит от взносов.",
     entryFeeRub: 1500,
     prizePoolRub: 12000,
+    winningPlacesCount: 1,
     prizes: { 1: 12000, 2: 0, 3: 0 },
     winnerPerPlayerRub: 2400,
   },
@@ -47,6 +49,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение 2 200 ₽ учреждено организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.",
     entryFeeRub: 100,
     prizePoolRub: 2200,
+    winningPlacesCount: 3,
     prizes: { 1: 1000, 2: 700, 3: 500 },
     isPremium: false,
   },
@@ -63,6 +66,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Премиум одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
     entryFeeRub: 1000,
     prizePoolRub: 28000,
+    winningPlacesCount: 3,
     prizes: { 1: 15000, 2: 8000, 3: 5000 },
     isPremium: true,
   },
@@ -79,6 +83,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Одиночные мобильные соревнования по PUBG MOBILE до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение 2 200 ₽ учреждено организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.",
     entryFeeRub: 100,
     prizePoolRub: 2200,
+    winningPlacesCount: 3,
     prizes: { 1: 1000, 2: 700, 3: 500 },
     isPremium: false,
   },
@@ -95,6 +100,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Премиум одиночные мобильные соревнования по PUBG MOBILE до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
     entryFeeRub: 1000,
     prizePoolRub: 28000,
+    winningPlacesCount: 3,
     prizes: { 1: 15000, 2: 8000, 3: 5000 },
     isPremium: true,
   },
@@ -110,6 +116,8 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     format: "Solo Resurgence, 1 катка",
     description: "Соревнования по Call of Duty: Warzone откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
     entryFeeRub: 100,
+    prizePoolRub: 2200,
+    winningPlacesCount: 3,
   },
   {
     id: "fortnite-solo-001",
@@ -123,6 +131,8 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     format: "Solo Zero Build, 1 катка",
     description: "Соревнования по Fortnite откроются скоро. Регистрация и размер вознаграждения станут доступны в ближайшее время.",
     entryFeeRub: 100,
+    prizePoolRub: 2200,
+    winningPlacesCount: 3,
   },
   {
     id: "minecraft-hg-001",
@@ -137,6 +147,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Minecraft: соревнование по режиму Hunger Games. Турнир рассчитан на фиксированное количество участников — ровно 24 человека. Формат проведения предполагает одну игровую сессию, в которой будет определен один победитель. Условия участия: Организационный взнос составляет 500 рублей. Победитель получает денежное вознаграждение в размере 2500 рублей.",
     entryFeeRub: 500,
     prizePoolRub: 2500,
+    winningPlacesCount: 1,
     prizes: { 1: 2500, 2: 0, 3: 0 },
     winnerPerPlayerRub: 2500,
   },
@@ -153,6 +164,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Королевская битва по Apex Legends. Оплата организационных услуг 100 ₽ (судейство, платформа, подбор оппонентов). Фиксированное вознаграждение победителям 2 200 ₽ учреждено организатором соревнований (1-е: 1 000 ₽, 2-е: 700 ₽, 3-е: 500 ₽) и не формируется из взносов.",
     entryFeeRub: 100,
     prizePoolRub: 2200,
+    winningPlacesCount: 3,
     prizes: { 1: 1000, 2: 700, 3: 500 },
     isPremium: false,
   },
@@ -169,6 +181,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     description: "Премиум соревнования по Apex Legends. Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором соревнований (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
     entryFeeRub: 1000,
     prizePoolRub: 28000,
+    winningPlacesCount: 3,
     prizes: { 1: 15000, 2: 8000, 3: 5000 },
     isPremium: true,
   },
@@ -231,7 +244,23 @@ export function deduplicateTournaments(tournaments: Tournament[]): Tournament[] 
     const minPlayers =
       t.minPlayers ||
       (isCsOrDota ? 10 : t.game === 'minecraft' ? 24 : 50);
-    return { ...t, minPlayers };
+
+    let winningPlacesCount = t.winningPlacesCount;
+    if (typeof winningPlacesCount !== 'number' || winningPlacesCount < 1) {
+      if (t.prizes && typeof t.prizes === 'object') {
+        const nonZeroPlaces = Object.keys(t.prizes)
+          .map(Number)
+          .filter((k) => !isNaN(k) && Number((t.prizes as any)[k]) > 0);
+        if (nonZeroPlaces.length > 0) {
+          winningPlacesCount = Math.max(...nonZeroPlaces);
+        }
+      }
+      if (!winningPlacesCount) {
+        winningPlacesCount = isCsOrDota || t.game === 'minecraft' ? 1 : 3;
+      }
+    }
+
+    return { ...t, minPlayers, winningPlacesCount };
   });
 }
 

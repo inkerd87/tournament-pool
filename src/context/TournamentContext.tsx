@@ -136,7 +136,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 setTournaments(prev => {
                   const map = new Map<string, Tournament>();
                   serverTourneys.forEach((t: Tournament) => map.set(t.id, t));
-                  prev.forEach(t => { if (!map.has(t.id)) map.set(t.id, t); });
+                  // Local user state in prev ALWAYS takes precedence over serverTourneys cache
+                  prev.forEach(t => {
+                    const existing = map.get(t.id);
+                    map.set(t.id, existing ? { ...existing, ...t } : t);
+                  });
                   const merged = deduplicateTournaments(Array.from(map.values()));
                   saveTournaments(merged);
                   return merged;
@@ -245,7 +249,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             .map((t: any) => {
               let cleanDesc = t.description || '';
               let meta: any = null;
-              const metaMatch = cleanDesc.match(/<!--nb_meta:(.*?)-->/);
+              const metaMatch = cleanDesc.match(/<!--nb_meta:([\s\S]*?)-->/);
               if (metaMatch) {
                 try {
                   meta = JSON.parse(metaMatch[1]);
@@ -349,16 +353,26 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setTournaments(prev => {
             const deleted = getDeletedTournamentIds();
             const supabaseTourneys = mapped.filter(m => !deleted.has(m.id));
-            const merged = [...supabaseTourneys];
+            const map = new Map<string, Tournament>();
+            // Remote Supabase tournaments serve as base
+            supabaseTourneys.forEach(t => map.set(t.id, t));
+            // Local state in prev (user edits from admin, localStorage) MUST take precedence
             prev.forEach(p => {
               if (p.id === SYSTEM_CUSTOM_GAMES_ROW_ID) return;
               if (deleted.has(p.id)) return;
               if (p.id.startsWith('custom_apex') || p.id.startsWith('custom_mine')) return;
-              const exists = merged.some(m => m.id === p.id);
-              if (!exists) {
-                merged.push(p);
+              const existing = map.get(p.id);
+              if (existing) {
+                map.set(p.id, {
+                  ...existing,
+                  ...p,
+                  registeredCount: Math.max(existing.registeredCount || 0, p.registeredCount || 0),
+                });
+              } else {
+                map.set(p.id, p);
               }
             });
+            const merged = Array.from(map.values());
             const deduplicated = deduplicateTournaments(merged);
             saveTournaments(deduplicated);
             return deduplicated;

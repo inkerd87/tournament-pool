@@ -204,6 +204,9 @@ export const AdminCreateTournamentModal: React.FC<Props> = ({
       for (let i = 1; i <= newCount; i++) {
         next[i] = prev[i] ?? 0;
       }
+      if (newCount === 1) {
+        next[1] = prizePoolRub || next[1] || 0;
+      }
       const sum = Object.values(next).reduce((acc, v) => acc + (Number(v) || 0), 0);
       if (sum > 0) setPrizePoolRub(sum);
       return next;
