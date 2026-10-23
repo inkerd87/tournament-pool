@@ -203,81 +203,113 @@ export const AdminMatchForm: React.FC<Props> = ({
     setTimeout(() => setQuickSavedStatus(false), 2500);
   };
 
-  // Быстрое сохранение победителя
+  // Быстрое сохранение победителя (сохраняет ВСЕ призовые и количество мест)
   const handleQuickSaveWinner = async (newWinner: string) => {
     setWinner(newWinner);
-    await updateTournament(tournament.id, { winner: newWinner.trim() });
+    const cleanPrizes: Record<number, number> = {};
+    for (let i = 1; i <= winningPlacesCount; i++) {
+      cleanPrizes[i] = Number(prizesByPlace[i]) || 0;
+    }
+    await updateTournament(tournament.id, {
+      winner: newWinner.trim(),
+      winningPlacesCount: winningPlacesCount,
+      prizes: cleanPrizes,
+      prizePoolRub: Number(prizePoolRub) || 0,
+      entryFeeRub: Number(entryFeeRub) || 0,
+    });
     setSavedTime(true);
     setTimeout(() => setSavedTime(false), 2500);
   };
 
-  // Изменение количества призовых мест
+  // Изменение количества призовых мест со мгновенным сохранением
   const handleWinningPlacesCountChange = (newCountRaw: number) => {
     const newCount = Math.max(1, Math.min(20, newCountRaw || 1));
     setWinningPlacesCount(newCount);
-    setPrizesByPlace((prev) => {
-      const next: Record<number, number> = {};
-      for (let i = 1; i <= newCount; i++) {
-        next[i] = prev[i] ?? 0;
-      }
-      if (newCount === 1) {
-        next[1] = prizePoolRub || next[1] || 0;
-      }
-      const sum = Object.values(next).reduce((acc, v) => acc + (Number(v) || 0), 0);
-      if (sum > 0) {
-        setPrizePoolRub(sum);
-      }
-      return next;
+    const nextPrizes: Record<number, number> = {};
+    for (let i = 1; i <= newCount; i++) {
+      nextPrizes[i] = prizesByPlace[i] ?? 0;
+    }
+    if (newCount === 1) {
+      nextPrizes[1] = prizePoolRub || nextPrizes[1] || 0;
+    }
+    setPrizesByPlace(nextPrizes);
+    const sum = Object.values(nextPrizes).reduce((acc, v) => acc + (Number(v) || 0), 0);
+    const pool = sum > 0 ? sum : prizePoolRub;
+    if (sum > 0) {
+      setPrizePoolRub(sum);
+    }
+
+    // Моментально синхронизируем с хранилищем и карточкой
+    updateTournament(tournament.id, {
+      winningPlacesCount: newCount,
+      prizes: nextPrizes,
+      prizePoolRub: pool,
+      entryFeeRub: Number(entryFeeRub) || 0,
     });
+    setSavedTime(true);
+    setTimeout(() => setSavedTime(false), 2500);
   };
 
-  // Изменение приза за конкретное место
+  // Изменение приза за конкретное место со мгновенным сохранением
   const handlePlacePrizeChange = (place: number, amount: number) => {
     const cleanVal = Math.max(0, Number(amount) || 0);
-    setPrizesByPlace((prev) => {
-      const next: Record<number, number> = { ...prev, [place]: cleanVal };
-      let sum = 0;
-      for (let i = 1; i <= winningPlacesCount; i++) {
-        sum += Number(next[i]) || 0;
-      }
-      setPrizePoolRub(sum);
-      return next;
+    const nextPrizes: Record<number, number> = { ...prizesByPlace, [place]: cleanVal };
+    const filtered: Record<number, number> = {};
+    let sum = 0;
+    for (let i = 1; i <= winningPlacesCount; i++) {
+      filtered[i] = Number(nextPrizes[i]) || 0;
+      sum += filtered[i];
+    }
+    setPrizesByPlace(filtered);
+    setPrizePoolRub(sum);
+
+    updateTournament(tournament.id, {
+      winningPlacesCount,
+      prizes: filtered,
+      prizePoolRub: sum,
+      entryFeeRub: Number(entryFeeRub) || 0,
     });
+    setSavedTime(true);
+    setTimeout(() => setSavedTime(false), 2500);
   };
 
   // Авто-распределение призового фонда
   const handleDistributePool = (totalPool: number, count = winningPlacesCount) => {
     const cleanTotal = Math.max(0, Number(totalPool) || 0);
     setPrizePoolRub(cleanTotal);
+    let next: Record<number, number> = {};
     if (count === 1) {
-      setPrizesByPlace({ 1: cleanTotal });
-      return;
-    }
-    if (count === 2) {
+      next = { 1: cleanTotal };
+    } else if (count === 2) {
       const p1 = Math.round(cleanTotal * 0.65);
-      setPrizesByPlace({ 1: p1, 2: cleanTotal - p1 });
-      return;
-    }
-    if (count === 3) {
+      next = { 1: p1, 2: cleanTotal - p1 };
+    } else if (count === 3) {
       const p1 = Math.round(cleanTotal * 0.5);
       const p2 = Math.round(cleanTotal * 0.3);
-      setPrizesByPlace({ 1: p1, 2: p2, 3: cleanTotal - p1 - p2 });
-      return;
-    }
-    const weights = Array.from({ length: count }, (_, i) => count - i);
-    const totalWeight = weights.reduce((a, b) => a + b, 0);
-    const next: Record<number, number> = {};
-    let allocated = 0;
-    for (let i = 1; i <= count; i++) {
-      if (i === count) {
-        next[i] = Math.max(0, cleanTotal - allocated);
-      } else {
-        const share = Math.round((cleanTotal * weights[i - 1]) / totalWeight / 50) * 50;
-        next[i] = share;
-        allocated += share;
+      next = { 1: p1, 2: p2, 3: cleanTotal - p1 - p2 };
+    } else {
+      const weights = Array.from({ length: count }, (_, i) => count - i);
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let allocated = 0;
+      for (let i = 1; i <= count; i++) {
+        if (i === count) {
+          next[i] = Math.max(0, cleanTotal - allocated);
+        } else {
+          const share = Math.round((cleanTotal * weights[i - 1]) / totalWeight / 50) * 50;
+          next[i] = share;
+          allocated += share;
+        }
       }
     }
     setPrizesByPlace(next);
+    updateTournament(tournament.id, {
+      winningPlacesCount: count,
+      prizes: next,
+      prizePoolRub: cleanTotal,
+      entryFeeRub: Number(entryFeeRub) || 0,
+    });
+    setSavedTime(true);
+    setTimeout(() => setSavedTime(false), 2500);
   };
 
   // Интерактивное переключение между обычным и премиум режимом
@@ -1234,10 +1266,18 @@ export const AdminMatchForm: React.FC<Props> = ({
               </div>
 
               {/* Призы по местам */}
-              <div className="bg-black/30 p-3.5 rounded-xl border border-white/5">
-                <label className="block text-[10px] uppercase tracking-wider text-zinc-400 font-semibold mb-2">
-                  Сумма призовых по местам (₽):
-                </label>
+              <div className="bg-black/30 p-3.5 rounded-xl border border-white/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] uppercase tracking-wider text-amber-300 font-extrabold">
+                    Сумма призовых по местам (₽) — всего {winningPlacesCount} {winningPlacesCount === 1 ? 'место' : winningPlacesCount < 5 ? 'места' : 'мест'}:
+                  </label>
+                  {savedTime && (
+                    <span className="text-[11px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md animate-pulse">
+                      ✓ Призовые места моментально сохранены!
+                    </span>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {Array.from({ length: winningPlacesCount }, (_, idx) => idx + 1).map((place) => (
                     <div key={place} className="rounded-lg border border-white/10 bg-black/40 p-2">
@@ -1254,72 +1294,22 @@ export const AdminMatchForm: React.FC<Props> = ({
                     </div>
                   ))}
                 </div>
-              </div>
 
-              {/* Переключатель тарифа: Обычный / Премиум */}
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-amber-400 font-bold text-sm">⭐</span>
-                      <span className="text-xs font-bold text-white uppercase tracking-wider">
-                        Тариф соревнования: {isPremium ? 'Премиум' : 'Обычный'}
-                      </span>
-                      <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-extrabold ${
-                          isPremium
-                            ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
-                            : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                        }`}
-                      >
-                        {isPremium ? '★ ПРЕМИУМ' : '🎮 ОБЫЧНЫЙ'}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400 leading-tight mt-0.5">
-                      Кликните для переключения: моментально обновляет взнос, призовой фонд, призы по местам и формат
-                    </p>
+                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-white/10">
+                  <div className="text-[11px] text-zinc-400">
+                    Итого фонд: <span className="font-mono font-black text-amber-300">{formatRub(prizePoolRub)}</span>
+                    <span className="text-zinc-500 ml-2">(сохраняется сразу при изменении цифр)</span>
                   </div>
 
-                  <div className="inline-flex rounded-xl bg-black/80 p-1 border border-white/10 shrink-0 self-start sm:self-auto">
-                    <button
-                      type="button"
-                      onClick={() => handleModeSwitch('standard')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        !isPremium
-                          ? 'bg-cyan-400 text-black shadow-md shadow-cyan-400/25 font-black'
-                          : 'text-zinc-400 hover:text-white'
-                      }`}
-                    >
-                      🎮 Обычный ({formatRub(displayStdFee)})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleModeSwitch('premium')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        isPremium
-                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-md shadow-amber-400/30 font-black'
-                          : 'text-zinc-400 hover:text-white'
-                      }`}
-                    >
-                      ⭐ Премиум ({formatRub(displayPremFee)})
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black text-xs px-5 py-2.5 font-black transition shadow-lg shadow-amber-500/25 disabled:opacity-50"
+                  >
+                    <span>💾</span>
+                    <span>{isSaving ? 'Сохранение...' : `Сохранить призовые (${winningPlacesCount} мест)`}</span>
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs px-5 py-2.5 font-black transition shadow-md shadow-amber-500/20 disabled:opacity-50"
-                >
-                  {isSaving ? '⏳ Сохранение...' : '💾 Сохранить призовые и победителя'}
-                </button>
-                {savedTime && (
-                  <span className="text-xs text-amber-400 font-bold animate-pulse">
-                    ✓ Обновлено у всех!
-                  </span>
-                )}
               </div>
             </form>
           )}

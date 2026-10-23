@@ -21,15 +21,27 @@ export const TournamentDetailPage: React.FC = () => {
     const baseTournament = tournaments.find((t) => t.id === baseId);
     if (baseTournament) {
       const gameConfig = allGames?.find((g) => g.id === baseTournament.game);
-      const premFee = gameConfig?.premiumFee || 1000;
+      const targetPlaces = baseTournament.winningPlacesCount || 2;
+      const premPool = premFee * 28;
+      let premPrizes: Record<number, number> = {};
+      if (targetPlaces === 1) {
+        premPrizes = { 1: premPool };
+      } else if (targetPlaces === 2) {
+        const p1 = Math.round(premPool * 0.65);
+        premPrizes = { 1: p1, 2: premPool - p1 };
+      } else {
+        premPrizes = { 1: Math.round(premFee * 15), 2: Math.round(premFee * 8), 3: Math.round(premFee * 5) };
+      }
+
       rawTournament = {
         ...baseTournament,
         id,
         title: `${baseTournament.title} (Премиум)`,
         isPremium: true,
         entryFeeRub: premFee,
-        prizePoolRub: premFee * 28,
-        prizes: { 1: premFee * 15, 2: premFee * 8, 3: premFee * 5 },
+        prizePoolRub: premPool,
+        winningPlacesCount: targetPlaces,
+        prizes: premPrizes,
       };
     }
   }

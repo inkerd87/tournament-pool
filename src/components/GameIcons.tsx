@@ -64,11 +64,12 @@ export const ApexIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-
 );
 
 export const MinecraftIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <div className={`${className} flex items-center justify-center rounded bg-[#10b981]/15 border border-[#10b981]/30 p-0.5`}>
-    <svg viewBox="0 0 24 24" className="w-full h-full fill-[#10b981]" aria-label="Minecraft">
-      <path d="M4 4h16v16H4V4zm3 3v4h2V7H7zm8 0v4h2V7h-2zm-5 6v4h4v-4h-4z" />
-    </svg>
-  </div>
+  <img
+    src="/games/minecraft.png"
+    alt="Minecraft"
+    className={`${className} object-cover rounded`}
+    loading="lazy"
+  />
 );
 
 import { GAMES } from '@/lib/games';

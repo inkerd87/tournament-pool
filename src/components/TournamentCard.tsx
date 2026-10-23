@@ -78,15 +78,45 @@ export const TournamentCard: React.FC<{
       const pool = prem?.prizePoolRub
         ? prem.prizePoolRub
         : fee * 28;
-      const prizes = prem?.prizes
-        ? prem.prizes
-        : { 1: Math.round(fee * 15), 2: Math.round(fee * 8), 3: Math.round(fee * 5) };
+
+      // Определение точного количества призовых мест (без жесткого навязывания 3 мест)
+      const targetCount =
+        (typeof prem?.winningPlacesCount === 'number' && prem.winningPlacesCount >= 1)
+          ? prem.winningPlacesCount
+          : (typeof propTournament.winningPlacesCount === 'number' && propTournament.winningPlacesCount >= 1)
+          ? propTournament.winningPlacesCount
+          : isCsOrDota
+          ? 1
+          : 2;
+
+      let prizes: Record<number, number> = {};
+      const sourcePrizes = prem?.prizes || (propTournament.prizes && Object.keys(propTournament.prizes).length > 0 ? propTournament.prizes : null);
+
+      if (sourcePrizes) {
+        for (let i = 1; i <= targetCount; i++) {
+          prizes[i] = Number((sourcePrizes as any)[i]) || 0;
+        }
+      } else {
+        if (targetCount === 1) {
+          prizes = { 1: pool };
+        } else if (targetCount === 2) {
+          const p1 = Math.round(pool * 0.65);
+          prizes = { 1: p1, 2: pool - p1 };
+        } else if (targetCount === 3) {
+          prizes = { 1: Math.round(fee * 15), 2: Math.round(fee * 8), 3: Math.round(fee * 5) };
+        } else {
+          const p1 = Math.round(pool * 0.5);
+          const p2 = Math.round(pool * 0.3);
+          prizes = { 1: p1, 2: p2, 3: pool - p1 - p2 };
+        }
+      }
 
       if (prem) {
         return {
           ...prem,
           entryFeeRub: fee,
           prizePoolRub: pool,
+          winningPlacesCount: targetCount,
           prizes,
         };
       }
@@ -97,6 +127,7 @@ export const TournamentCard: React.FC<{
         isPremium: true,
         entryFeeRub: fee,
         prizePoolRub: pool,
+        winningPlacesCount: targetCount,
         prizes,
         description: `Премиум соревнование. Оплата организационных услуг ${formatRub(fee)}. Фиксированное вознаграждение учреждено организатором соревнований.`,
       };
@@ -115,10 +146,39 @@ export const TournamentCard: React.FC<{
         ? std.prizePoolRub
         : Math.round(basePool * (fee / baseFee));
 
+      const targetCount =
+        (typeof std.winningPlacesCount === 'number' && std.winningPlacesCount >= 1)
+          ? std.winningPlacesCount
+          : (typeof propTournament.winningPlacesCount === 'number' && propTournament.winningPlacesCount >= 1)
+          ? propTournament.winningPlacesCount
+          : isCsOrDota
+          ? 1
+          : 2;
+
+      let prizes: Record<number, number> = {};
+      const sourcePrizes = std.prizes || (propTournament.prizes && Object.keys(propTournament.prizes).length > 0 ? propTournament.prizes : null);
+
+      if (sourcePrizes) {
+        for (let i = 1; i <= targetCount; i++) {
+          prizes[i] = Number((sourcePrizes as any)[i]) || 0;
+        }
+      } else {
+        if (targetCount === 1) {
+          prizes = { 1: pool };
+        } else if (targetCount === 2) {
+          const p1 = Math.round(pool * 0.65);
+          prizes = { 1: p1, 2: pool - p1 };
+        } else {
+          prizes = { 1: Math.round(pool * 0.5), 2: Math.round(pool * 0.3), 3: pool - Math.round(pool * 0.8) };
+        }
+      }
+
       return {
         ...std,
         entryFeeRub: fee,
         prizePoolRub: pool,
+        winningPlacesCount: targetCount,
+        prizes,
       };
     }
   }, [propTournament, cardMode, tournaments, hasToggle, standardFee, premiumFee, isCsOrDota]);

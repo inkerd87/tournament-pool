@@ -148,7 +148,7 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     entryFeeRub: 500,
     prizePoolRub: 2500,
     winningPlacesCount: 1,
-    prizes: { 1: 2500, 2: 0, 3: 0 },
+    prizes: { 1: 2500 },
     winnerPerPlayerRub: 2500,
   },
   {

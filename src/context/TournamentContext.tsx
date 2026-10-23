@@ -305,6 +305,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                     winningPlacesCount = Math.max(...activePlaces);
                   }
                 }
+                if (prizes && typeof prizes === 'object') {
+                  const slicedPrizes: Record<number, number> = {};
+                  for (let i = 1; i <= winningPlacesCount; i++) {
+                    slicedPrizes[i] = Number((prizes as any)[i]) || 0;
+                  }
+                  prizes = slicedPrizes;
+                }
                 if (meta.winnerPerPlayerRub !== undefined) {
                   winnerPerPlayerRub = meta.winnerPerPlayerRub || undefined;
                 } else if (winningPlacesCount > 1) {

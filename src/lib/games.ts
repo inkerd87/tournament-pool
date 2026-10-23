@@ -81,7 +81,7 @@ export const DEFAULT_GAME_ICONS: Record<string, string> = {
   warzone: '/games/warzone.jpg',
   fortnite: '/games/fortnite.webp',
   apex: '', // Default SVG
-  minecraft: '', // Default SVG
+  minecraft: '/games/minecraft.png',
 };
 
 export const BUILTIN_GAMES: Record<string, GameConfig> = {
@@ -179,6 +179,7 @@ export const BUILTIN_GAMES: Record<string, GameConfig> = {
     tag: "Hunger Games",
     wallpaperUrl: DEFAULT_GAME_WALLPAPERS.minecraft,
     coverUrl: DEFAULT_GAME_COVERS.minecraft,
+    iconUrl: DEFAULT_GAME_ICONS.minecraft,
   },
 };
 
