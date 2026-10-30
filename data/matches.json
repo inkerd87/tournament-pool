@@ -1,0 +1,14 @@
+{
+  "pubg-solo-001": {
+    "tournamentId": "pubg-solo-001",
+    "roomId": "NightByte_PUBG_01",
+    "password": "NB2026",
+    "updatedAt": "2026-10-30T12:00:00.000Z"
+  },
+  "pubg-premium-001": {
+    "tournamentId": "pubg-premium-001",
+    "roomId": "NightByte_PUBG_VIP01",
+    "password": "NBVIP2026",
+    "updatedAt": "2026-10-30T12:00:00.000Z"
+  }
+}

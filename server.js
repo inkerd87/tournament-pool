@@ -676,22 +676,60 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Storage API endpoints for bulletproof persistence independent of 3rd party database quotas
-  if (pathname.startsWith('/api/storage/')) {
-    const key = pathname.replace('/api/storage/', '').replace(/[^a-z0-9_-]/gi, '');
+  if (pathname.startsWith('/api/storage')) {
     const dataDir = path.join(__dirname, 'data');
     if (!fs.existsSync(dataDir)) {
       try { fs.mkdirSync(dataDir, { recursive: true }); } catch {}
     }
-    const filePath = path.join(dataDir, `${key}.json`);
 
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204);
       return res.end();
     }
+
+    let key = pathname.replace(/^\/api\/storage(\.php)?\/?/, '').replace(/[^a-z0-9_-]/gi, '');
+    if (!key && parsedUrl.searchParams.has('key')) {
+      key = (parsedUrl.searchParams.get('key') || '').replace(/[^a-z0-9_-]/gi, '');
+    }
+
+    // 1. Bundle endpoint: return all state in 1 single fast request
+    if (key === 'bundle' || key === 'all') {
+      const readJsonFile = (name, defaultVal) => {
+        const fp = path.join(dataDir, `${name}.json`);
+        if (fs.existsSync(fp)) {
+          try {
+            return JSON.parse(fs.readFileSync(fp, 'utf-8'));
+          } catch {}
+        }
+        return defaultVal;
+      };
+
+      const bundle = {
+        ok: true,
+        tournaments: readJsonFile('tournaments', null),
+        game_overrides: readJsonFile('game_overrides', null),
+        custom_games: readJsonFile('custom_games', null),
+        matches: readJsonFile('matches', null),
+        registrations: readJsonFile('registrations', null),
+        deleted_tournaments: readJsonFile('deleted_tournaments', null),
+        timestamp: new Date().toISOString(),
+      };
+
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify(bundle));
+    }
+
+    if (!key || key === 'status') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      return res.end(JSON.stringify({ ok: true, service: 'nightbyte-storage-node', time: new Date().toISOString() }));
+    }
+
+    const filePath = path.join(dataDir, `${key}.json`);
 
     if (req.method === 'GET') {
       if (fs.existsSync(filePath)) {
@@ -704,17 +742,29 @@ const server = http.createServer(async (req, res) => {
           return res.end(JSON.stringify({ error: String(e) }));
         }
       }
+
+      if (['tournaments', 'custom_games', 'registrations', 'deleted_tournaments'].includes(key)) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end('[]');
+      }
+      if (['game_overrides', 'matches'].includes(key)) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        return res.end('{}');
+      }
+
       res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
-      return res.end(JSON.stringify({ error: 'Not found' }));
+      return res.end(JSON.stringify({ error: 'Not found', key }));
     }
 
     if (req.method === 'POST') {
       const bodyStr = await readBody(req);
       try {
         JSON.parse(bodyStr); // Validate JSON format
-        fs.writeFileSync(filePath, bodyStr, 'utf-8');
+        const tmpPath = filePath + '.tmp.' + Date.now();
+        fs.writeFileSync(tmpPath, bodyStr, 'utf-8');
+        fs.renameSync(tmpPath, filePath);
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        return res.end(JSON.stringify({ ok: true, savedAt: new Date().toISOString() }));
+        return res.end(JSON.stringify({ ok: true, key, savedAt: new Date().toISOString() }));
       } catch (e) {
         res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ error: 'Invalid JSON', message: String(e) }));

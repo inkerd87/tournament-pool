@@ -1,4 +1,5 @@
 import type { CustomGame, GameId } from "./types";
+import { saveToServerStorage } from "./storage";
 
 export interface GameConfig {
   id?: string;
@@ -225,15 +226,7 @@ export function saveStoredGameOverrides(overrides: Record<string, GameOverride>)
   }
   syncAllGamesRegistry();
   window.dispatchEvent(new CustomEvent("nb_games_updated"));
-  try {
-    if (typeof window !== "undefined" && typeof window.fetch === "function") {
-      fetch('/api/storage/game_overrides', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(overrides),
-      }).catch(() => {});
-    }
-  } catch {}
+  saveToServerStorage('game_overrides', overrides);
 }
 
 /**
@@ -294,15 +287,7 @@ export function saveStoredCustomGames(customGames: CustomGame[]): void {
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent("nb_custom_games_updated", { detail: filtered }));
     window.dispatchEvent(new CustomEvent("nb_games_updated"));
-    try {
-      if (typeof window.fetch === "function") {
-        fetch('/api/storage/custom_games', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(filtered),
-        }).catch(() => {});
-      }
-    } catch {}
+    saveToServerStorage('custom_games', filtered);
   }
 }
 

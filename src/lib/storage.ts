@@ -205,7 +205,9 @@ export function markTournamentAsDeleted(tournamentId: string): void {
   try {
     const set = getDeletedTournamentIds();
     set.add(tournamentId);
-    localStorage.setItem(DELETED_TOURNAMENTS_KEY, JSON.stringify(Array.from(set)));
+    const arr = Array.from(set);
+    localStorage.setItem(DELETED_TOURNAMENTS_KEY, JSON.stringify(arr));
+    saveToServerStorage('deleted_tournaments', arr);
   } catch (e) {
     console.warn('Failed to mark tournament as deleted:', e);
   }
@@ -216,7 +218,9 @@ export function unmarkTournamentAsDeleted(tournamentId: string): void {
   try {
     const set = getDeletedTournamentIds();
     set.delete(tournamentId);
-    localStorage.setItem(DELETED_TOURNAMENTS_KEY, JSON.stringify(Array.from(set)));
+    const arr = Array.from(set);
+    localStorage.setItem(DELETED_TOURNAMENTS_KEY, JSON.stringify(arr));
+    saveToServerStorage('deleted_tournaments', arr);
   } catch (e) {
     console.warn('Failed to unmark tournament as deleted:', e);
   }
@@ -290,19 +294,63 @@ export function getStoredTournaments(): Tournament[] {
   }
 }
 
+export async function saveToServerStorage(key: string, data: any): Promise<boolean> {
+  if (typeof window === 'undefined' || typeof window.fetch !== 'function') return false;
+  const body = JSON.stringify(data);
+  try {
+    const res = await fetch(`/api/storage/${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    });
+    if (res.ok) return true;
+    if (res.status === 404) {
+      const fallbackRes = await fetch(`/api/storage.php?key=${encodeURIComponent(key)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+      return fallbackRes.ok;
+    }
+  } catch {
+    try {
+      const fallbackRes = await fetch(`/api/storage.php?key=${encodeURIComponent(key)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+      return fallbackRes.ok;
+    } catch {}
+  }
+  return false;
+}
+
+export async function fetchServerStorageBundle(): Promise<any | null> {
+  if (typeof window === 'undefined' || typeof window.fetch !== 'function') return null;
+  try {
+    const res = await fetch('/api/storage/bundle', {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.ok) return data;
+    }
+    const fb = await fetch('/api/storage.php?key=bundle', {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
+    if (fb.ok) {
+      const data = await fb.json();
+      if (data && data.ok) return data;
+    }
+  } catch {}
+  return null;
+}
+
 export function saveTournaments(tournaments: Tournament[]) {
   const clean = deduplicateTournaments(tournaments);
   localStorage.setItem(STORAGE_TOURNAMENTS_KEY, JSON.stringify(clean));
   localStorage.setItem('nb_last_sync_time', String(Date.now()));
-  try {
-    if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-      fetch('/api/storage/tournaments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(clean),
-      }).catch(() => {});
-    }
-  } catch {}
+  saveToServerStorage('tournaments', clean);
 }
 
 export function getStoredUser(): User | null {
@@ -335,15 +383,7 @@ export function getStoredRegistrations(): Registration[] {
 
 export function saveRegistrations(regs: Registration[]) {
   localStorage.setItem('nb_registrations_v4', JSON.stringify(regs));
-  try {
-    if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-      fetch('/api/storage/registrations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(regs),
-      }).catch(() => {});
-    }
-  } catch {}
+  saveToServerStorage('registrations', regs);
 }
 
 export function getStoredMatches(): Record<string, TournamentMatchAccess> {
@@ -375,15 +415,7 @@ export function getStoredMatches(): Record<string, TournamentMatchAccess> {
 
 export function saveMatches(matches: Record<string, TournamentMatchAccess>) {
   localStorage.setItem('nb_matches', JSON.stringify(matches));
-  try {
-    if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
-      fetch('/api/storage/matches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(matches),
-      }).catch(() => {});
-    }
-  } catch {}
+  saveToServerStorage('matches', matches);
 }
 
 export function getStoredHistory(email: string): MatchHistoryEntry[] {

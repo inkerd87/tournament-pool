@@ -4,13 +4,20 @@ DirectoryIndex index.html index.php
     RewriteEngine On
     RewriteBase /
 
+    # Fast storage API routing
+    RewriteRule ^api/storage/([a-zA-Z0-9_-]+)/?$ api/storage.php?key=$1 [QSA,L]
+    RewriteRule ^api/storage/?$ api/storage.php [QSA,L]
+
     # Direct access to notification & payment scripts
     RewriteCond %{REQUEST_URI} ^/freekassa-notification\.php [NC,OR]
     RewriteCond %{REQUEST_URI} ^/freekassa-create\.php [NC,OR]
     RewriteCond %{REQUEST_URI} ^/freekassa-result\.php [NC,OR]
     RewriteCond %{REQUEST_URI} ^/yookassa-notification\.php [NC,OR]
     RewriteCond %{REQUEST_URI} ^/yookassa-create\.php [NC,OR]
-    RewriteCond %{REQUEST_URI} ^/payanyway-notification\.php [NC]
+    RewriteCond %{REQUEST_URI} ^/payanyway-notification\.php [NC,OR]
+    RewriteCond %{REQUEST_URI} ^/p2p-webhook\.php [NC,OR]
+    RewriteCond %{REQUEST_URI} ^/api/storage\.php [NC,OR]
+    RewriteCond %{REQUEST_URI} ^/api/ [NC]
     RewriteRule ^ - [L]
 
     # Don't rewrite real existing files or directories
