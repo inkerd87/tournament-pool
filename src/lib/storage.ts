@@ -21,49 +21,8 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
       "2": 1000,
       "3": 500
     },
-    "isPremium": false
-  },
-  {
-    "id": "pubg-muu82lh2",
-    "title": "PUBG: BATTLEGROUNDS",
-    "game": "pubg",
-    "maxPlayers": 100,
-    "minPlayers": 50,
-    "registeredCount": 0,
-    "startsAt": "2026-10-20T17:00:00+00:00",
-    "status": "recruiting",
-    "format": "Solo, 1 соревнование",
-    "description": "Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 3 000 ₽ учреждено организатором (1-е: 1 500 ₽, 2-е: 1000 ₽, 3-е: 500 ₽).",
-    "entryFeeRub": 100,
-    "prizePoolRub": 3000,
-    "winningPlacesCount": 3,
-    "prizes": {
-      "1": 1500,
-      "2": 1000,
-      "3": 500
-    },
-    "isPremium": false
-  },
-  {
-    "id": "pubg-mobile-premium-001",
-    "title": "PUBG Mobile Premium",
-    "game": "pubg_mobile",
-    "maxPlayers": 100,
-    "minPlayers": 50,
-    "registeredCount": 0,
-    "startsAt": "2026-10-20T18:30:00+00:00",
-    "status": "recruiting",
-    "format": "Solo, 1 соревнование",
-    "description": "⭐ ПРЕМИУМ-РЕЖИМ PUBG MOBILE! Повышенные ставки на Эрангеле. Взнос за участие: 1 000 ₽. Набор участников: от 50 до 100 человек. Призовой фонд 28 000 ₽: 1 место — 15 000 ₽, 2 место — 8 000 ₽, 3 место — 5 000 ₽.",
-    "entryFeeRub": 1000,
-    "prizePoolRub": 30000,
-    "winningPlacesCount": 3,
-    "prizes": {
-      "1": 15000,
-      "2": 10000,
-      "3": 5000
-    },
-    "isPremium": true
+    "isPremium": false,
+    "winner": ""
   },
   {
     "id": "pubg-premium-001",
@@ -76,6 +35,27 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     "status": "recruiting",
     "format": "Solo, 1 соревнование",
     "description": "Премиум одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 1 000 ₽ (судейство, серверные мощности, модерация лобби). Фиксированное вознаграждение 28 000 ₽ учреждено организатором (1 место: 15 000 ₽, 2 место: 8 000 ₽, 3 место: 5 000 ₽) и не формируется из взносов.",
+    "entryFeeRub": 1000,
+    "prizePoolRub": 30000,
+    "winningPlacesCount": 3,
+    "prizes": {
+      "1": 15000,
+      "2": 10000,
+      "3": 5000
+    },
+    "isPremium": true
+  },
+  {
+    "id": "pubg-mobile-premium-001",
+    "title": "PUBG Mobile Premium",
+    "game": "pubg_mobile",
+    "maxPlayers": 100,
+    "minPlayers": 50,
+    "registeredCount": 0,
+    "startsAt": "2026-10-20T18:30:00+00:00",
+    "status": "recruiting",
+    "format": "Solo, 1 соревнование",
+    "description": "⭐ ПРЕМИУМ-РЕЖИМ PUBG MOBILE! Повышенные ставки на Эрангеле. Взнос за участие: 1 000 ₽. Набор участников: от 50 до 100 человек. Призовой фонд 28 000 ₽: 1 место — 15 000 ₽, 2 место — 8 000 ₽, 3 место — 5 000 ₽.",
     "entryFeeRub": 1000,
     "prizePoolRub": 30000,
     "winningPlacesCount": 3,
@@ -107,6 +87,25 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     "isPremium": false
   },
   {
+    "id": "apex-mv0vcntc",
+    "title": "Apex Legends",
+    "game": "apex",
+    "maxPlayers": 60,
+    "minPlayers": 60,
+    "registeredCount": 0,
+    "startsAt": "2026-10-21T19:30:00+00:00",
+    "status": "recruiting",
+    "format": "Battle Royale, Trios",
+    "description": "Королевская битва в Apex Legends. Оплата организационных услуг 200 ₽. Фиксированное вознаграждение 6 600 ₽ учреждено организатором (1-е: 6 600 ₽)\nПо 2 200 на человека.",
+    "entryFeeRub": 200,
+    "prizePoolRub": 6600,
+    "winningPlacesCount": 1,
+    "prizes": {
+      "1": 6600
+    },
+    "isPremium": false
+  },
+  {
     "id": "apex-mv0vem7l",
     "title": "Apex Legends Premium",
     "game": "apex",
@@ -126,25 +125,6 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
       "3": 5000
     },
     "isPremium": true
-  },
-  {
-    "id": "apex-mv0vcntc",
-    "title": "Apex Legends",
-    "game": "apex",
-    "maxPlayers": 60,
-    "minPlayers": 60,
-    "registeredCount": 0,
-    "startsAt": "2026-10-21T19:30:00+00:00",
-    "status": "recruiting",
-    "format": "Battle Royale, Trios",
-    "description": "Королевская битва в Apex Legends. Оплата организационных услуг 200 ₽. Фиксированное вознаграждение 6 600 ₽ учреждено организатором (1-е: 6 600 ₽)\nПо 2 200 на человека.",
-    "entryFeeRub": 200,
-    "prizePoolRub": 6600,
-    "winningPlacesCount": 1,
-    "prizes": {
-      "1": 6600
-    },
-    "isPremium": false
   },
   {
     "id": "minecraft-mv8knuh3",
@@ -182,7 +162,8 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
     "prizes": {
       "1": 6000
     },
-    "isPremium": true
+    "isPremium": true,
+    "winner": ""
   },
   {
     "id": "cs2-weekly-001",
@@ -202,6 +183,46 @@ const INITIAL_TOURNAMENTS: Tournament[] = [
       "1": 12000
     },
     "winnerPerPlayerRub": 2400,
+    "isPremium": false
+  },
+  {
+    "id": "pubg-muu82lh2",
+    "title": "PUBG: BATTLEGROUNDS",
+    "game": "pubg",
+    "maxPlayers": 100,
+    "minPlayers": 50,
+    "registeredCount": 0,
+    "startsAt": "2026-11-07T17:00:00+00:00",
+    "status": "recruiting",
+    "format": "Solo, 1 соревнование",
+    "description": "Одиночные соревнования до 100 игроков (старт от 50 участников). Оплата организационных услуг 100 ₽. Фиксированное вознаграждение 3 000 ₽ учреждено организатором (1-е: 1 500 ₽, 2-е: 1000 ₽, 3-е: 500 ₽).",
+    "entryFeeRub": 100,
+    "prizePoolRub": 3000,
+    "winningPlacesCount": 3,
+    "prizes": {
+      "1": 1500,
+      "2": 1000,
+      "3": 500
+    },
+    "isPremium": false
+  },
+  {
+    "id": "minecraft-mw41yrn5",
+    "title": "Minecraft (Hunger Games) Cup",
+    "game": "minecraft",
+    "maxPlayers": 24,
+    "minPlayers": 24,
+    "registeredCount": 0,
+    "startsAt": "2026-11-19T17:00:00+00:00",
+    "status": "recruiting",
+    "format": "Hunger Games, 24 участника, 1 сессия",
+    "description": "Minecraft: соревнование по режиму Hunger Games. Турнир рассчитан на фиксированное количество участников — ровно 24 человека. Формат проведения предполагает одну игровую сессию, в которой будет определен один победитель. Условия участия: Организационный взнос составляет 500 рублей. Победитель получает денежное вознаграждение в размере 2500 рублей.",
+    "entryFeeRub": 500,
+    "prizePoolRub": 2500,
+    "winningPlacesCount": 1,
+    "prizes": {
+      "1": 2500
+    },
     "isPremium": false
   },
   {
@@ -329,7 +350,7 @@ export function deduplicateTournaments(tournaments: Tournament[]): Tournament[] 
   });
 }
 
-const STORAGE_TOURNAMENTS_KEY = 'nb_tournaments_v21';
+const STORAGE_TOURNAMENTS_KEY = 'nb_tournaments_v22';
 
 export function getStoredTournaments(): Tournament[] {
   const deletedIds = getDeletedTournamentIds();
