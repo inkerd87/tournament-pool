@@ -226,6 +226,10 @@ export function saveStoredGameOverrides(overrides: Record<string, GameOverride>)
   }
   syncAllGamesRegistry();
   window.dispatchEvent(new CustomEvent("nb_games_updated"));
+}
+
+export function saveGameOverridesToServer(overrides: Record<string, GameOverride>): void {
+  saveStoredGameOverrides(overrides);
   saveToServerStorage('game_overrides', overrides);
 }
 
@@ -287,8 +291,22 @@ export function saveStoredCustomGames(customGames: CustomGame[]): void {
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent("nb_custom_games_updated", { detail: filtered }));
     window.dispatchEvent(new CustomEvent("nb_games_updated"));
-    saveToServerStorage('custom_games', filtered);
   }
+}
+
+export function saveCustomGamesToServer(customGames: CustomGame[]): void {
+  saveStoredCustomGames(customGames);
+  const builtinKeys = new Set(Object.keys(BUILTIN_GAMES));
+  const filtered = customGames.filter((cg) => {
+    if (!cg || !cg.id) return false;
+    const normId = cg.id.toLowerCase().trim();
+    const normName = (cg.name || '').toLowerCase().trim();
+    if (builtinKeys.has(normId)) return false;
+    if (normId.startsWith('custom_apex') || normId.startsWith('custom_mine')) return false;
+    if (normName === 'minecraft' || normName.includes('apex legends')) return false;
+    return true;
+  });
+  saveToServerStorage('custom_games', filtered);
 }
 
 /**

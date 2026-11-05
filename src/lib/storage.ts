@@ -350,6 +350,12 @@ export function saveTournaments(tournaments: Tournament[]) {
   const clean = deduplicateTournaments(tournaments);
   localStorage.setItem(STORAGE_TOURNAMENTS_KEY, JSON.stringify(clean));
   localStorage.setItem('nb_last_sync_time', String(Date.now()));
+}
+
+export function saveTournamentsToServer(tournaments: Tournament[]) {
+  const clean = deduplicateTournaments(tournaments);
+  localStorage.setItem(STORAGE_TOURNAMENTS_KEY, JSON.stringify(clean));
+  localStorage.setItem('nb_last_sync_time', String(Date.now()));
   saveToServerStorage('tournaments', clean);
 }
 
@@ -383,6 +389,10 @@ export function getStoredRegistrations(): Registration[] {
 
 export function saveRegistrations(regs: Registration[]) {
   localStorage.setItem('nb_registrations_v4', JSON.stringify(regs));
+}
+
+export function saveRegistrationsToServer(regs: Registration[]) {
+  localStorage.setItem('nb_registrations_v4', JSON.stringify(regs));
   saveToServerStorage('registrations', regs);
 }
 
@@ -414,6 +424,10 @@ export function getStoredMatches(): Record<string, TournamentMatchAccess> {
 }
 
 export function saveMatches(matches: Record<string, TournamentMatchAccess>) {
+  localStorage.setItem('nb_matches', JSON.stringify(matches));
+}
+
+export function saveMatchesToServer(matches: Record<string, TournamentMatchAccess>) {
   localStorage.setItem('nb_matches', JSON.stringify(matches));
   saveToServerStorage('matches', matches);
 }

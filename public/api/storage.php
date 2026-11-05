@@ -135,6 +135,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // Защита от случайного затирания турниров пустым массивом
+    if ($key === 'tournaments' && is_array($decoded) && count($decoded) === 0) {
+        if (file_exists($filePath)) {
+            $existing = @file_get_contents($filePath);
+            $existingDecoded = json_decode($existing, true);
+            if (is_array($existingDecoded) && count($existingDecoded) > 0) {
+                http_response_code(400);
+                echo json_encode(['error' => 'Refused to overwrite tournaments with empty array']);
+                exit;
+            }
+        }
+    }
+
+    // Автоматическое резервное копирование перед перезаписью
+    if (file_exists($filePath) && filesize($filePath) > 0) {
+        @copy($filePath, $filePath . '.backup.json');
+    }
+
     // Атомарная запись через временный файл с блокировкой LOCK_EX
     $tmpPath = $filePath . '.tmp.' . uniqid('', true);
     $written = @file_put_contents($tmpPath, $rawInput, LOCK_EX);
