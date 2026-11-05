@@ -35,6 +35,50 @@ import { supabase } from '@/lib/supabase';
 const SYSTEM_CUSTOM_GAMES_ROW_ID = '__nb_custom_games__';
 const DB_ALLOWED_GAMES = new Set(['cs2', 'dota2', 'pubg', 'warzone', 'fortnite']);
 
+export function parseTournamentFromRow(row: any): Tournament | null {
+  if (!row || !row.id || row.id === SYSTEM_CUSTOM_GAMES_ROW_ID) return null;
+
+  let cleanDesc = (row.description || '').trim();
+  let meta: any = {};
+  const metaMatch = cleanDesc.match(/<!--nb_meta:([\s\S]*?)-->/);
+  if (metaMatch) {
+    try {
+      meta = JSON.parse(metaMatch[1]);
+      cleanDesc = cleanDesc.replace(/<!--nb_meta:[\s\S]*?-->/g, '').trim();
+    } catch (e) {
+      console.warn('Failed to parse metadata for tournament', row.id, e);
+    }
+  }
+
+  const game = meta.game || row.game;
+  const isCsOrDota = game === 'cs2' || game === 'dota2';
+  const minPlayers = meta.minPlayers ?? (isCsOrDota ? 10 : game === 'minecraft' ? 24 : 50);
+
+  return {
+    id: row.id,
+    title: row.title,
+    game: game,
+    maxPlayers: Number(row.max_players) || 100,
+    minPlayers: Number(minPlayers) || 10,
+    registeredCount: Number(row.registered_count) || 0,
+    startsAt: row.starts_at,
+    status: row.status,
+    format: row.format,
+    description: cleanDesc,
+    entryFeeRub: meta.entryFeeRub !== undefined ? Number(meta.entryFeeRub) : 100,
+    prizePoolRub: meta.prizePoolRub !== undefined ? Number(meta.prizePoolRub) : 3000,
+    winningPlacesCount: meta.winningPlacesCount !== undefined ? Number(meta.winningPlacesCount) : 3,
+    prizes: meta.prizes || undefined,
+    winnerPerPlayerRub: meta.winnerPerPlayerRub !== undefined ? Number(meta.winnerPerPlayerRub) : undefined,
+    isPremium: meta.isPremium !== undefined ? Boolean(meta.isPremium) : false,
+    customIconUrl: meta.customIconUrl,
+    wallpaperUrl: meta.wallpaperUrl,
+    customGame: meta.customGame,
+    winner: meta.winner,
+    streamUrl: meta.streamUrl,
+  };
+}
+
 interface TournamentContextType {
   tournaments: Tournament[];
   registrations: Registration[];
@@ -114,8 +158,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     saveStoredCustomGames(customGames);
   }, [customGames]);
 
-  // Fetch from LocalStorage, high-speed Server storage bundle, and Supabase PostgreSQL
+  const isFetchingRef = React.useRef(false);
+
+  // Authoritative fetch from Supabase PostgreSQL (Single source of truth) with local cache fallback
   const refreshData = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
     try {
       // 0. Instant hydration from LocalStorage if initial state was empty
       try {
@@ -143,11 +192,126 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         console.warn('Local hydration notice:', e);
       }
 
-      // 1. High-speed server bundle synchronization (< 15 ms, 1 request for all entities)
+      // 1. Supabase PostgreSQL authoritative synchronization
+      if (!isSupabaseQuotaBlocked) {
+        const createTimeout = (ms = 5000) =>
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase fetch timeout')), ms));
+
+        try {
+          const [tourneysResult, matchesResult, regsResult] = await Promise.allSettled([
+            Promise.race([
+              supabase.from('tournaments').select('*').order('starts_at', { ascending: true }),
+              createTimeout(5000),
+            ]),
+            Promise.race([
+              supabase.from('matches').select('*'),
+              createTimeout(5000),
+            ]),
+            Promise.race([
+              supabase.from('registrations').select('*'),
+              createTimeout(5000),
+            ]),
+          ]);
+
+          // Check for quota block on any response
+          for (const res of [tourneysResult, matchesResult, regsResult]) {
+            if (res.status === 'fulfilled' && (res.value as any)?.error) {
+              const err = (res.value as any).error;
+              const errMsg = String(err.message || err.details || '');
+              const errCode = String(err.code || err.status || '');
+              if (errCode === '402' || errCode === 'PGRST402' || errMsg.includes('quota') || errMsg.includes('exceed')) {
+                isSupabaseQuotaBlocked = true;
+                console.warn('Supabase quota exceeded (HTTP 402). Disabling Supabase polling.');
+                return;
+              }
+            }
+          }
+
+          // A. Process Tournaments & System Custom Games Row
+          if (tourneysResult.status === 'fulfilled') {
+            const tRes: any = tourneysResult.value;
+            if (tRes && !tRes.error && Array.isArray(tRes.data) && tRes.data.length > 0) {
+              // Parse custom games registry from __nb_custom_games__
+              const customRow = tRes.data.find((r: any) => r.id === SYSTEM_CUSTOM_GAMES_ROW_ID);
+              if (customRow && customRow.description) {
+                try {
+                  const parsed = JSON.parse(customRow.description);
+                  if (parsed.customGames && Array.isArray(parsed.customGames)) {
+                    setCustomGames(parsed.customGames);
+                    saveStoredCustomGames(parsed.customGames);
+                  }
+                  if (parsed.gameOverrides && typeof parsed.gameOverrides === 'object') {
+                    setGameOverrides(parsed.gameOverrides);
+                    saveStoredGameOverrides(parsed.gameOverrides);
+                  }
+                  setAllGames(getAllGamesList());
+                } catch (e) {
+                  console.warn('Error parsing __nb_custom_games__ from Supabase:', e);
+                }
+              }
+
+              // Parse actual tournaments
+              const parsedTourneys: Tournament[] = tRes.data
+                .map(parseTournamentFromRow)
+                .filter((t: Tournament | null): t is Tournament => t !== null);
+
+              if (parsedTourneys.length > 0) {
+                const cleanTourneys = deduplicateTournaments(parsedTourneys);
+                setTournaments(cleanTourneys);
+                saveTournaments(cleanTourneys);
+              }
+            }
+          }
+
+          // B. Process Matches
+          if (matchesResult.status === 'fulfilled') {
+            const mRes: any = matchesResult.value;
+            if (mRes && !mRes.error && Array.isArray(mRes.data)) {
+              const matchMap: Record<string, TournamentMatchAccess> = {};
+              mRes.data.forEach((m: any) => {
+                if (m.tournament_id) {
+                  matchMap[m.tournament_id] = {
+                    tournamentId: m.tournament_id,
+                    roomId: m.room_id || '',
+                    password: m.password || '',
+                    joinUrl: m.join_url || undefined,
+                    streamUrl: m.stream_url || undefined,
+                    updatedAt: m.updated_at || new Date().toISOString(),
+                  };
+                }
+              });
+              setMatches(matchMap);
+              saveMatches(matchMap);
+            }
+          }
+
+          // C. Process Registrations
+          if (regsResult.status === 'fulfilled') {
+            const rRes: any = regsResult.value;
+            if (rRes && !rRes.error && Array.isArray(rRes.data)) {
+              const dbRegs: Registration[] = rRes.data.map((r: any) => ({
+                id: r.id,
+                tournamentId: r.tournament_id,
+                nickname: r.nickname,
+                gameAccount: r.game_account,
+                email: r.email,
+                phone: r.phone || '',
+                paidAt: r.paid_at,
+              }));
+
+              setRegistrations(dbRegs);
+              saveRegistrations(dbRegs);
+            }
+          }
+        } catch (syncErr) {
+          console.warn('Supabase sync notice:', syncErr);
+        }
+      }
+
+      // 2. Fallback check for server bundle if present
       try {
         const bundle = await fetchServerStorageBundle();
         if (bundle && bundle.ok) {
-          // A. Deleted tournaments
           if (Array.isArray(bundle.deleted_tournaments) && bundle.deleted_tournaments.length > 0) {
             try {
               const curDel = getDeletedTournamentIds();
@@ -163,120 +327,12 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               }
             } catch {}
           }
-
-          // B. Tournaments
-          if (Array.isArray(bundle.tournaments) && bundle.tournaments.length > 0) {
-            const serverTourneys = deduplicateTournaments(bundle.tournaments);
-            setTournaments(prev => {
-              const map = new Map<string, Tournament>();
-              serverTourneys.forEach(t => map.set(t.id, t));
-              const deleted = getDeletedTournamentIds();
-              prev.forEach(p => {
-                if (deleted.has(p.id)) return;
-                if (!map.has(p.id)) {
-                  map.set(p.id, p);
-                }
-              });
-              const merged = deduplicateTournaments(Array.from(map.values()));
-              localStorage.setItem('nb_tournaments_v20', JSON.stringify(merged));
-              return merged;
-            });
-          }
-
-          // C. Custom Games
-          if (Array.isArray(bundle.custom_games)) {
-            setCustomGames(bundle.custom_games);
-            try {
-              localStorage.setItem('nb_custom_games_v1', JSON.stringify(bundle.custom_games));
-            } catch {}
-          }
-
-          // D. Game Overrides
-          if (bundle.game_overrides && typeof bundle.game_overrides === 'object') {
-            setGameOverrides(bundle.game_overrides);
-            try {
-              localStorage.setItem('nb_game_overrides_v1', JSON.stringify(bundle.game_overrides));
-            } catch {}
-          }
-
-          if (bundle.custom_games || bundle.game_overrides) {
-            setAllGames(getAllGamesList());
-          }
-
-          // E. Matches
-          if (bundle.matches && typeof bundle.matches === 'object') {
-            setMatches(bundle.matches);
-            try {
-              localStorage.setItem('nb_matches', JSON.stringify(bundle.matches));
-            } catch {}
-          }
-
-          // F. Registrations
-          if (Array.isArray(bundle.registrations)) {
-            setRegistrations(prev => {
-              const map = new Map<string, Registration>();
-              bundle.registrations.forEach((r: Registration) => map.set(r.id, r));
-              prev.forEach(r => {
-                if (!map.has(r.id)) map.set(r.id, r);
-              });
-              const merged = Array.from(map.values());
-              localStorage.setItem('nb_registrations_v4', JSON.stringify(merged));
-              return merged;
-            });
-          }
         }
-      } catch (e) {
-        console.warn('Server bundle sync notice:', e);
-      }
-
-      // 2. Supabase registrations synchronization (guarded by circuit breaker against quota/stalls)
-      // Supabase is ONLY queried for payment registrations. All tournaments, games, and matches
-      // are authoritatively stored on high-speed server storage to avoid dual-master conflicts.
-      if (!isSupabaseQuotaBlocked) {
-        const createTimeout = (ms = 1200) =>
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase fetch timeout')), ms));
-
-        try {
-          const regsRes: any = await Promise.race([
-            supabase.from('registrations').select('*'),
-            createTimeout(1200),
-          ]);
-
-          if (regsRes?.error) {
-            const errMsg = String(regsRes.error.message || regsRes.error.details || '');
-            const errCode = String(regsRes.error.code || regsRes.error.status || '');
-            if (errCode === '402' || errCode === 'PGRST402' || errMsg.includes('quota') || errMsg.includes('exceed')) {
-              isSupabaseQuotaBlocked = true;
-              console.warn('Supabase quota exceeded (HTTP 402). Disabling Supabase polling.');
-            }
-          } else if (regsRes?.data && Array.isArray(regsRes.data)) {
-            const dbRegs: Registration[] = regsRes.data.map((r: any) => ({
-              id: r.id,
-              tournamentId: r.tournament_id,
-              nickname: r.nickname,
-              gameAccount: r.game_account,
-              email: r.email,
-              phone: r.phone || '',
-              paidAt: r.paid_at,
-            }));
-
-            setRegistrations(prev => {
-              const map = new Map<string, Registration>();
-              dbRegs.forEach(r => map.set(r.id, r));
-              prev.forEach(r => {
-                if (!map.has(r.id)) map.set(r.id, r);
-              });
-              const merged = Array.from(map.values());
-              saveRegistrations(merged);
-              return merged;
-            });
-          }
-        } catch (e) {
-          // Silent fallback to local & server storage bundle
-        }
-      }
+      } catch {}
     } catch (e) {
       console.warn('Refresh notice (using cache):', e);
+    } finally {
+      isFetchingRef.current = false;
     }
   }, []);
 
@@ -284,12 +340,12 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     refreshData();
 
-    // 1. Быстрый опрос турниров (каждые 5 сек на активной вкладке)
+    // 1. Быстрый опрос раз в 20 секунд на активной вкладке как подстраховка к WebSocket
     const pollInterval = setInterval(() => {
       if (!document.hidden) {
         refreshData();
       }
-    }, 5000);
+    }, 20000);
 
     const handleFocus = () => {
       if (!document.hidden) {
@@ -312,7 +368,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } catch {}
 
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'nb_tournaments_v20' || e.key === 'nb_last_sync_time') {
+      if (e.key === 'nb_tournaments_v21' || e.key === 'nb_last_sync_time') {
         refreshData();
       }
     };
@@ -326,6 +382,20 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .on(
           'broadcast',
           { event: 'tournaments_updated' },
+          () => {
+            refreshData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'tournaments' },
+          () => {
+            refreshData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'matches' },
           () => {
             refreshData();
           }
@@ -589,16 +659,18 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (isSupabaseQuotaBlocked) return;
       try {
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Supabase match timeout')), 1200)
+          setTimeout(() => reject(new Error('Supabase match timeout')), 5000)
         );
         const upsertPromise = supabase.from('matches').upsert({
           tournament_id: tournamentId,
           room_id: roomId,
           password: password,
           join_url: joinUrl,
+          stream_url: streamUrl,
           updated_at: matchObj.updatedAt,
         });
         await Promise.race([upsertPromise, timeoutPromise]);
+        notifyAllClients();
       } catch (e) {
         console.warn('Could not sync match to Supabase (saved locally & server):', e);
       }
@@ -608,55 +680,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const updateTournamentStartsAt = async (tournamentId: string, startsAt: string): Promise<boolean> => {
-    let nextTournaments: Tournament[] = [];
-    setTournaments(prev => {
-      const updated = prev.map(t => (t.id === tournamentId ? { ...t, startsAt } : t));
-      saveTournamentsToServer(updated);
-      nextTournaments = updated;
-      return updated;
-    });
-    notifyAllClients();
-
-    // Detached background sync to Supabase
-    (async () => {
-      if (isSupabaseQuotaBlocked) return;
-      try {
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Supabase update timeout')), 1200)
-        );
-        const updatePromise = supabase
-          .from('tournaments')
-          .update({ starts_at: startsAt })
-          .eq('id', tournamentId)
-          .select();
-        const res: any = await Promise.race([updatePromise, timeoutPromise]);
-        if (!res?.data || res.data.length === 0) {
-          const fullT = nextTournaments.find(t => t.id === tournamentId);
-          if (fullT) {
-            const dbGame = DB_ALLOWED_GAMES.has(fullT.game) ? fullT.game : 'pubg';
-            const upsertPromise = supabase.from('tournaments').upsert(
-              {
-                id: fullT.id,
-                title: fullT.title,
-                game: dbGame,
-                max_players: fullT.maxPlayers,
-                registered_count: fullT.registeredCount || 0,
-                starts_at: startsAt,
-                status: fullT.status,
-                format: fullT.format,
-                description: fullT.description || '',
-              },
-              { onConflict: 'id' }
-            );
-            await Promise.race([upsertPromise, timeoutPromise]);
-          }
-        }
-      } catch (e) {
-        console.warn('Could not sync tournament starts_at to Supabase (saved locally):', e);
-      }
-    })();
-
-    return true;
+    return updateTournament(tournamentId, { startsAt });
   };
 
   const updateTournament = async (tournamentId: string, updates: Partial<Tournament>): Promise<boolean> => {
@@ -708,7 +732,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         if (Object.keys(dbPayload).length > 0) {
           const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Supabase update timeout')), 1200)
+            setTimeout(() => reject(new Error('Supabase update timeout')), 5000)
           );
           const updatePromise = supabase
             .from('tournaments')
@@ -737,6 +761,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               await Promise.race([upsertPromise, timeoutPromise]);
             }
           }
+          notifyAllClients();
         }
       } catch (e) {
         console.warn('Could not sync tournament update to Supabase (saved locally):', e);
@@ -759,7 +784,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           gameOverrides: overridesToSave,
         };
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Supabase games timeout')), 1200)
+          setTimeout(() => reject(new Error('Supabase games timeout')), 5000)
         );
         const upsertPromise = supabase.from('tournaments').upsert(
           {
@@ -776,6 +801,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           { onConflict: 'id' }
         );
         await Promise.race([upsertPromise, timeoutPromise]);
+        notifyAllClients();
       } catch (e) {
         console.warn('Failed to sync games registry to Supabase (preserved locally & server):', e);
       }
@@ -908,7 +934,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       try {
         const dbGame = DB_ALLOWED_GAMES.has(newTournament.game) ? newTournament.game : 'pubg';
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Supabase insert timeout')), 1200)
+          setTimeout(() => reject(new Error('Supabase insert timeout')), 5000)
         );
         const insertPromise = supabase.from('tournaments').insert({
           id: newTournament.id,
@@ -922,6 +948,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           description: fullDescription,
         });
         await Promise.race([insertPromise, timeoutPromise]);
+        notifyAllClients();
       } catch (e) {
         console.warn('Could not sync tournament creation to Supabase, preserved locally:', e);
       }
@@ -950,7 +977,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (isSupabaseQuotaBlocked) return;
       try {
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Supabase delete timeout')), 1200)
+          setTimeout(() => reject(new Error('Supabase delete timeout')), 5000)
         );
         const deletePromise = Promise.all([
           supabase.from('tournaments').delete().eq('id', tournamentId),
@@ -958,6 +985,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           supabase.from('registrations').delete().eq('tournament_id', tournamentId),
         ]);
         await Promise.race([deletePromise, timeoutPromise]);
+        notifyAllClients();
       } catch (e) {
         console.warn('Could not sync tournament deletion to Supabase (deleted locally):', e);
       }
