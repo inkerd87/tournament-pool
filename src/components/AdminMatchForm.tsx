@@ -460,6 +460,8 @@ export const AdminMatchForm: React.FC<Props> = ({
     if (ok) {
       setTimeSaveSuccess(true);
       setTimeout(() => setTimeSaveSuccess(false), 3000);
+    } else {
+      alert('Ошибка при сохранении даты в базу данных. Попробуйте еще раз.');
     }
   };
 

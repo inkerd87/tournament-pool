@@ -367,7 +367,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } catch {}
 
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'nb_tournaments_v22' || e.key === 'nb_last_sync_time') {
+      if (e.key === 'nb_tournaments_v23' || e.key === 'nb_last_sync_time') {
         refreshData();
       }
     };

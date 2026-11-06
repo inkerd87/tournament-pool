@@ -69,11 +69,18 @@ export const TournamentCard: React.FC<{
     }
     const targetGame = propTournament.game;
     if (cardMode === 'premium') {
-      const prem = tournaments.find(
-        (t) =>
-          t.game === targetGame &&
-          (t.isPremium || t.id.toLowerCase().includes('premium') || t.title.toLowerCase().includes('premium'))
+      const isPropPrem = Boolean(
+        propTournament.isPremium ||
+        propTournament.id.toLowerCase().includes('premium') ||
+        propTournament.title.toLowerCase().includes('premium')
       );
+      const prem = isPropPrem
+        ? propTournament
+        : tournaments.find(
+            (t) =>
+              t.game === targetGame &&
+              (t.isPremium || t.id.toLowerCase().includes('premium') || t.title.toLowerCase().includes('premium'))
+          );
       const fee = (prem?.entryFeeRub !== undefined && prem.entryFeeRub > 0) ? prem.entryFeeRub : premiumFee;
       const pool = prem?.prizePoolRub
         ? prem.prizePoolRub
@@ -132,13 +139,19 @@ export const TournamentCard: React.FC<{
         description: `Премиум соревнование. Оплата организационных услуг ${formatRub(fee)}. Фиксированное вознаграждение учреждено организатором соревнований.`,
       };
     } else {
-      const std = tournaments.find(
-        (t) =>
-          t.game === targetGame &&
-          !t.isPremium &&
-          !t.id.toLowerCase().includes('premium') &&
-          !t.title.toLowerCase().includes('premium')
-      ) || propTournament;
+      const isPropStd = !propTournament.isPremium &&
+        !propTournament.id.toLowerCase().includes('premium') &&
+        !propTournament.title.toLowerCase().includes('premium');
+
+      const std = isPropStd
+        ? propTournament
+        : (tournaments.find(
+            (t) =>
+              t.game === targetGame &&
+              !t.isPremium &&
+              !t.id.toLowerCase().includes('premium') &&
+              !t.title.toLowerCase().includes('premium')
+          ) || propTournament);
       const fee = (std.entryFeeRub !== undefined && std.entryFeeRub > 0) ? std.entryFeeRub : standardFee;
       const baseFee = isCsOrDota ? 1500 : 100;
       const basePool = isCsOrDota ? 12000 : 2200;
